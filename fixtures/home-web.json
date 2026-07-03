@@ -1,0 +1,404 @@
+{
+  "header_notice": null,
+  "banners": [
+    {
+      "background_style": "background: linear-gradient(#208CC8 0%, #2398D9 50%, #72CBFC 100%);",
+      "background_image": "https://app.uz.gov.ua/storage/web-images/pCtD0jkaLw.png",
+      "text_color": "#ffffff",
+      "title": "Щоденні рейси до Кишинева",
+      "description": "Планувати подорожі ще простіше.\r\nШвидкий шлях до міжнародного аеропорту.",
+      "button": {
+        "title": "Переглянути",
+        "url": "https://booking.uz.gov.ua/search-trips/2200001/2300000/list"
+      }
+    },
+    {
+      "background_style": "background: linear-gradient(105.98deg, #2B9CD0 0%, #0E6293 74.74%);",
+      "background_image": "https://app.uz.gov.ua/storage/web-images/LRrGXMoOKw.png",
+      "text_color": "#ffffff",
+      "title": "Квитки на Дитячу Залізницю",
+      "description": "Захоплива подорож містом для всієї родини",
+      "button": {
+        "title": "Придбати квитки",
+        "url": "https://booking.uz.gov.ua/kids"
+      }
+    },
+    {
+      "background_style": "background: linear-gradient(#1B3A57 0%, #132C46 50%, #0B1D34 100%);",
+      "background_image": "https://app.uz.gov.ua/storage/web-images/rBYR47xOd1.png",
+      "text_color": "#ffffff",
+      "title": "Ваша безпека — наш пріоритет",
+      "description": "Правила евакуації, які варто знати до поїздки",
+      "button": {
+        "title": "Детальніше",
+        "url": "https://booking.uz.gov.ua/faq/105"
+      }
+    },
+    {
+      "background_style": "background: linear-gradient(#2D3995 0%, #0E1A5E 50%, #000E3F 100%);",
+      "background_image": "https://app.uz.gov.ua/storage/web-images/AZ0xMBmCqI.png",
+      "text_color": "#ffffff",
+      "title": "Залізна Родина",
+      "description": "Простір для допомоги залізничникам, захисникам та їхнім сімʼям, які постраждали під час війни.",
+      "button": {
+        "title": "Підтримати",
+        "url": "https://zalizna-rodyna.uz.gov.ua/?utm_source=booking&utm_medium=banner"
+      }
+    },
+    {
+      "background_style": "background: linear-gradient(#936A1E 0%, #573E12 50%, #1A1205 100%);",
+      "background_image": "https://app.uz.gov.ua/storage/web-images/K2fEUYUHsI.png",
+      "text_color": "#ffffff",
+      "title": "Поїзди, які затримуються",
+      "description": "Але вже швидко-швидко наздоганяють графік.",
+      "button": {
+        "title": "Переглянути",
+        "url": "https://uz-vezemo.uz.gov.ua/delayform/"
+      }
+    }
+  ],
+  "services": [
+    {
+      "icon": "https://app.uz.gov.ua/storage/services/QQjvws2yr4.svg",
+      "title": "UZ Lounge",
+      "description": "Комфортні місця, швидкісний інтернет і підзарядка гаджетів на Центральному вокзалі Києва.",
+      "link": "https://services.uz.gov.ua/lounge",
+      "under_development": false
+    },
+    {
+      "icon": "https://app.uz.gov.ua/storage/services/1zXw28sP96.svg",
+      "title": "Пошук забутих речей",
+      "description": "Конфіденційний пошук і повернення речей, забутих у потягу чи на вокзалі.",
+      "link": "https://services.uz.gov.ua/lost-and-found",
+      "under_development": false
+    },
+    {
+      "icon": "https://app.uz.gov.ua/storage/services/4T6zeYiQre.svg",
+      "title": "Вокзальний помічник",
+      "description": "Супровід та допомога з багажем для маломобільних пасажирів і людей з інвалідністю.",
+      "link": "https://services.uz.gov.ua/zamovlennya-pomichnyka",
+      "under_development": false
+    },
+    {
+      "icon": "https://app.uz.gov.ua/storage/services/LIPYBxmDj9.svg",
+      "title": "Групове замовлення",
+      "description": "Оформлення квитків для груп від 10 людей не пізніше ніж за 7 днів до відправлення потяга.",
+      "link": "https://services.uz.gov.ua/group-order",
+      "under_development": false
+    },
+    {
+      "icon": "https://app.uz.gov.ua/storage/services/HXYcYKLlQv.svg",
+      "title": "Вагон-автомобілевоз",
+      "description": "Вагон для подорожей з власним авто – для замовлення потрібен техпаспорт.",
+      "link": "https://services.uz.gov.ua/avtomobilevoz",
+      "under_development": false
+    },
+    {
+      "icon": "https://app.uz.gov.ua/storage/services/Wg8WFpIGKN.svg",
+      "title": "Квитки для військових",
+      "description": "Оформлення квитків для військових, коли вільних місць у потягу не знайшлося.",
+      "link": "https://services.uz.gov.ua/military",
+      "under_development": false
+    },
+    {
+      "icon": "https://app.uz.gov.ua/storage/services/LcLuIISeG1.svg",
+      "title": "Претензійне повернення",
+      "description": "Повернення квитків через скасовані рейси та нещасні випадки.",
+      "link": "https://services.uz.gov.ua/ticket-return",
+      "under_development": false
+    },
+    {
+      "icon": "https://app.uz.gov.ua/storage/services/0E0kCuYwvC.svg",
+      "title": "Інклюзивний вагон",
+      "description": "Комфортна подорож для людей з інвалідністю І групи, дітей з інвалідністю та їх супровідників.",
+      "link": "https://services.uz.gov.ua/special-carriage",
+      "under_development": false
+    },
+    {
+      "icon": "https://app.uz.gov.ua/storage/services/lHbjzjfMg7.svg",
+      "title": "Мапа безбар’єрності",
+      "description": "Все про рівень доступності вокзалів України та наявні елементи безбар'єрності.",
+      "link": "https://misto.lun.ua/uz",
+      "under_development": false
+    },
+    {
+      "icon": "https://app.uz.gov.ua/storage/services/MU3GJXELRD.svg",
+      "title": "Квитки на Дитячу Залізницю",
+      "description": "Захоплива подорож містом для всієї родини.",
+      "link": "https://booking.uz.gov.ua/kids",
+      "under_development": false
+    }
+  ],
+  "menu": {
+    "side": [
+      {
+        "title": "Про нас",
+        "items": [
+          {
+            "title": "Загальна інформація",
+            "link": "https://uz.gov.ua/about/general_information",
+            "icon": null,
+            "open_in_new_tab": true
+          }
+        ]
+      },
+      {
+        "title": "Пасажирам",
+        "items": [
+          {
+            "title": "Пошук квитків",
+            "link": "https://booking.uz.gov.ua/#header",
+            "icon": null,
+            "open_in_new_tab": false
+          },
+          {
+            "title": "Табло",
+            "link": "https://booking.uz.gov.ua/schedule",
+            "icon": null,
+            "open_in_new_tab": false
+          },
+          {
+            "title": "Затримки потягів",
+            "link": "https://uz-vezemo.uz.gov.ua/delayform",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Міжнародні сполучення",
+            "link": "https://uz-vezemo.uz.gov.ua/",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Правила перевезень",
+            "link": "https://uz.gov.ua/passengers/carriage_rules/",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Перевірка статусу квитка",
+            "link": "https://services.uz.gov.ua/check-epd",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Дитяча залізниця",
+            "link": "ua-railways://app-action/kids-railway/open",
+            "icon": "https://app.uz.gov.ua/storage/i/ni_1WrbYNM97x.png",
+            "open_in_new_tab": false
+          }
+        ]
+      },
+      {
+        "title": "Замовлення квитків і послуг",
+        "items": [
+          {
+            "title": "Квитки для військових",
+            "link": "https://services.uz.gov.ua/military",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Претензійне повернення",
+            "link": "https://services.uz.gov.ua/ticket-return",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "UZ Lounge",
+            "link": "https://services.uz.gov.ua/lounge",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Вагон-автомобілевоз",
+            "link": "https://services.uz.gov.ua/avtomobilevoz",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Групове замовлення",
+            "link": "https://services.uz.gov.ua/group-order",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Пошук забутих речей",
+            "link": "https://services.uz.gov.ua/lost-and-found",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Вокзальний помічник",
+            "link": "https://services.uz.gov.ua/zamovlennya-pomichnyka",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Інклюзивний вагон",
+            "link": "https://services.uz.gov.ua/special-carriage",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Мапа безбар’єрності",
+            "link": "https://misto.lun.ua/uz",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Онлайн замовлення",
+            "link": "https://booking.uz.gov.ua/booked-order/",
+            "icon": null,
+            "open_in_new_tab": true
+          }
+        ]
+      },
+      {
+        "title": "Зворотний зв'язок",
+        "items": [
+          {
+            "title": "booking@uz.gov.ua",
+            "link": "mailto:booking@uz.gov.ua",
+            "icon": null,
+            "open_in_new_tab": false
+          },
+          {
+            "title": "0 800 503 111",
+            "link": "tel:0800503111",
+            "icon": null,
+            "open_in_new_tab": false
+          }
+        ]
+      },
+      {
+        "title": "Ми в соцмережах",
+        "items": [
+          {
+            "title": "Facebook",
+            "link": "https://www.facebook.com/login/?next=https%3A%2F%2Fwww.facebook.com%2FUkrzaliznytsia%2F%3Flocale%3Duk_UA",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Instagram",
+            "link": "https://www.instagram.com/ukrainianrailways/?hl=en",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Telegram",
+            "link": "https://t.me//UkrzalInfo",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "TikTok",
+            "link": "https://www.tiktok.com/@ukrainian_railways?_t=8mESiNKA2ze&_r=1",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "YouTube",
+            "link": "https://www.youtube.com/ukrzaliznytsya",
+            "icon": null,
+            "open_in_new_tab": true
+          }
+        ]
+      }
+    ],
+    "footer": [
+      {
+        "title": "Пасажирам",
+        "items": [
+          {
+            "title": "Пошук квитків",
+            "link": "https://booking.uz.gov.ua/",
+            "icon": null,
+            "open_in_new_tab": false
+          },
+          {
+            "title": "Табло",
+            "link": "https://booking.uz.gov.ua/schedule",
+            "icon": null,
+            "open_in_new_tab": false
+          },
+          {
+            "title": "Затримки потягів",
+            "link": "https://uz-vezemo.uz.gov.ua/delayform",
+            "icon": null,
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Перевірка статусу квитка",
+            "link": "https://services.uz.gov.ua/check-epd",
+            "icon": null,
+            "open_in_new_tab": true
+          }
+        ]
+      },
+      {
+        "title": "Допомога",
+        "items": [
+          {
+            "title": "Часті питання",
+            "link": "https://booking.uz.gov.ua/faq",
+            "icon": null,
+            "open_in_new_tab": false
+          },
+          {
+            "title": "0 800 503 111",
+            "link": "tel:0800503111",
+            "icon": null,
+            "open_in_new_tab": false
+          },
+          {
+            "title": "booking@uz.gov.ua",
+            "link": "mailto:booking@uz.gov.ua",
+            "icon": null,
+            "open_in_new_tab": false
+          }
+        ]
+      },
+      {
+        "title": "Соцмережі",
+        "items": [
+          {
+            "title": "Facebook",
+            "link": "https://www.facebook.com/login/?next=https%3A%2F%2Fwww.facebook.com%2FUkrzaliznytsia%2F%3Flocale%3Duk_UA",
+            "icon": "https://app.uz.gov.ua/storage/i/ni_tcetAjShaI.png",
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Instagram",
+            "link": "https://www.instagram.com/ukrainianrailways/?hl=en",
+            "icon": "https://app.uz.gov.ua/storage/i/ni_FXnbyPtnzd.png",
+            "open_in_new_tab": true
+          },
+          {
+            "title": "Telegram",
+            "link": "https://t.me//UkrzalInfo",
+            "icon": "https://app.uz.gov.ua/storage/i/ni_Jx86FJSMYJ.png",
+            "open_in_new_tab": true
+          },
+          {
+            "title": "TikTok",
+            "link": "https://www.tiktok.com/@ukrainian_railways?_t=8mESiNKA2ze&_r=1",
+            "icon": "https://app.uz.gov.ua/storage/i/ni_tmnhdyT2mP.png",
+            "open_in_new_tab": true
+          },
+          {
+            "title": "YouTube",
+            "link": "https://www.youtube.com/ukrzaliznytsya",
+            "icon": "https://app.uz.gov.ua/storage/i/ni_WDM0h838gB.png",
+            "open_in_new_tab": true
+          }
+        ]
+      }
+    ]
+  },
+  "special_links": {
+    "offer": "https://booking.uz.gov.ua/docs/offer",
+    "privacy": "https://booking.uz.gov.ua/docs/terms"
+  }
+}

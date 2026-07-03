@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8"><style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter','Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .stage{width:1240px;height:700px;display:flex;align-items:center;justify-content:center;gap:34px;
+    background:#fff;background-image:linear-gradient(#eef2ff 1px,transparent 1px),linear-gradient(90deg,#eef2ff 1px,transparent 1px);background-size:40px 40px}
+  .phone{width:362px;height:604px;border-radius:28px;overflow:hidden;position:relative;
+    background:linear-gradient(180deg,#eff6ff 0%,#eef2ff 55%,#e0e7ff 100%);
+    box-shadow:0 24px 60px rgba(2,6,23,.20);border:1px solid #e2e8f0}
+  .hd{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px}
+  .brand{display:flex;align-items:center;gap:8px}
+  .logo{width:28px;height:28px;border-radius:8px;background:#0B1020;display:flex;align-items:center;justify-content:center;position:relative}
+  .logo b{color:#fff;font-size:12px;font-weight:800}
+  .name{font-size:14px;font-weight:700;color:#1e293b}
+  .dot{width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px #d1fae5}
+  .tabs{margin:0 16px;display:flex;background:rgba(255,255,255,.7);border:1px solid #e2e8f0;border-radius:999px;padding:4px;font-size:13px;font-weight:600}
+  .tabs span{flex:1;text-align:center;padding:6px 0;color:#64748b;border-radius:999px}
+  .tabs .on{background:#2563eb;color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.35)}
+  .tabs .onw{background:#fff;color:#1d4ed8;border:1px solid #e2e8f0}
+  .body{padding:16px}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(2,6,23,.04);margin-bottom:12px}
+  .rowb{display:flex;align-items:center;justify-content:between;justify-content:space-between}
+  .route{font-size:14px;font-weight:700;color:#1e293b}
+  .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .b-blue{background:#dbeafe;color:#1d4ed8}.b-green{background:#d1fae5;color:#047857}
+  .times{display:flex;align-items:center;justify-content:space-between;margin-top:10px;color:#334155}
+  .t-big{font-size:18px;font-weight:800;line-height:1;color:#0f172a}
+  .arr{color:#93c5fd;font-size:18px;margin:0 6px}
+  .meta{font-size:11px;font-weight:500;color:#94a3b8;text-align:right}
+  .live{margin-top:10px;font-size:11px;font-weight:500;color:#94a3b8;display:flex;align-items:center;gap:6px}
+  .pulse{width:6px;height:6px;border-radius:50%;background:#2563eb}
+  .hold{margin-top:10px;background:#fffbeb;color:#b45309;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px}
+  .add{border:1.5px dashed #cbd5e1;background:rgba(255,255,255,.5);border-radius:16px;padding:13px;text-align:center;font-size:13px;font-weight:600;color:#2563eb}
+  .sec{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin:2px 0 8px}
+  /* wizard */
+  .wtop{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px}
+  .back{color:#94a3b8;font-size:20px;font-weight:700}
+  .dots{display:flex;gap:5px}.dots i{height:6px;border-radius:999px;background:#cbd5e1;width:6px}.dots i.a{width:20px;background:#2563eb}
+  .h4{font-size:20px;font-weight:800;color:#0f172a;padding:8px 20px 0}
+  .sub{font-size:13px;color:#64748b;padding:4px 20px 0}
+  .seg{margin:16px 20px 0;display:flex;background:rgba(255,255,255,.7);border:1px solid #e2e8f0;border-radius:999px;padding:4px;font-size:12px;font-weight:600}
+  .seg span{flex:1;text-align:center;padding:6px 0;color:#64748b;border-radius:999px}
+  .trn{margin:0 20px;display:flex;align-items:center;justify-content:space-between;border:1px solid #e2e8f0;background:#fff;border-radius:12px;padding:12px;margin-top:10px}
+  .trn.sel{border:2px solid #2563eb;background:rgba(239,246,255,.6)}
+  .trn .nm{font-size:14px;font-weight:700;color:#1e293b}.trn .tm{font-size:11px;color:#64748b;margin-top:2px}
+  .rad{width:20px;height:20px;border-radius:50%;border:2px solid #cbd5e1}
+  .rad.on{border:6px solid #2563eb}
+  .cta{margin:20px;background:#2563eb;color:#fff;text-align:center;font-size:14px;font-weight:700;padding:11px;border-radius:12px;box-shadow:0 8px 20px rgba(37,99,235,.30)}
+  /* boarding pass (tickets) */
+  .bp{background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(2,6,23,.04)}
+  .bp-h{background:linear-gradient(135deg,#eff6ff,#eef2ff);padding:16px}
+  .bp-top{display:flex;align-items:center;justify-content:space-between}
+  .chip{background:#fff;border:1px solid #dbeafe;color:#1d4ed8;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .price{font-size:14px;font-weight:700;color:#1e293b}
+  .bp-times{display:flex;align-items:center;justify-content:space-between;margin-top:12px;color:#0f172a}
+  .bp-times .b{font-size:24px;font-weight:800;line-height:1}
+  .bp-times .l{font-size:11px;color:#64748b;margin-top:4px}
+  .perf{border-top:1.5px dashed #e2e8f0}
+  .bp-f{display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+  .pass{background:#f1f5f9;color:#475569;font-size:11px;font-weight:600;padding:5px 10px;border-radius:999px}
+  .pdf{color:#2563eb;font-size:12px;font-weight:700}
+  .arch{display:flex;align-items:center;justify-content:space-between;border:1px solid #e2e8f0;background:rgba(255,255,255,.6);border-radius:12px;padding:12px 16px;margin-top:4px}
+  .arch .r{font-size:14px;font-weight:600;color:#64748b}.arch .s{font-size:11px;color:#94a3b8}
+</style></head>
+<body>
+<div class="stage">
+
+  <!-- SCREEN 1 — hunts list -->
+  <div class="phone">
+    <div class="hd"><div class="brand"><div class="logo"><b>UZ</b></div><div class="name">Ticket Hunter</div></div><div class="dot"></div></div>
+    <div class="tabs"><span class="on">Пошук</span><span>Квитки</span><span>Налаштування</span></div>
+    <div class="body">
+      <div class="card">
+        <div class="rowb"><span class="route">Київ → Львів</span><span class="badge b-blue">Пошук</span></div>
+        <div class="times"><span class="t-big">08:15</span><span class="arr">→</span><span class="t-big">14:30</span><span class="meta">043Л · 05.07</span></div>
+        <div class="live"><span class="pulse"></span> спроба #37 · щойно</div>
+      </div>
+      <div class="card">
+        <div class="rowb"><span class="route">Одеса → Київ</span><span class="badge b-green">Зарезервовано</span></div>
+        <div class="times"><span class="t-big">22:40</span><span class="arr">→</span><span class="t-big">06:10</span><span class="meta">105Д · 06.07</span></div>
+        <div class="hold">Оплатіть до 22:53 — лишилось 14:31</div>
+      </div>
+      <div class="add">+ Новий пошук</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2 — train step (pre-sale) -->
+  <div class="phone">
+    <div class="wtop"><span class="back">‹</span><div class="dots"><i class="a"></i><i class="a"></i><i></i><i></i><i></i></div><span style="width:20px"></span></div>
+    <div class="h4">Який поїзд?</div>
+    <div class="sub">Оберіть поїзд із розкладу — працює ще до відкриття продажу.</div>
+    <div class="seg"><span>Стежити зараз</span><span class="onw" style="background:#fff;color:#1d4ed8">До відкриття</span></div>
+    <div class="trn sel"><div><div class="nm">043Л · Інтерсіті+</div><div class="tm">08:15 → 14:30 · 6 год 15 хв</div></div><div class="rad on"></div></div>
+    <div class="trn"><div><div class="nm">091К · Нічний</div><div class="tm">22:40 → 06:55 · 8 год 15 хв</div></div><div class="rad"></div></div>
+    <div class="trn"><div><div class="nm">743Ш · Ранковий</div><div class="tm">06:02 → 12:40 · 6 год 38 хв</div></div><div class="rad"></div></div>
+    <div class="cta">Далі</div>
+  </div>
+
+  <!-- SCREEN 3 — my tickets -->
+  <div class="phone">
+    <div class="hd"><div class="brand"><div class="logo"><b>UZ</b></div><div class="name">Ticket Hunter</div></div><div class="dot"></div></div>
+    <div class="tabs"><span>Пошук</span><span class="on">Квитки</span><span>Налаштування</span></div>
+    <div class="body">
+      <div class="sec">Активні</div>
+      <div class="bp">
+        <div class="bp-h">
+          <div class="bp-top"><span class="chip">043Л</span><span class="price">1 240 ₴</span></div>
+          <div class="bp-times"><div><div class="b">08:15</div><div class="l">Київ-Пас.</div></div><span class="arr">→</span><div style="text-align:right"><div class="b">14:30</div><div class="l">Львів</div></div></div>
+        </div>
+        <div class="perf"></div>
+        <div class="bp-f"><span class="pass">Іван Тестенко · Купе 21</span><span class="pdf">PDF ↓</span></div>
+      </div>
+      <div class="sec" style="margin-top:14px">Архів</div>
+      <div class="arch"><span class="r">Одеса → Київ · 12.06</span><span class="s">завершено</span></div>
+    </div>
+  </div>
+
+</div>
+</body></html>

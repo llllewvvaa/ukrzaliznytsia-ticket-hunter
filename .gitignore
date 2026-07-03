@@ -1,0 +1,27 @@
+# dependencies
+node_modules
+
+# wxt generated
+.output
+.wxt
+stats.html
+stats-*.json
+
+# build / cache
+dist
+*.tsbuildinfo
+
+# editor / os
+.idea
+.junie/
+.DS_Store
+*.log
+
+# local tooling state (HUD etc.) — never commit
+.omc/
+
+# Discovery captures — contain live JWTs, x-session-id and passenger PII.
+# NEVER commit these. Fixtures under fixtures/ must be anonymized instead.
+*.har
+/*-state.html
+/*-decide.html

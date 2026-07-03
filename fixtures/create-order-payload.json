@@ -1,0 +1,73 @@
+{
+  "reservations": [
+    {
+      "first_name": "Іван",
+      "last_name": "Тестенко",
+      "input_type": null,
+      "privilege": null,
+      "privilege_data": {},
+      "privilege_id": null,
+      "companion_id": null,
+      "services": [
+        {
+          "id": "bedding",
+          "title": "Постіль",
+          "details": {
+            "photo": null,
+            "content": [
+              {
+                "title": "У комплекті:",
+                "description": "Матрац, подушка, ковдра, 2 простирадла, наволочка та рушник. Якщо відмовитися від постілі, не можна користуватися матрацом, подушкою та ковдрою.\n"
+              }
+            ]
+          },
+          "price": 9500,
+          "select_type": "checkbox",
+          "select_units_max": null,
+          "selected_by_default": true,
+          "value": true
+        }
+      ],
+      "passenger_options": [],
+      "save_in_passengers": false,
+      "passenger_id": 2000001,
+      "wagon_id": "enc-wagon-id-sample",
+      "seat_number": 28
+    },
+    {
+      "first_name": "Олена",
+      "last_name": "Прикладна",
+      "input_type": null,
+      "privilege": null,
+      "privilege_data": {},
+      "privilege_id": null,
+      "companion_id": null,
+      "services": [
+        {
+          "id": "bedding",
+          "title": "Постіль",
+          "details": {
+            "photo": null,
+            "content": [
+              {
+                "title": "У комплекті:",
+                "description": "Матрац, подушка, ковдра, 2 простирадла, наволочка та рушник. Якщо відмовитися від постілі, не можна користуватися матрацом, подушкою та ковдрою.\n"
+              }
+            ]
+          },
+          "price": 9500,
+          "select_type": "checkbox",
+          "select_units_max": null,
+          "selected_by_default": true,
+          "value": true
+        }
+      ],
+      "passenger_options": [],
+      "save_in_passengers": false,
+      "passenger_id": 2000002,
+      "wagon_id": "enc-wagon-id-sample",
+      "seat_number": 25
+    }
+  ],
+  "trip_id": 3000001
+}

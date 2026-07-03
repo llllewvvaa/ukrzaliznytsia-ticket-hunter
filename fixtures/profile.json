@@ -1,0 +1,96 @@
+{
+  "id": 1000001,
+  "type": 0,
+  "phone": "+380000000000",
+  "email": "passenger@example.com",
+  "share_text": "Купую квитки в застосунку Укрзалізниці та всім раджу. Можна швидко забронювати місця, отримати нагадування про подорож і дізнатися номер колії. Завітай! https://app.uz.gov.ua/start",
+  "passenger": {
+    "id": 2000001,
+    "first_name": "Іван",
+    "last_name": "Тестенко",
+    "ticket_type": 0,
+    "privilege_id": null,
+    "privilege_data": null,
+    "privilege": null,
+    "photo": null,
+    "main": true,
+    "phone": null,
+    "is_share_user": false,
+    "birthday": "1990-01-01",
+    "gender": 1,
+    "is_verified": true,
+    "is_in_iron_km_program": true,
+    "iron_km_distance_left": 3000,
+    "iron_km_trips_left": 4
+  },
+  "additional_actions": [
+    {
+      "title": "Дитяча залізниця",
+      "icon": "https://app.uz.gov.ua/storage/i/ni_1WrbYNM97x.png",
+      "link": "ua-railways://app-action/kids-railway/open"
+    }
+  ],
+  "loyalty": {
+    "title": "Залізні пропозиції",
+    "info_link": "https://app.uz.gov.ua/docs/loyalty",
+    "icon": "https://app.uz.gov.ua/img/api/loyalty3.png",
+    "icon_hugs": "https://app.uz.gov.ua/img/api/loyalty2.png",
+    "points_count": 23654,
+    "points": {
+      "value": "23654",
+      "label": "обіймашки"
+    },
+    "data_columns": [
+      {
+        "value": "13",
+        "label": "подорожей"
+      },
+      {
+        "value": "4452",
+        "label": "кілометри"
+      },
+      {
+        "value": "68",
+        "label": "годин"
+      }
+    ],
+    "info_block": {
+      "title": "Подорожуйте більше та отримуйте винагороди",
+      "description": "Вітаємо в команді Залізних друзів! Кожен кілометр залізничних подорожей наближає теплі зустрічі, а відтак — генерує обіймашки.\n\nКупуйте квитки як зазвичай та отримуйте обіймашки за подорожі з 12.01.2023.\n\nЗгодом зможете перетворити обіймашки на бонуси й подарунки від Укрзалізниці та наших партнерів."
+    }
+  },
+  "diia_verified_at": null,
+  "verified_at": null,
+  "achievements": {
+    "awards_count": "3/25 нагород",
+    "title": "Залізні друзі",
+    "image": "https://app.uz.gov.ua/img/api/loyalty_level.png",
+    "levels_enabled": false
+  },
+  "genders": [
+    {
+      "id": 1,
+      "title": "Чоловіча"
+    },
+    {
+      "id": 2,
+      "title": "Жіноча"
+    },
+    {
+      "id": 3,
+      "title": "Інше"
+    }
+  ],
+  "special_statuses": [
+    {
+      "status": 1,
+      "verified_at": 1782710334
+    }
+  ],
+  "verification_type": null,
+  "available_verification_types": [
+    1
+  ],
+  "show_iron_km_program": true,
+  "is_in_iron_km_program": true
+}

@@ -1,0 +1,121 @@
+{
+  "data": [
+    {
+      "id": 4000001,
+      "train": { "station_from": "Суми", "station_to": "Київ-Пас", "number": "775П", "type": 0 },
+      "trip": {
+        "id": 3000002,
+        "station_from": "Суми",
+        "station_to": "Київ-Пас",
+        "depart_at": 1781694000,
+        "arrive_at": 1781713860,
+        "stations_time_offset": 0
+      },
+      "tickets": [
+        {
+          "id": 5000001,
+          "note": "Повернули 17.06.26",
+          "returned_at": 1781689328,
+          "pdf_url": "https://app.uz.gov.ua/ticket-merged/Prykladna-Olena-17-06.pdf?v=abc",
+          "reservation": {
+            "id": 6000001,
+            "first_name": "Олена",
+            "last_name": "Прикладна",
+            "ticket_type": 0,
+            "privilege_id": null,
+            "privilege_data": null,
+            "privilege": null,
+            "wagon_number": "3",
+            "wagon_class_id": "К",
+            "wagon_class_name": "Купе",
+            "seat_number": "21",
+            "services": [{ "id": "bedding", "title": "Постіль" }],
+            "price": 25222,
+            "description": "Постіль"
+          },
+          "has_return_status": true
+        },
+        {
+          "id": 5000002,
+          "note": "Повернули 17.06.26",
+          "returned_at": 1781689356,
+          "pdf_url": "https://app.uz.gov.ua/ticket-merged/Testenko-Ivan-17-06.pdf?v=def",
+          "reservation": {
+            "id": 6000002,
+            "first_name": "Іван",
+            "last_name": "Тестенко",
+            "ticket_type": 0,
+            "privilege_id": null,
+            "privilege_data": null,
+            "privilege": null,
+            "wagon_number": "3",
+            "wagon_class_id": "К",
+            "wagon_class_name": "Купе",
+            "seat_number": "23",
+            "services": [{ "id": "bedding", "title": "Постіль" }],
+            "price": 25222,
+            "description": "Постіль"
+          },
+          "has_return_status": true
+        }
+      ],
+      "has_survey": false,
+      "loyalty_points": 0,
+      "railway_type": 1,
+      "custom_tag": null,
+      "description": null
+    },
+    {
+      "id": 4000002,
+      "train": { "station_from": "Суми", "station_to": "Київ-Пас", "number": "779П", "type": 0 },
+      "trip": {
+        "id": 3000003,
+        "station_from": "Суми",
+        "station_to": "Київ-Пас",
+        "depart_at": 1778729100,
+        "arrive_at": 1778747520,
+        "stations_time_offset": 0
+      },
+      "tickets": [
+        {
+          "id": 5000003,
+          "note": null,
+          "returned_at": null,
+          "pdf_url": "https://app.uz.gov.ua/ticket-merged/Testenko-Ivan-14-05.pdf?v=ghi",
+          "reservation": {
+            "id": 6000003,
+            "first_name": "Іван",
+            "last_name": "Тестенко",
+            "ticket_type": 0,
+            "privilege_id": null,
+            "privilege_data": null,
+            "privilege": null,
+            "wagon_number": "4",
+            "wagon_class_id": "К",
+            "wagon_class_name": "Купе",
+            "seat_number": "17",
+            "services": [{ "id": "bedding", "title": "Постіль" }],
+            "price": 45543,
+            "description": "Постіль"
+          },
+          "has_return_status": false
+        }
+      ],
+      "has_survey": false,
+      "loyalty_points": 0,
+      "railway_type": 1,
+      "custom_tag": null,
+      "description": null
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "total": 17,
+      "count": 17,
+      "per_page": 20,
+      "current_page": 1,
+      "total_pages": 1,
+      "links": { "previous": null, "next": null }
+    }
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "station_from": "Київ-Пас",
+  "station_to": "Львів",
+  "direct": [
+    {
+      "id": 11378092,
+      "depart_at": 1783646940,
+      "arrive_at": 1783677720,
+      "station_from": "Київ-Пас",
+      "station_to": "Львів",
+      "stations_time_offset": 0,
+      "train": {
+        "id": 57,
+        "station_from": "Харків-Пас",
+        "station_to": "Львів",
+        "number": "021О",
+        "type": 0,
+        "wagon_classes": [
+          {
+            "id": "П",
+            "name": "Плацкарт",
+            "free_seats": 0,
+            "price": 0,
+            "amenities": [
+              "not_near_wc",
+              "with_conditioner",
+              "lower_places",
+              "not_side_seats"
+            ]
+          },
+          {
+            "id": "К",
+            "name": "Купе",
+            "free_seats": 0,
+            "price": 79326,
+            "amenities": [
+              "not_near_wc",
+              "with_conditioner",
+              "lower_places"
+            ]
+          },
+          {
+            "id": "КЖ",
+            "name": "Жіноче купе",
+            "free_seats": 0,
+            "price": 79326,
+            "amenities": [
+              "not_near_wc",
+              "with_conditioner",
+              "lower_places"
+            ]
+          },
+          {
+            "id": "Л",
+            "name": "Люкс",
+            "free_seats": 0,
+            "price": 0,
+            "amenities": [
+              "not_near_wc",
+              "with_conditioner"
+            ]
+          }
+        ],
+        "info_popup": null
+      },
+      "discount": null,
+      "custom_tag": null,
+      "custom_tags": [],
+      "monitoring": {
+        "allowed": true,
+        "auto_purchase": true
+      },
+      "is_departed": false,
+      "with_iron_km_program": false,
+      "max_passengers_count": 4,
+      "distance": 627,
+      "seat_hold_enabled": true
+    },
+    {
+      "id": 11383370,
+      "depart_at": 1783672080,
+      "arrive_at": 1783697160,
+      "station_from": "Київ-Пас",
+      "station_to": "Львів",
+      "stations_time_offset": 0,
+      "train": {
+        "id": 36,
+        "station_from": "Київ-Пас",
+        "station_to": "Перемишль",
+        "number": "715К",
+        "type": 2,
+        "wagon_classes": [
+          {
+            "id": "С1",
+            "name": "1 клас",
+            "free_seats": 32,
+            "price": 121752,
+            "amenities": [
+              "not_near_wc",
+              "with_conditioner",
+              "near_window"
+            ]
+          },
+          {
+            "id": "С2",
+            "name": "2 клас",
+            "free_seats": 41,
+            "price": 68225,
+            "amenities": [
+              "not_near_wc",
+              "with_conditioner",
+              "near_window"
+            ]
+          }
+        ],
+        "info_popup": null
+      },
+      "discount": null,
+      "custom_tag": null,
+      "custom_tags": [],
+      "monitoring": {
+        "allowed": true,
+        "auto_purchase": true
+      },
+      "is_departed": false,
+      "with_iron_km_program": false,
+      "max_passengers_count": 4,
+      "distance": 627,
+      "seat_hold_enabled": true
+    },
+    {
+      "id": 11472343,
+      "depart_at": 1783658160,
+      "arrive_at": 1783685640,
+      "station_from": "Київ-Пас",
+      "station_to": "Львів",
+      "stations_time_offset": 0,
+      "train": {
+        "id": 118,
+        "station_from": "Київ-Пас",
+        "station_to": "Львів",
+        "number": "291К",
+        "type": 0,
+        "wagon_classes": [
+          {
+            "id": "Л",
+            "name": "Люкс",
+            "free_seats": 48,
+            "price": 296910,
+            "amenities": [
+              "not_near_wc",
+              "with_conditioner"
+            ]
+          }
+        ],
+        "info_popup": null
+      },
+      "discount": null,
+      "custom_tag": null,
+      "custom_tags": [],
+      "monitoring": {
+        "allowed": true,
+        "auto_purchase": true
+      },
+      "is_departed": false,
+      "with_iron_km_program": false,
+      "max_passengers_count": 4,
+      "distance": 563,
+      "seat_hold_enabled": true
+    }
+  ],
+  "with_transfer": null,
+  "monitoring": {
+    "available_type": "trains",
+    "active": null
+  },
+  "sale_start": null
+}

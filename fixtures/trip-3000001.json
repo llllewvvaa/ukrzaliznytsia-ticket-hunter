@@ -1,0 +1,217 @@
+{
+  "id": 3000001,
+  "depart_at": 1784484060,
+  "arrive_at": 1784538300,
+  "station_from": {
+    "id": 2200001,
+    "name": "Київ-Пас"
+  },
+  "station_to": {
+    "id": 2218218,
+    "name": "Татарів"
+  },
+  "stations_time_offset": 0,
+  "train": {
+    "id": 5649,
+    "station_from": "Київ-Пас",
+    "station_to": "Ясіня",
+    "number": "057К",
+    "type": 0,
+    "wagon_classes": [
+      {
+        "id": "П",
+        "name": "Плацкарт",
+        "free_seats": 3,
+        "price": 26880,
+        "amenities": [
+          "not_near_wc",
+          "with_conditioner",
+          "lower_places",
+          "not_side_seats"
+        ]
+      },
+      {
+        "id": "К",
+        "name": "Купе",
+        "free_seats": 0,
+        "price": 40205,
+        "amenities": [
+          "not_near_wc",
+          "with_conditioner",
+          "lower_places"
+        ]
+      }
+    ],
+    "info_popup": null,
+    "info": null
+  },
+  "route_points": [
+    {
+      "arrive_at": 1784484060,
+      "depart_at": 1784484060,
+      "station": {
+        "id": 2200001,
+        "name": "Київ-Пасажирський"
+      }
+    },
+    {
+      "arrive_at": 1784490600,
+      "depart_at": 1784490720,
+      "station": {
+        "id": 2200302,
+        "name": "Козятин 1"
+      }
+    },
+    {
+      "arrive_at": 1784493540,
+      "depart_at": 1784493720,
+      "station": {
+        "id": 2200200,
+        "name": "Вінниця"
+      }
+    },
+    {
+      "arrive_at": 1784500020,
+      "depart_at": 1784500320,
+      "station": {
+        "id": 2200300,
+        "name": "Хмельницький"
+      }
+    },
+    {
+      "arrive_at": 1784506440,
+      "depart_at": 1784508840,
+      "station": {
+        "id": 2218300,
+        "name": "Тернопіль"
+      }
+    },
+    {
+      "arrive_at": 1784511480,
+      "depart_at": 1784511660,
+      "station": {
+        "id": 2218148,
+        "name": "Теребовля"
+      }
+    },
+    {
+      "arrive_at": 1784513100,
+      "depart_at": 1784513280,
+      "station": {
+        "id": 2218151,
+        "name": "Хоростків"
+      }
+    },
+    {
+      "arrive_at": 1784514420,
+      "depart_at": 1784514600,
+      "station": {
+        "id": 2218152,
+        "name": "Копичинці"
+      }
+    },
+    {
+      "arrive_at": 1784516340,
+      "depart_at": 1784516520,
+      "station": {
+        "id": 2218135,
+        "name": "Чортків"
+      }
+    },
+    {
+      "arrive_at": 1784519100,
+      "depart_at": 1784519280,
+      "station": {
+        "id": 2218179,
+        "name": "Товсте"
+      }
+    },
+    {
+      "arrive_at": 1784521500,
+      "depart_at": 1784521620,
+      "station": {
+        "id": 2218220,
+        "name": "Заліщики"
+      }
+    },
+    {
+      "arrive_at": 1784521920,
+      "depart_at": 1784522040,
+      "station": {
+        "id": 2218248,
+        "name": "Кострижівка"
+      }
+    },
+    {
+      "arrive_at": 1784523120,
+      "depart_at": 1784523780,
+      "station": {
+        "id": 2218247,
+        "name": "Стефанешти"
+      }
+    },
+    {
+      "arrive_at": 1784525940,
+      "depart_at": 1784526120,
+      "station": {
+        "id": 2218564,
+        "name": "Городенка-Завод"
+      }
+    },
+    {
+      "arrive_at": 1784530320,
+      "depart_at": 1784531700,
+      "station": {
+        "id": 2218030,
+        "name": "Коломия"
+      }
+    },
+    {
+      "arrive_at": 1784536320,
+      "depart_at": 1784536620,
+      "station": {
+        "id": 2218255,
+        "name": "Яремче"
+      }
+    },
+    {
+      "arrive_at": 1784537340,
+      "depart_at": 1784537700,
+      "station": {
+        "id": 2218014,
+        "name": "Микуличин"
+      }
+    },
+    {
+      "arrive_at": 1784538300,
+      "depart_at": 1784538540,
+      "station": {
+        "id": 2218218,
+        "name": "Татарів-Буковель ⛷️"
+      }
+    },
+    {
+      "arrive_at": 1784539140,
+      "depart_at": 1784539320,
+      "station": {
+        "id": 2218217,
+        "name": "Ворохта"
+      }
+    },
+    {
+      "arrive_at": 1784541180,
+      "depart_at": 1784541180,
+      "station": {
+        "id": 2218213,
+        "name": "Ясіня"
+      }
+    }
+  ],
+  "monitoring": {
+    "allowed": true,
+    "auto_purchase": true
+  },
+  "with_iron_km_program": false,
+  "max_passengers_count": 4,
+  "seat_hold_enabled": true
+}
