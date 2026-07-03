@@ -6,9 +6,8 @@ import { SeatPickerModal } from './SeatPickerModal';
 import { query } from '@/lib/messages';
 import { byDeparture, durationLabel, hhmm } from '@/lib/trip-format';
 import { staggerIn } from '@/lib/anim';
+import { DATE_RE } from '@/lib/date';
 import type { MatchRef, Station, Trip } from '@/lib/models';
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export type SeatSelection = { match: MatchRef; wagonNumber: string; seats: number[] };
 

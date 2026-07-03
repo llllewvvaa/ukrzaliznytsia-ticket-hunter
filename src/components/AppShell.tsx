@@ -1,15 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { openKeepAlive } from '@/lib/bridge';
-import { moveSegment } from '@/lib/anim';
 import { useJobs } from '@/lib/use-store';
-import { saveJob } from '@/lib/store';
-import { controlConfirmCopy } from '@/lib/job-format';
-import { sendControl, type ControlAction } from '@/lib/messages';
+import { useJobControl, type JobView } from '@/lib/use-job-control';
+import { useSegmentIndicator } from '@/lib/use-segment-indicator';
 import { openSidePanel, sidePanelSupported } from '@/lib/sidepanel';
 import { openOnboarding } from '@/lib/onboarding';
-import type { HuntJob } from '@/lib/models';
 import { AuthIndicator } from '@/components/AuthIndicator';
 import {
   AddIcon,
@@ -28,17 +25,14 @@ import { JobDetails } from '@/components/JobDetails';
 import { OrdersView } from '@/components/OrdersView';
 import { SettingsView } from '@/components/SettingsView';
 
-type View = { kind: 'list' } | { kind: 'new' } | { kind: 'detail'; jobId: string };
 type Tab = 'hunts' | 'orders' | 'settings';
 
 export function AppShell({ surface }: { surface: 'popup' | 'sidepanel' }) {
   const { jobs, loading } = useJobs();
+  const { confirmAction, confirmCopy, requestControl, confirmPending, cancelPending, createAndStart } =
+    useJobControl();
   const [tab, setTab] = useState<Tab>('hunts');
-  const [view, setView] = useState<View>({ kind: 'list' });
-  const [confirmAction, setConfirmAction] = useState<{
-    action: 'delete' | 'cancel';
-    job: HuntJob;
-  } | null>(null);
+  const [view, setView] = useState<JobView>({ kind: 'list' });
   // keep-alive port holds the SW awake so a scheduled sprint fires reliably
   const hasLiveJob = jobs.some(
     (j) => j.state === 'scheduled' || j.state === 'hunting' || j.state === 'reserving',
@@ -53,30 +47,6 @@ export function AppShell({ surface }: { surface: 'popup' | 'sidepanel' }) {
   const isDetail = tab === 'hunts' && view.kind === 'detail';
   const showChrome = !isWizard && !isDetail;
   const canSidePanel = surface === 'popup' && sidePanelSupported();
-
-  const handleControl = (action: ControlAction, job: HuntJob): void => {
-    if (action === 'delete' || action === 'cancel') {
-      setConfirmAction({ action, job });
-      return;
-    }
-    void sendControl(action, job.id);
-  };
-
-  const runConfirm = (): void => {
-    if (!confirmAction) return;
-    void sendControl(confirmAction.action, confirmAction.job.id);
-    setConfirmAction(null);
-  };
-
-  const confirmCopy = confirmAction
-    ? controlConfirmCopy(confirmAction.action, confirmAction.job.name)
-    : null;
-
-  const createAndStart = async (job: HuntJob): Promise<void> => {
-    await saveJob(job);
-    await sendControl('start', job.id);
-    setView({ kind: 'list' });
-  };
 
   const moveToSidePanel = (): void => {
     void openSidePanel().then((ok) => {
@@ -95,7 +65,7 @@ export function AppShell({ surface }: { surface: 'popup' | 'sidepanel' }) {
     return (
       <div className={rootClasses}>
         <NewJobForm
-          onSubmit={(job) => void createAndStart(job)}
+          onSubmit={(job) => void createAndStart(job, () => setView({ kind: 'list' }))}
           onCancel={() => setView({ kind: 'list' })}
         />
       </div>
@@ -176,7 +146,7 @@ export function AppShell({ surface }: { surface: 'popup' | 'sidepanel' }) {
                 <JobCard
                   key={job.id}
                   job={job}
-                  onControl={handleControl}
+                  onControl={requestControl}
                   onDetails={(j) => setView({ kind: 'detail', jobId: j.id })}
                 />
               ))}
@@ -198,8 +168,8 @@ export function AppShell({ surface }: { surface: 'popup' | 'sidepanel' }) {
         confirmLabel={confirmCopy?.confirmLabel}
         cancelLabel={confirmCopy?.cancelLabel}
         tone="danger"
-        onConfirm={runConfirm}
-        onCancel={() => setConfirmAction(null)}
+        onConfirm={confirmPending}
+        onCancel={cancelPending}
       />
     </div>
   );
@@ -212,17 +182,7 @@ const SEG_TABS: { id: Tab; label: string; icon: ReactNode }[] = [
 ];
 
 function SegTabs({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
-  const indicatorRef = useRef<HTMLDivElement>(null);
-  const btnRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});
-  const inited = useRef(false);
-
-  useLayoutEffect(() => {
-    const el = indicatorRef.current;
-    const btn = btnRefs.current[tab];
-    if (!el || !btn) return;
-    moveSegment(el, btn, !inited.current);
-    inited.current = true;
-  }, [tab]);
+  const { indicatorRef, setButtonRef } = useSegmentIndicator(tab);
 
   return (
     <div className="relative mt-3 flex gap-1 rounded-2xl bg-white/60 p-1 shadow-sm ring-1 ring-black/5">
@@ -234,9 +194,7 @@ function SegTabs({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
       {SEG_TABS.map((t) => (
         <button
           key={t.id}
-          ref={(el) => {
-            btnRefs.current[t.id] = el;
-          }}
+          ref={setButtonRef(t.id)}
           type="button"
           onClick={() => onChange(t.id)}
           className={`relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-semibold transition-colors duration-200 ${

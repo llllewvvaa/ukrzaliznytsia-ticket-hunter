@@ -1,8 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { query } from '@/lib/messages';
+import { useDebouncedSearch, type SearchToken } from '@/lib/use-debounced-search';
 import { Button, Field, Input } from '@/components/ui';
 import { FloatingPanel } from './FloatingPanel';
 import type { Station } from '@/lib/models';
+
+function noteForCode(code?: string): string {
+  if (code === 'not_discovered') return 'Пошук станцій ще недоступний — введіть ID станції вручну.';
+  if (code === 'not_authenticated') return 'Залогіньтесь у booking.uz, щоб шукати станції.';
+  return 'Помилка пошуку станцій.';
+}
 
 export function StationCombobox({
   label,
@@ -14,46 +21,31 @@ export function StationCombobox({
   onChange: (s: Station | null) => void;
 }) {
   const [text, setText] = useState(value?.name ?? '');
-  const [results, setResults] = useState<Station[]>([]);
-  const [open, setOpen] = useState(false);
   const [note, setNote] = useState<string | undefined>();
   const [manual, setManual] = useState(false);
   const [manualId, setManualId] = useState('');
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const anchorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setText(value?.name ?? '');
   }, [value]);
 
-  const runSearch = (q: string): void => {
-    if (timer.current) clearTimeout(timer.current);
-    if (q.trim().length < 2) {
-      setResults([]);
-      setOpen(false);
-      return;
-    }
-    timer.current = setTimeout(() => {
-      void query<Station[]>('stations', { query: q.trim() }).then((r) => {
-        if (r.ok && Array.isArray(r.data)) {
-          setResults(r.data);
-          setOpen(true);
-          setNote(undefined);
-        } else {
-          setResults([]);
-          setOpen(false);
-          setManual(true);
-          setNote(
-            r.code === 'not_discovered'
-              ? 'Пошук станцій ще недоступний — введіть ID станції вручну.'
-              : r.code === 'not_authenticated'
-                ? 'Залогіньтесь у booking.uz, щоб шукати станції.'
-                : 'Помилка пошуку станцій.',
-          );
-        }
-      });
-    }, 300);
-  };
+  const fetchStations = useCallback(
+    async (q: string, token: SearchToken): Promise<Station[] | null> => {
+      const r = await query<Station[]>('stations', { query: q });
+      if (token.aborted) return null; // a newer keystroke won; don't flip note/manual
+      if (r.ok && Array.isArray(r.data)) {
+        setNote(undefined);
+        return r.data;
+      }
+      setManual(true);
+      setNote(noteForCode(r.code));
+      return null;
+    },
+    [],
+  );
+
+  const { results, open, setOpen, change } = useDebouncedSearch(fetchStations);
 
   const pick = (s: Station): void => {
     onChange(s);
@@ -77,7 +69,7 @@ export function StationCombobox({
           onChange={(e) => {
             setText(e.target.value);
             onChange(null);
-            runSearch(e.target.value);
+            change(e.target.value);
           }}
         />
       </div>

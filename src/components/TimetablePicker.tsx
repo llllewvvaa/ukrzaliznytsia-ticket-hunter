@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Chip, Field, Input } from '@/components/ui';
 import { FloatingPanel } from './FloatingPanel';
 import { SkeletonRows } from '@/components/Skeleton';
 import { CloseIcon, ForwardIcon, SearchIcon } from '@/components/icons';
 import { query } from '@/lib/messages';
 import { staggerIn } from '@/lib/anim';
+import { useDebouncedSearch, type SearchToken } from '@/lib/use-debounced-search';
 import { pickBestStation, stationQueryCandidates } from '@/lib/timetable';
 import type { TimetableStation, TimetableTrain } from '@/lib/timetable';
 
@@ -26,11 +27,19 @@ function TimetableStationInput({
   seedName?: string;
 }) {
   const [text, setText] = useState(value?.name ?? '');
-  const [results, setResults] = useState<TimetableStation[]>([]);
-  const [open, setOpen] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const anchorRef = useRef<HTMLDivElement>(null);
   const seeded = useRef(false);
+
+  const fetchStations = useCallback(
+    async (q: string, token: SearchToken): Promise<TimetableStation[] | null> => {
+      const r = await query<TimetableStation[]>('timetableStations', { q });
+      if (token.aborted) return null;
+      return r.ok && Array.isArray(r.data) ? r.data : null;
+    },
+    [],
+  );
+
+  const { results, open, setOpen, change } = useDebouncedSearch(fetchStations);
 
   // Timetable has its own id space; seed from booking.uz name but keep editable.
   useEffect(() => {
@@ -51,26 +60,6 @@ function TimetableStationInput({
     })();
   }, [seedName, value, onChange]);
 
-  const runSearch = (q: string): void => {
-    if (timer.current) clearTimeout(timer.current);
-    if (q.trim().length < 2) {
-      setResults([]);
-      setOpen(false);
-      return;
-    }
-    timer.current = setTimeout(() => {
-      void query<TimetableStation[]>('timetableStations', { q: q.trim() }).then((r) => {
-        if (r.ok && Array.isArray(r.data) && r.data.length > 0) {
-          setResults(r.data);
-          setOpen(true);
-        } else {
-          setResults([]);
-          setOpen(false);
-        }
-      });
-    }, 300);
-  };
-
   const pick = (s: TimetableStation): void => {
     onChange(s);
     setText(s.name);
@@ -86,7 +75,7 @@ function TimetableStationInput({
           onChange={(e) => {
             setText(e.target.value);
             onChange(null);
-            runSearch(e.target.value);
+            change(e.target.value);
           }}
         />
       </div>

@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useJobs } from '@/lib/use-store';
-import { saveJob } from '@/lib/store';
-import { controlConfirmCopy } from '@/lib/job-format';
-import { sendControl, type ControlAction } from '@/lib/messages';
+import { useJobControl, type JobView } from '@/lib/use-job-control';
+import { type ControlAction } from '@/lib/messages';
 import type { HuntJob } from '@/lib/models';
 import { AuthIndicator } from '@/components/AuthIndicator';
 import { AddIcon, BackIcon, TicketIcon } from '@/components/icons';
@@ -14,39 +13,11 @@ import { NewJobForm } from '@/components/NewJobForm';
 import { JobDetails } from '@/components/JobDetails';
 import { DebugPanel } from '@/components/DebugPanel';
 
-type View = { kind: 'list' } | { kind: 'new' } | { kind: 'detail'; jobId: string };
-
 export default function App() {
   const { jobs, loading } = useJobs();
-  const [view, setView] = useState<View>({ kind: 'list' });
-  const [confirmAction, setConfirmAction] = useState<{
-    action: 'delete' | 'cancel';
-    job: HuntJob;
-  } | null>(null);
-
-  const handleControl = (action: ControlAction, job: HuntJob): void => {
-    if (action === 'delete' || action === 'cancel') {
-      setConfirmAction({ action, job });
-      return;
-    }
-    void sendControl(action, job.id);
-  };
-
-  const runConfirm = (): void => {
-    if (!confirmAction) return;
-    void sendControl(confirmAction.action, confirmAction.job.id);
-    setConfirmAction(null);
-  };
-
-  const confirmCopy = confirmAction
-    ? controlConfirmCopy(confirmAction.action, confirmAction.job.name)
-    : null;
-
-  const createAndStart = async (job: HuntJob): Promise<void> => {
-    await saveJob(job);
-    await sendControl('start', job.id);
-    setView({ kind: 'list' });
-  };
+  const { confirmAction, confirmCopy, requestControl, confirmPending, cancelPending, createAndStart } =
+    useJobControl();
+  const [view, setView] = useState<JobView>({ kind: 'list' });
 
   const detailJob =
     view.kind === 'detail' ? jobs.find((j) => j.id === view.jobId) : undefined;
@@ -75,7 +46,7 @@ export default function App() {
 
         {view.kind === 'new' ? (
           <NewJobForm
-            onSubmit={(job) => void createAndStart(job)}
+            onSubmit={(job) => void createAndStart(job, () => setView({ kind: 'list' }))}
             onCancel={() => setView({ kind: 'list' })}
           />
         ) : view.kind === 'detail' && detailJob ? (
@@ -84,7 +55,7 @@ export default function App() {
           <ListView
             jobs={jobs}
             loading={loading}
-            onControl={handleControl}
+            onControl={requestControl}
             onDetails={(job) => setView({ kind: 'detail', jobId: job.id })}
             onNew={() => setView({ kind: 'new' })}
           />
@@ -109,8 +80,8 @@ export default function App() {
         confirmLabel={confirmCopy?.confirmLabel}
         cancelLabel={confirmCopy?.cancelLabel}
         tone="danger"
-        onConfirm={runConfirm}
-        onCancel={() => setConfirmAction(null)}
+        onConfirm={confirmPending}
+        onCancel={cancelPending}
       />
     </div>
   );

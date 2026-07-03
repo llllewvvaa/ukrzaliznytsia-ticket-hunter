@@ -1,6 +1,6 @@
 {
   "name": "uz-extension",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Chrome MV3 extension that hunts and reserves Ukrzaliznytsia (UZ) train tickets on booking.uz.gov.ua",
