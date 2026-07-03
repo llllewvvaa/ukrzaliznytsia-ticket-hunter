@@ -30,7 +30,7 @@ export function HuntTypeToggle({ mode, onSelect }: { mode: JobMode; onSelect: (m
   const { indicatorRef, setButtonRef } = useSegmentIndicator(mode);
 
   return (
-    <div className="relative flex gap-2 rounded-2xl bg-gray-100 p-1">
+    <div className="relative flex gap-2 rounded-2xl bg-gray-100 p-1" role="radiogroup" aria-label="Тип пошуку">
       <div
         ref={indicatorRef}
         className="pointer-events-none absolute inset-y-1 left-0 w-0 rounded-xl bg-white shadow-sm ring-1 ring-blue-200"
@@ -43,6 +43,8 @@ export function HuntTypeToggle({ mode, onSelect }: { mode: JobMode; onSelect: (m
             key={t.id}
             ref={setButtonRef(t.id)}
             type="button"
+            role="radio"
+            aria-checked={active}
             onClick={() => onSelect(t.id)}
             className="relative z-10 flex flex-1 flex-col items-start gap-0.5 rounded-xl px-3 py-2 text-left transition-colors"
           >

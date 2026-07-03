@@ -50,13 +50,15 @@ export function createJobDraft(
   if (input.passengerIds.length === 0) errors.push('Додайте щонайменше одного пасажира.');
 
   if (input.mode === 'scheduled') {
-    if (input.startAt == null) errors.push('Вкажіть час старту для запланованого режиму.');
-    else if (input.startAt <= now) errors.push('Час старту має бути в майбутньому.');
+    // an invalid datetime string parses to NaN — reject alongside the missing case
+    if (input.startAt == null || !Number.isFinite(input.startAt)) {
+      errors.push('Вкажіть час старту для запланованого режиму.');
+    } else if (input.startAt <= now) errors.push('Час старту має бути в майбутньому.');
   }
   if (input.mode === 'native' && input.nativeAvailable === false) {
     errors.push('Нативний моніторинг недоступний (не підтверджено на discovery).');
   }
-  if (input.maxAttempts != null && input.maxAttempts < 1) {
+  if (input.maxAttempts != null && (!Number.isFinite(input.maxAttempts) || input.maxAttempts < 1)) {
     errors.push('Максимум спроб має бути ≥ 1.');
   }
   if (input.manualSeats) {

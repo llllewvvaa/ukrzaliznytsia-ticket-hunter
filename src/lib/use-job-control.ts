@@ -33,11 +33,19 @@ export function useJobControl() {
 
   const cancelPending = useCallback((): void => setConfirmAction(null), []);
 
+  // saveJob may reject (storage quota/failure); sendControl swallows its own.
+  // Always release the caller (navigate away) so the wizard can't hang, and
+  // log the failure rather than leaving an unhandled rejection.
   const createAndStart = useCallback(
     async (job: HuntJob, onDone?: () => void): Promise<void> => {
-      await saveJob(job);
-      await sendControl('start', job.id);
-      onDone?.();
+      try {
+        await saveJob(job);
+        await sendControl('start', job.id);
+      } catch (err) {
+        console.error('createAndStart failed', err);
+      } finally {
+        onDone?.();
+      }
     },
     [],
   );

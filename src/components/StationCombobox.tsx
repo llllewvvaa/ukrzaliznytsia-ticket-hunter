@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { query } from '@/lib/messages';
-import { useDebouncedSearch } from '@/lib/use-debounced-search';
+import { useDebouncedSearch, type SearchToken } from '@/lib/use-debounced-search';
 import { Button, Field, Input } from '@/components/ui';
 import { FloatingPanel } from './FloatingPanel';
 import type { Station } from '@/lib/models';
@@ -30,16 +30,20 @@ export function StationCombobox({
     setText(value?.name ?? '');
   }, [value]);
 
-  const fetchStations = useCallback(async (q: string): Promise<Station[] | null> => {
-    const r = await query<Station[]>('stations', { query: q });
-    if (r.ok && Array.isArray(r.data)) {
-      setNote(undefined);
-      return r.data;
-    }
-    setManual(true);
-    setNote(noteForCode(r.code));
-    return null;
-  }, []);
+  const fetchStations = useCallback(
+    async (q: string, token: SearchToken): Promise<Station[] | null> => {
+      const r = await query<Station[]>('stations', { query: q });
+      if (token.aborted) return null; // a newer keystroke won; don't flip note/manual
+      if (r.ok && Array.isArray(r.data)) {
+        setNote(undefined);
+        return r.data;
+      }
+      setManual(true);
+      setNote(noteForCode(r.code));
+      return null;
+    },
+    [],
+  );
 
   const { results, open, setOpen, change } = useDebouncedSearch(fetchStations);
 

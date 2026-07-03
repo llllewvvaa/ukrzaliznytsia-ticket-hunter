@@ -94,6 +94,16 @@ describe('createJobDraft', () => {
     expect(job?.seatPrefs).toBeUndefined(); // manual seats override prefs
   });
 
+  it('rejects NaN maxAttempts and a NaN scheduled startAt', () => {
+    const bad = createJobDraft(input({ maxAttempts: Number('abc') }));
+    expect(bad.job).toBeUndefined();
+    expect(bad.errors.some((e) => e.includes('Максимум спроб'))).toBe(true);
+
+    const sched = createJobDraft(input({ mode: 'scheduled', startAt: new Date('nope').getTime() }));
+    expect(sched.job).toBeUndefined();
+    expect(sched.errors.some((e) => e.includes('час старту'))).toBe(true);
+  });
+
   it('rejects a manual-seat count that differs from the passenger count', () => {
     const { job, errors } = createJobDraft(
       input({

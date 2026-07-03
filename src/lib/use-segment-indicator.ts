@@ -6,6 +6,7 @@ import { moveSegment } from './anim';
 export function useSegmentIndicator<T extends string>(active: T) {
   const indicatorRef = useRef<HTMLDivElement>(null);
   const btnRefs = useRef<Partial<Record<T, HTMLButtonElement | null>>>({});
+  const setters = useRef<Partial<Record<T, (el: HTMLButtonElement | null) => void>>>({});
   const inited = useRef(false);
 
   useLayoutEffect(() => {
@@ -16,8 +17,13 @@ export function useSegmentIndicator<T extends string>(active: T) {
     inited.current = true;
   }, [active]);
 
-  const setButtonRef = (id: T) => (el: HTMLButtonElement | null) => {
-    btnRefs.current[id] = el;
+  // Stable ref callback per id — a fresh closure each render would detach and
+  // re-attach every button's ref on any parent re-render.
+  const setButtonRef = (id: T): ((el: HTMLButtonElement | null) => void) => {
+    setters.current[id] ??= (el) => {
+      btnRefs.current[id] = el;
+    };
+    return setters.current[id]!;
   };
 
   return { indicatorRef, setButtonRef };

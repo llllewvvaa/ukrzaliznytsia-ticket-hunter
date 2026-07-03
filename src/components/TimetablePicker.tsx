@@ -5,7 +5,7 @@ import { SkeletonRows } from '@/components/Skeleton';
 import { CloseIcon, ForwardIcon, SearchIcon } from '@/components/icons';
 import { query } from '@/lib/messages';
 import { staggerIn } from '@/lib/anim';
-import { useDebouncedSearch } from '@/lib/use-debounced-search';
+import { useDebouncedSearch, type SearchToken } from '@/lib/use-debounced-search';
 import { pickBestStation, stationQueryCandidates } from '@/lib/timetable';
 import type { TimetableStation, TimetableTrain } from '@/lib/timetable';
 
@@ -30,10 +30,14 @@ function TimetableStationInput({
   const anchorRef = useRef<HTMLDivElement>(null);
   const seeded = useRef(false);
 
-  const fetchStations = useCallback(async (q: string): Promise<TimetableStation[] | null> => {
-    const r = await query<TimetableStation[]>('timetableStations', { q });
-    return r.ok && Array.isArray(r.data) ? r.data : null;
-  }, []);
+  const fetchStations = useCallback(
+    async (q: string, token: SearchToken): Promise<TimetableStation[] | null> => {
+      const r = await query<TimetableStation[]>('timetableStations', { q });
+      if (token.aborted) return null;
+      return r.ok && Array.isArray(r.data) ? r.data : null;
+    },
+    [],
+  );
 
   const { results, open, setOpen, change } = useDebouncedSearch(fetchStations);
 
