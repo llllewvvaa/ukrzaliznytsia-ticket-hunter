@@ -11,212 +11,196 @@
 
 </div>
 
-A Chrome (Manifest V3) browser extension that **monitors and reserves** tickets on
-[booking.uz.gov.ua](https://booking.uz.gov.ua/). You configure a route + criteria; the
-extension watches availability in the background, instantly reserves the first matching
-option, then notifies you and opens the checkout — **you complete the payment manually**.
+Розширення для Google Chrome (Manifest V3), яке **автоматично відстежує та бронює** квитки на
+потяги Укрзалізниці на сайті [booking.uz.gov.ua](https://booking.uz.gov.ua/). Ви задаєте
+маршрут, дату й потрібні місця — далі воно саме стежить за наявністю, миттєво бронює перше
+підходяще й сповіщає вас, щоб ви **завершили оплату вручну** протягом ~15 хвилин, поки
+тримається бронь. Зручно для завантажених напрямків і для старту продажу квитків за 45 діб.
 
-Built with [WXT](https://wxt.dev) + React + TypeScript.
+Зроблено на [WXT](https://wxt.dev) + React + TypeScript.
 
-### 🇺🇦 Українською — розширення для квитків Укрзалізниці
+> ⚠️ **Застереження — лише для особистого використання.** Це неофіційний незалежний
+> інструмент, створений, щоб допомогти одній людині купувати квитки для власних поїздок. Він
+> **жодним чином не пов'язаний з Укрзалізницею**, не схвалений і не підтримується нею. Він не
+> зберігає дані картки, не оплачує автоматично й не намагається обійти reCAPTCHA (її розв'язує
+> людина у вкладці). Поважайте Умови користування Укрзалізниці й не використовуйте розширення
+> для перепродажу чи з надмірною частотою запитів — інтервали опитування навмисно обмежені.
+> Надається «як є», без жодних гарантій — **використовуєте на власний ризик**.
 
-**UZ Ticket Hunter** — це розширення для **Google Chrome**, яке **автоматично відстежує та
-бронює квитки на потяги Укрзалізниці (УЗ)** на сайті
-[booking.uz.gov.ua](https://booking.uz.gov.ua/). Ви задаєте маршрут, дату й потрібні місця —
-розширення саме **моніторить наявність квитків**, миттєво **бронює** перше підходяще та
-сповіщає вас, щоб ви **оплатили квиток вручну** протягом ~15 хвилин, поки тримається бронь.
-Зручно для «полювання» за квитками на популярні напрямки та для старту продажу за 45 діб.
+## Знімки екрана
 
-Розширення **не оплачує** автоматично, **не зберігає дані картки** й **не обходить reCAPTCHA**
-(її розв'язуєте ви). Неофіційний інструмент для особистого користування, не пов'язаний з
-Укрзалізницею.
+<img src="docs/showcase.png" alt="UZ Ticket Hunter — список полювань, вибір потяга та збережені квитки" width="880">
 
-<sub>Ключові слова: Укрзалізниця, УЗ, квитки на потяг, залізничні квитки онлайн, бронювання
-квитків, моніторинг квитків, автобронювання, розклад потягів, booking.uz.gov.ua, розширення
-для Chrome.</sub>
+> Інтерфейс українською; типи вагонів позначені як в УЗ (Л/К/П/С1/С2). Усі дані на знімках вигадані.
 
-> ⚠️ **Disclaimer — personal use only.** This is an unofficial, independent tool intended
-> to help an individual buy tickets for personal travel. It is **not affiliated with,
-> endorsed by, or connected to Ukrzaliznytsia (Ukrainian Railways)** in any way. It does not
-> store card data, does not pay automatically, and does not attempt to bypass reCAPTCHA (a
-> human solves it in the tab). Respect Ukrzaliznytsia's Terms of Service and don't use it for
-> resale or at abusive request rates. Polling intervals are deliberately throttled. Provided
-> "as is", without warranty — **use at your own risk**.
+## Встановлення
 
-## Screenshots
+**Зі збірки-релізу — без програмування:**
 
-<img src="docs/showcase.png" alt="UZ Ticket Hunter — hunts list, pre-sale train picker, and saved tickets" width="880">
+1. Завантажте останній `ukrzaliznytsia-ticket-hunter_<версія>.zip` зі сторінки
+   [Releases](https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases) і розпакуйте.
+2. Відкрийте `chrome://extensions` та увімкніть **Режим розробника** (Developer mode, вгорі праворуч).
+3. Натисніть **Завантажити розпаковане** (Load unpacked) і виберіть розпаковану теку.
 
-> UI is in Ukrainian; coach types use UZ's own labels (Л/К/П/С1/С2). Data shown is fictitious.
+Chrome покаже повідомлення про режим розробника — це нормально для збірки поза Web Store.
 
-## Install
-
-**From a release build — no coding required:**
-
-1. Download the latest `ukrzaliznytsia-ticket-hunter_<version>.zip` from the
-   [Releases](https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases) page and unzip it.
-2. Open `chrome://extensions` and enable **Developer mode** (top-right).
-3. Click **Load unpacked** and select the unzipped folder.
-
-Chrome shows a developer-mode notice — that's expected for a build installed outside the Web Store.
-
-**From source:**
+**З вихідного коду:**
 
 ```bash
 pnpm install
-pnpm build          # → .output/chrome-mv3  (Load unpacked this folder)
-pnpm zip            # → .output/ukrzaliznytsia-ticket-hunter_<version>.zip
+pnpm build          # → .output/chrome-mv3  (завантажте цю теку як розпаковану)
+pnpm zip            # → .output/ukrzaliznytsia-ticket-hunter_<версія>.zip
 ```
 
-## Architecture (hybrid)
+## Як це працює (гібридна архітектура)
 
-- **Monitoring** — the service worker calls the real API at `https://app.uz.gov.ua/api`
-  directly (read-only, fast).
-- **Reserving** — performed inside a **content script on the booking.uz tab**, so the
-  live SPA's reCAPTCHA token and authorization are reused.
-- **Auth** — a content script extracts the Bearer token + `x-session-id` + user id from the
-  page and caches them in `chrome.storage.session`.
-- **Origin** — a `declarativeNetRequest` session rule rewrites the `Origin`/`Referer`
-  (forbidden headers `fetch` can't set) on the service worker's own requests to
-  `app.uz.gov.ua`, so they look same-site like the SPA. It's scoped to the API host and
-  `tabIds:[-1]` (SW only), and does **not** touch the booking.uz tab or bypass reCAPTCHA.
+- **Моніторинг** — service worker напряму звертається до API `https://app.uz.gov.ua/api`
+  (лише читання, швидко).
+- **Бронювання** — виконується в **content-скрипті на вкладці booking.uz**, щоб повторно
+  використати reCAPTCHA-токен і авторизацію живого SPA.
+- **Авторизація** — content-скрипт зчитує зі сторінки Bearer-токен + `x-session-id` + id
+  користувача й кешує їх у `chrome.storage.session`.
+- **Origin** — правило `declarativeNetRequest` переписує заголовки `Origin`/`Referer`
+  (заборонені заголовки, які `fetch` не може задати сам) на власних запитах service worker до
+  `app.uz.gov.ua`, щоб вони виглядали як від SPA. Правило обмежене хостом API та
+  `tabIds:[-1]` (лише SW) і **не** чіпає вкладку booking.uz та не обходить reCAPTCHA.
 
-See [`docs/endpoints.md`](docs/endpoints.md) for the discovered API surface and the
-remaining TBD items. Sample API responses live in [`fixtures/`](fixtures).
+Перелік знайдених ендпоінтів і те, що ще лишилось з'ясувати, — у
+[`docs/endpoints.md`](docs/endpoints.md). Приклади відповідей API — у [`fixtures/`](fixtures).
 
-## Project layout
+## Структура проєкту
 
 ```
 src/
   entrypoints/
-    background.ts        # service worker: orchestrator + reserve dispatch + queries
-    content.ts           # booking.uz: auth-extractor + reserve-executor (RPC)
-    offscreen/           # hidden page that plays the alert sound
-    popup/               # primary UI: job list + new-hunt form + details (no nav away)
-    options/             # full-screen version of the same management UI
-  components/            # shared React UI
-    ui.tsx               #   local Tailwind primitives (Button/Input/Chip/Toggle/…)
+    background.ts        # service worker: оркестратор + диспетчеризація бронювання + запити
+    content.ts           # booking.uz: зчитувач авторизації + виконавець бронювання (RPC)
+    offscreen/           # прихована сторінка, що програє звук сповіщення
+    popup/               # основний UI: список завдань + форма нового полювання + деталі
+    options/             # повноекранна версія того самого UI керування
+  components/            # спільний React UI
+    ui.tsx               #   локальні Tailwind-примітиви (Button/Input/Chip/Toggle/…)
     JobCard.tsx NewJobForm.tsx JobDetails.tsx StationCombobox.tsx
     PassengerPicker.tsx AuthIndicator.tsx EmptyState.tsx OrdersView.tsx
   lib/
-    models.ts            # domain types
-    store.ts             # chrome.storage.local CRUD + reactive subscribe
-    auth.ts uz-api.ts    # session cache + typed UZ API client
-    net-rules.ts         # DNR rule: rewrite Origin/Referer for SW API requests
-    bridge.ts            # SW↔content-script RPC + keep-alive port
-    tab-manager.ts       # ensure/focus the booking.uz tab
-    scheduler.ts         # alarm timing + 429 backoff (pure helpers)
-    orchestrator.ts      # hunt loop: match → reserving → dispatch
-    reserve.ts           # in-page reserve flow (seats → hold → order → cart)
-    cart-poller.ts       # cart queue polling (respects retry_in)
-    reserve-dispatch.ts  # SW glue: tab RPC → outcome → success/captcha/backoff
-    success.ts           # notification + sound + checkout tab
-    recaptcha.ts         # reCAPTCHA challenge detection (no auto-solve)
-    messages.ts          # page↔SW control + query contracts
-    job-factory.ts       # form → HuntJob validation
+    models.ts            # доменні типи
+    store.ts             # CRUD над chrome.storage.local + реактивна підписка
+    auth.ts uz-api.ts    # кеш сесії + типізований клієнт UZ API
+    net-rules.ts         # DNR-правило: переписати Origin/Referer для запитів SW
+    bridge.ts            # RPC SW↔content-скрипт + keep-alive порт
+    tab-manager.ts       # відкрити/сфокусувати вкладку booking.uz
+    scheduler.ts         # тайминг alarm + backoff на 429 (чисті функції)
+    orchestrator.ts      # цикл полювання: збіг → бронювання → диспетч
+    reserve.ts           # внутрішньосторінкове бронювання (місця → hold → order → cart)
+    cart-poller.ts       # опитування черги кошика (з урахуванням retry_in)
+    reserve-dispatch.ts  # зв'язка SW: RPC вкладки → результат → success/captcha/backoff
+    success.ts           # сповіщення + звук + вкладка оплати
+    recaptcha.ts         # виявлення reCAPTCHA (без авторозв'язання)
+    messages.ts          # контракти повідомлень сторінка↔SW + запити
+    job-factory.ts       # форма → валідація HuntJob
     use-store.ts job-format.ts order-format.ts logger.ts
   assets/tailwind.css
-public/sounds/alert.wav  # success chime
-public/icon/             # extension + notification icons
-fixtures/                # anonymized JSON samples (used by tests only)
-docs/endpoints.md        # API discovery notes
+public/sounds/alert.wav  # звук успіху
+public/icon/             # іконки розширення та сповіщень
+fixtures/                # анонімізовані JSON-приклади (лише для тестів)
+docs/endpoints.md        # нотатки з дослідження API
 ```
 
-## Prerequisites
+## Вимоги
 
-- Node.js ≥ 20 (developed on v24)
-- pnpm ≥ 9 (developed on v10)
+- Node.js ≥ 20 (розроблялось на v24)
+- pnpm ≥ 9 (розроблялось на v10)
 
-## Getting started
+## Початок роботи
 
 ```bash
-pnpm install        # installs deps and runs `wxt prepare`
-pnpm dev            # start the dev build with HMR (Chrome)
+pnpm install        # встановлює залежності й запускає `wxt prepare`
+pnpm dev            # dev-збірка з HMR (Chrome)
 ```
 
-`pnpm dev` launches WXT's dev server and writes the unpacked extension to
-`.output/chrome-mv3`.
+`pnpm dev` запускає dev-сервер WXT і пише розпаковане розширення в `.output/chrome-mv3`.
 
-### Load it in Chrome (developer mode)
+### Завантаження в Chrome (режим розробника)
 
-1. Open `chrome://extensions`.
-2. Toggle **Developer mode** (top-right).
-3. Click **Load unpacked** and select `.output/chrome-mv3`.
-4. Log in at [booking.uz.gov.ua](https://booking.uz.gov.ua/) so the extension can read your
-   session, then open the extension popup to create a hunt.
+1. Відкрийте `chrome://extensions`.
+2. Увімкніть **Режим розробника** (вгорі праворуч).
+3. Натисніть **Завантажити розпаковане** і виберіть `.output/chrome-mv3`.
+4. Увійдіть на [booking.uz.gov.ua](https://booking.uz.gov.ua/), щоб розширення могло зчитати
+   вашу сесію, а тоді відкрийте попап і створіть полювання.
 
-> `pnpm dev` keeps the build up to date; just reload the extension (or the page) after
-> changes. For a production bundle use `pnpm build` (and `pnpm zip` to package it).
+> `pnpm dev` тримає збірку актуальною; після змін просто перезавантажте розширення (чи
+> сторінку). Для продакшн-збірки використовуйте `pnpm build` (і `pnpm zip`, щоб запакувати).
 
-### Using the extension
+### Як користуватися
 
-1. **New hunt** — open the popup and click *Нове полювання* (everything happens inside the
-   popup; the Options page offers the same flow on a full screen). Pick from/to stations, a
-   date, optional preferred trains and coach types (`Л/К/П/С1/С2`), passengers, and the
-   `bedding` service.
-2. **Mode**:
-   - **Monitor** — polls every 5–30 s in the background.
-   - **Scheduled** — waits idle until your exact start time, then sprints (200–500 ms) —
-     ideal for the 09:00 sales opening 45 days out. Keep the popup open to hold the worker
-     awake during the sprint.
-   - **Native** — reserved for a server-side UZ monitor; disabled until that endpoint is
-     confirmed during discovery.
-3. When a match is found the extension reserves it in your booking.uz tab. If reCAPTCHA
-   appears, the tab is surfaced — **solve it** and the hunt resumes automatically.
-4. On success you get a loud notification + the checkout tab; **complete payment within the
-   ~15-minute hold.** The card and details show **«Заброньовано на HH:MM»** — the exact time
-   the held seats expire. Manage/inspect hunts (status, attempts, logs) from the popup/Options.
-5. **Мої квитки** — a second popup tab lists your UZ orders: active/upcoming
-   (`GET /api/v4/orders-with-routes`) and a paginated archive
-   (`GET /api/v2/orders/archived?page=`), with per-ticket seat, price and PDF links.
+1. **Нове полювання** — відкрийте попап і натисніть *Нове полювання* (усе відбувається в
+   попапі; сторінка Опцій пропонує той самий процес на повний екран). Виберіть станції
+   звідки/куди, дату, за бажанням улюблені потяги й типи вагонів (`Л/К/П/С1/С2`), пасажирів і
+   послугу `постільна білизна`.
+2. **Режим**:
+   - **Моніторинг** — опитує кожні 5–30 с у фоні.
+   - **За розкладом** — чекає без навантаження до точного часу старту, тоді робить спринт
+     (200–500 мс) — ідеально для відкриття продажу о 09:00 за 45 діб. Тримайте попап
+     відкритим, щоб worker не заснув під час спринту.
+   - **Нативний** — зарезервовано для серверного монітора УЗ; вимкнено, доки цей ендпоінт не
+     підтверджено.
+3. Коли знайдено збіг, розширення бронює його у вашій вкладці booking.uz. Якщо з'являється
+   reCAPTCHA, вкладку виводять на передній план — **розв'яжіть її**, і полювання продовжиться
+   автоматично.
+4. При успіху ви отримаєте гучне сповіщення + вкладку оплати; **завершіть оплату протягом
+   ~15-хвилинної броні.** На картці й у деталях показано **«Заброньовано на HH:MM»** — точний
+   час, коли місця звільняться. Керуйте полюваннями (статус, спроби, логи) з попапа/Опцій.
+5. **Мої квитки** — друга вкладка попапа показує ваші замовлення в УЗ: активні/майбутні
+   (`GET /api/v4/orders-with-routes`) і сторінковий архів (`GET /api/v2/orders/archived?page=`),
+   з місцем, ціною та PDF-посиланнями по кожному квитку.
 
-> Some lookups (station/train search, saved passengers) call live endpoints; if you're not
-> logged in or an endpoint isn't confirmed yet, the form falls back to manual id entry.
+> Деякі запити (пошук станцій/потягів, збережені пасажири) звертаються до живих ендпоінтів;
+> якщо ви не ввійшли або ендпоінт ще не підтверджено, форма переходить на ручне введення id.
 
-## Scripts
+## Команди
 
-| Command | What it does |
+| Команда | Що робить |
 |---|---|
-| `pnpm dev` | Dev build + HMR for Chrome |
-| `pnpm build` | Production build → `.output/chrome-mv3` |
-| `pnpm zip` | Zip the production build for the store |
-| `pnpm compile` | `wxt prepare` + `tsc --noEmit` (type-check) |
-| `pnpm test` | Run unit tests (Vitest + WXT `fakeBrowser`) |
-| `pnpm test:watch` | Vitest in watch mode |
+| `pnpm dev` | Dev-збірка + HMR для Chrome |
+| `pnpm build` | Продакшн-збірка → `.output/chrome-mv3` |
+| `pnpm zip` | Запакувати продакшн-збірку |
+| `pnpm compile` | `wxt prepare` + `tsc --noEmit` (перевірка типів) |
+| `pnpm test` | Юніт-тести (Vitest + WXT `fakeBrowser`) |
+| `pnpm test:watch` | Vitest у режимі спостереження |
 
-## Status
+## Статус
 
-Implemented incrementally per the delivery plan:
+Реалізовано поетапно згідно з планом:
 
-- [x] **Step 1** — API/auth/reCAPTCHA discovery → `docs/endpoints.md` + `fixtures/`
-- [x] **Step 2** — WXT MV3 scaffold + domain model + reactive storage layer
-- [x] **Step 3** — auth bridge, UZ API client, SW↔CS RPC, tab manager
-- [x] **Step 4** — hunt orchestrator (monitor / scheduled / native)
-- [x] **Step 5** — reserve executor (reCAPTCHA-aware) + success flow
-- [x] **Step 6** — popup + options UI
+- [x] **Крок 1** — дослідження API/авторизації/reCAPTCHA → `docs/endpoints.md` + `fixtures/`
+- [x] **Крок 2** — каркас WXT MV3 + доменна модель + реактивне сховище
+- [x] **Крок 3** — міст авторизації, клієнт UZ API, RPC SW↔CS, менеджер вкладок
+- [x] **Крок 4** — оркестратор полювання (моніторинг / за розкладом / нативний)
+- [x] **Крок 5** — виконавець бронювання (з урахуванням reCAPTCHA) + процес успіху
+- [x] **Крок 6** — UI попапа й опцій
 
-Confirmed live since: station search, trip search, **seat hold**
-(`POST /api/trips/{id}/seats/hold`), the ready-cart `expire_at` hold deadline, and the
-**orders** endpoints behind the «Мої квитки» tab. Still **TBD** pending a fresh authenticated
-HAR: wagons-by-class / seats (encrypted `wagon_id` source), native monitoring, and the exact
-auth token key — see `docs/endpoints.md`. The networking layer is isolated in `lib/uz-api.ts`
-so those can be filled in without touching callers, and the UI degrades to manual entry until then.
+Підтверджено живими: пошук станцій, пошук рейсів, **утримання місця**
+(`POST /api/trips/{id}/seats/hold`), дедлайн броні `expire_at` готового кошика та ендпоінти
+**замовлень** за вкладкою «Мої квитки». Ще **TBD** до свіжого автентифікованого HAR:
+вагони-за-класом / місця (джерело зашифрованого `wagon_id`), нативний моніторинг і точний ключ
+токена авторизації — див. `docs/endpoints.md`. Мережевий шар ізольовано в `lib/uz-api.ts`, тож
+це можна доповнити, не чіпаючи виклики, а UI доти переходить на ручне введення.
 
-> The raw discovery captures (`*.har`, page snapshots) are intentionally **not** committed —
-> they contain live JWTs, session ids and passenger PII. The samples in `fixtures/` are
-> anonymized and used only by the tests.
+> Сирі дампи дослідження (`*.har`, знімки сторінок) навмисно **не** закомічені — вони містять
+> живі JWT, session id та персональні дані. Приклади в `fixtures/` анонімізовані й
+> використовуються лише тестами.
 
-## Contributing
+## Внесок
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md). In short: `pnpm compile` (strict `tsc`) and
-`pnpm test` are the only gates; never commit `.har` files, page snapshots, or real personal
-data. Architecture and conventions live in [`CLAUDE.md`](CLAUDE.md).
+Див. [`CONTRIBUTING.md`](CONTRIBUTING.md). Коротко: `pnpm compile` (суворий `tsc`) і
+`pnpm test` — єдині перевірки; ніколи не комітьте `.har`-файли, знімки сторінок чи реальні
+персональні дані. Архітектура й домовленості — у [`CLAUDE.md`](CLAUDE.md).
 
-## Security
+## Безпека
 
-Please report vulnerabilities privately — see [`SECURITY.md`](SECURITY.md). Don't attach
-captured session data or HAR files to issues.
+Повідомляйте про вразливості приватно — див. [`SECURITY.md`](SECURITY.md). Не прикріпляйте
+захоплені дані сесії чи HAR-файли до issue.
 
-## License
+## Ліцензія
 
-[MIT](LICENSE) © UZ Ticket Hunter contributors.
+[MIT](LICENSE) © Учасники UZ Ticket Hunter.
