@@ -64,8 +64,9 @@ export async function recordSW(ev: DebugEvent): Promise<void> {
   if (!enabled) return;
   await ensureLoaded();
   if (!log) return;
-  ev.seq = ++seq;
-  log.push(ev);
+  const clean = redactEvent(ev);
+  clean.seq = ++seq;
+  log.push(clean);
   if (log.length > MAX_EVENTS) log.splice(0, log.length - MAX_EVENTS);
   schedulePersist();
 }
@@ -115,7 +116,7 @@ export async function recordApiRequest(input: {
     url: input.url,
     ...(input.res ? { status: input.res.status } : {}),
     ms: input.ms,
-    ...(input.reqHeaders ? { reqHeaders: redactHeaders(input.reqHeaders) } : {}),
+    ...(input.reqHeaders ? { reqHeaders: input.reqHeaders } : {}),
     ...(input.reqBody !== undefined ? { reqBody: cap(bodyToString(input.reqBody)) } : {}),
     ...(resBody !== undefined ? { resBody } : {}),
     ...(input.error ? { detail: String(input.error) } : {}),
@@ -169,12 +170,49 @@ function cap(s: string): string {
   return red.length > BODY_CAP ? `${red.slice(0, BODY_CAP)}…(+${red.length - BODY_CAP})` : red;
 }
 
-// Only the Authorization JWT is stripped; x-session-id is kept on purpose — it's
-// the key signal for diagnosing cart/session mismatches.
+// Stable non-crypto hash: lets a reviewer see whether two values are the same
+// session/user across requests, without exposing the real id in a shared log.
+function shortHash(s: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, '0').slice(0, 6);
+}
+
+const JWT_RE = /eyJ[A-Za-z0-9_-]{6,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g;
+const BEARER_RE = /Bearer\s+[A-Za-z0-9._~+/-]{8,}=*/gi;
+const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+// PII / secret JSON keys → value replaced. Deliberately NOT bare "name" (station,
+// train and coach-class names are not personal and are needed for diagnosis).
+const PII_KEY_RE =
+  /("(?:first_?name|last_?name|middle_?name|patronymic|full_?name|passenger_?name|e-?mail|phone_?number|phone|birth_?day|birth_?date|dob|document_?number|passport_?number|passport_?series|passport|document|inn|ipn|tax_?id|card_?number|card|pan|cvv|cvc|iban|password|passwd|pin|otp|access_?token|refresh_?token|id_?token|session_?id|token|jwt|pdf_url)"\s*:\s*)"[^"]*"/gi;
+
+// Scrub free text (URLs, error details, header values).
+function scrubText(s: string): string {
+  return s
+    .replace(JWT_RE, 'jwt…')
+    .replace(BEARER_RE, 'Bearer …')
+    .replace(EMAIL_RE, '…@…')
+    .replace(UUID_RE, (m) => `uuid:${shortHash(m)}`);
+}
+
+// Scrub a JSON-ish body: free-text secrets + known PII/secret keys.
+export function redactBody(s: string): string {
+  return scrubText(s).replace(PII_KEY_RE, '$1"…"');
+}
+
+const SECRET_HEADER_RE = /^(authorization|proxy-authorization|cookie|set-cookie|x-auth-token|x-api-key)$/i;
+
 export function redactHeaders(h: Record<string, string>): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(h)) {
-    out[k] = /^authorization$/i.test(k) ? redactToken(v) : v;
+    if (SECRET_HEADER_RE.test(k)) out[k] = redactToken(v);
+    else if (/^x-session-id$/i.test(k)) out[k] = `sid:${shortHash(v)}`;
+    else if (/^x-user-agent$/i.test(k)) out[k] = scrubText(v).replace(/User\/\d+/gi, 'User/#');
+    else out[k] = scrubText(v);
   }
   return out;
 }
@@ -184,11 +222,19 @@ function redactToken(v: string): string {
   return `Bearer jwt…(${tok.length})`;
 }
 
-function redactBody(s: string): string {
-  return s
-    .replace(/eyJ[A-Za-z0-9_-]{6,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, 'jwt…')
-    .replace(
-      /("(?:first_name|last_name|firstName|lastName|middle_name|patronymic|email|phone|document_number)"\s*:\s*)"[^"]*"/gi,
-      '$1"…"',
-    );
+// Single choke point — every stored event (any context/kind) is scrubbed here, so
+// the exported log is safe to attach to a public issue.
+export function redactEvent(ev: DebugEvent): DebugEvent {
+  const e = { ...ev };
+  if (e.url != null) e.url = scrubText(e.url);
+  if (e.from != null) e.from = scrubText(e.from);
+  if (e.to != null) e.to = scrubText(e.to);
+  if (e.label != null) e.label = scrubText(e.label);
+  if (e.reqBody != null) e.reqBody = redactBody(e.reqBody);
+  if (e.resBody != null) e.resBody = redactBody(e.resBody);
+  if (e.detail != null) e.detail = redactBody(e.detail);
+  if (e.reqHeaders) e.reqHeaders = redactHeaders(e.reqHeaders);
+  if (e.sessionId != null) e.sessionId = `sid:${shortHash(e.sessionId)}`;
+  if (e.userId != null) e.userId = `usr:${shortHash(String(e.userId))}`;
+  return e;
 }

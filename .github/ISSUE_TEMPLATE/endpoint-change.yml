@@ -1,0 +1,45 @@
+name: Endpoint / API change
+description: A booking.uz / app.uz endpoint changed, broke, or needs discovery — attach a debug capture.
+title: "[endpoint] "
+labels: [endpoint]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping keep the API layer working. For endpoint issues we need a **debug capture** so the request/response shapes can be compared.
+
+        The export is **automatically redacted** — Bearer/JWT tokens, `x-session-id`, your user id, names, email, phone, document and card fields are stripped or replaced with a stable hash before the file is written. Please still glance over it before attaching.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What changed / what's broken
+      description: Which flow (station search, monitor, reserve, «Мої квитки»…) and what you saw — an error, an empty result, or wrong data.
+    validations:
+      required: true
+  - type: input
+    id: endpoint
+    attributes:
+      label: Endpoint (if known)
+      placeholder: e.g. GET /api/v4/orders-with-routes
+    validations:
+      required: false
+  - type: textarea
+    id: debug
+    attributes:
+      label: Debug capture
+      description: |
+        1. Open the extension's **Options** page → **«Дебаг»** section → enable **«Запис усіх запитів і подій»**.
+        2. Reproduce the problem in the booking.uz tab.
+        3. Click **«Експортувати JSON»** and drag the `uz-debug-*.json` file into the box below.
+      placeholder: Drag & drop the uz-debug-*.json here (or paste the relevant events).
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before submitting
+      options:
+        - label: I attached the exported debug JSON (it is auto-redacted).
+          required: true
+        - label: I reviewed the file and it contains no personal data I want to keep private.
+          required: true

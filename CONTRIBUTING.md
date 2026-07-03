@@ -32,6 +32,22 @@ pnpm build       # production bundle
 - Keep the fair-play throttles (poll floors, 429 backoff). reCAPTCHA is **detected, never
   solved**.
 
+## Reporting an endpoint / API change
+
+booking.uz's API shifts under us, so the most useful reports for endpoint issues include a
+**debug capture**. Use the **Endpoint / API change** issue template, and:
+
+1. Open the extension's **Options** page → **«Дебаг»** section → enable
+   **«Запис усіх запитів і подій»**.
+2. Reproduce the problem in the booking.uz tab.
+3. Click **«Експортувати JSON»** and attach the `uz-debug-*.json` to the issue.
+
+The export is **redacted at record time**: Bearer/JWT tokens, `x-session-id`, your user id,
+names, email, phone, document and card fields are stripped or replaced with a stable hash —
+so a reviewer can still tell "same session" without ever seeing the real value. The redaction
+lives in [`src/lib/debug.ts`](src/lib/debug.ts) (`redactEvent`) and is covered by
+`src/lib/debug.test.ts`. **If you add any field that can carry personal data, extend both.**
+
 ## Never commit secrets or PII
 
 - **No `.har` files, page snapshots, or raw API captures** — they contain live JWTs,
