@@ -1,12 +1,14 @@
-name: CI
+name: Release
 
 on:
   push:
-    branches: [master]
-  pull_request:
+    tags: ['v*']
+
+permissions:
+  contents: write
 
 jobs:
-  check:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +24,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm compile
-      - run: pnpm test
-      - run: pnpm build
+      - run: pnpm zip
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: .output/*.zip
+          generate_release_notes: true
