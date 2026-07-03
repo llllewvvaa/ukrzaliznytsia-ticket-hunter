@@ -1,4 +1,5 @@
 import { newJobId } from './store';
+import { DATE_RE } from './date';
 import {
   MONITOR_MIN_MS,
   MONITOR_MAX_MS,
@@ -33,8 +34,6 @@ export interface JobDraftResult {
   job?: HuntJob;
   errors: string[];
 }
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function createJobDraft(
   input: JobFormInput,

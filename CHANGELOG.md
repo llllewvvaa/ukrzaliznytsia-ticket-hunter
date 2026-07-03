@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-07-03
+
+First stable release. Internal refactor — no user-facing behaviour change:
+extracted shared hooks (`useJobControl`, `useSegmentIndicator`,
+`useDebouncedSearch`), centralised date helpers, and split the reserve wizard
+(`NewJobForm`) into per-step components backed by a `useNewJobForm` state hook.
+
 ## [0.1.0] - 2026-07-03
 
 Initial public release.
@@ -30,4 +37,5 @@ Initial public release.
 - The extension **never pays** — you complete payment manually within UZ's ~15-minute hold.
 - Not affiliated with Ukrzaliznytsia. Personal use only.
 
+[1.0.0]: https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases/tag/v1.0.0
 [0.1.0]: https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases/tag/v0.1.0
