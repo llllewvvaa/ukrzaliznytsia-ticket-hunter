@@ -39,6 +39,10 @@ export default defineConfig({
       },
     ],
   },
+  zip: {
+    name: 'ukrzaliznytsia-ticket-hunter',
+    artifactTemplate: '{{name}}_{{version}}.zip',
+  },
   vite: () => ({
     plugins: [tailwindcss()],
   }),

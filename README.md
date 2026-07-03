@@ -32,6 +32,25 @@ Built with [WXT](https://wxt.dev) + React + TypeScript.
 
 > UI is in Ukrainian; coach types use UZ's own labels (Л/К/П/С1/С2). Data shown is fictitious.
 
+## Install
+
+**From a release build — no coding required:**
+
+1. Download the latest `ukrzaliznytsia-ticket-hunter_<version>.zip` from the
+   [Releases](https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases) page and unzip it.
+2. Open `chrome://extensions` and enable **Developer mode** (top-right).
+3. Click **Load unpacked** and select the unzipped folder.
+
+Chrome shows a developer-mode notice — that's expected for a build installed outside the Web Store.
+
+**From source:**
+
+```bash
+pnpm install
+pnpm build          # → .output/chrome-mv3  (Load unpacked this folder)
+pnpm zip            # → .output/ukrzaliznytsia-ticket-hunter_<version>.zip
+```
+
 ## Architecture (hybrid)
 
 - **Monitoring** — the service worker calls the real API at `https://app.uz.gov.ua/api`
