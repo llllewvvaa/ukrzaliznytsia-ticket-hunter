@@ -18,6 +18,23 @@ option, then notifies you and opens the checkout — **you complete the payment 
 
 Built with [WXT](https://wxt.dev) + React + TypeScript.
 
+### 🇺🇦 Українською — розширення для квитків Укрзалізниці
+
+**UZ Ticket Hunter** — це розширення для **Google Chrome**, яке **автоматично відстежує та
+бронює квитки на потяги Укрзалізниці (УЗ)** на сайті
+[booking.uz.gov.ua](https://booking.uz.gov.ua/). Ви задаєте маршрут, дату й потрібні місця —
+розширення саме **моніторить наявність квитків**, миттєво **бронює** перше підходяще та
+сповіщає вас, щоб ви **оплатили квиток вручну** протягом ~15 хвилин, поки тримається бронь.
+Зручно для «полювання» за квитками на популярні напрямки та для старту продажу за 45 діб.
+
+Розширення **не оплачує** автоматично, **не зберігає дані картки** й **не обходить reCAPTCHA**
+(її розв'язуєте ви). Неофіційний інструмент для особистого користування, не пов'язаний з
+Укрзалізницею.
+
+<sub>Ключові слова: Укрзалізниця, УЗ, квитки на потяг, залізничні квитки онлайн, бронювання
+квитків, моніторинг квитків, автобронювання, розклад потягів, booking.uz.gov.ua, розширення
+для Chrome.</sub>
+
 > ⚠️ **Disclaimer — personal use only.** This is an unofficial, independent tool intended
 > to help an individual buy tickets for personal travel. It is **not affiliated with,
 > endorsed by, or connected to Ukrzaliznytsia (Ukrainian Railways)** in any way. It does not

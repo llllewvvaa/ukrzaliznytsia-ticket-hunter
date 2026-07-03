@@ -7,7 +7,7 @@ export default defineConfig({
   manifest: {
     name: 'UZ Ticket Hunter',
     description:
-      'Monitors and reserves tickets on booking.uz.gov.ua. Personal use only.',
+      'Моніторить і бронює квитки Укрзалізниці (УЗ) на booking.uz.gov.ua. Лише для особистого використання.',
     icons: {
       16: '/icon/16.png',
       32: '/icon/32.png',
