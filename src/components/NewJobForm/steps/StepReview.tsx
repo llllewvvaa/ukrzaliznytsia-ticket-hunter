@@ -1,6 +1,8 @@
 import { Field, Input } from '@/components/ui';
+import { DatePicker } from '@/components/DatePicker';
 import { NumberStepper } from '@/components/NumberStepper';
 import { ScheduleIcon } from '@/components/icons';
+import { localDateTimeIso } from '@/lib/date';
 import { FORM_BOUNDS } from '@/lib/job-factory';
 import { SummaryRow } from '../parts';
 import type { NewJobFormState } from '../use-new-job-form';
@@ -13,12 +15,13 @@ export function StepReview({ form }: { form: NewJobFormState }) {
         <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">
           <Field
             label="Коли відкриваються продажі"
-            hint="За вашим годинником — о цьому часі почнеться суб-секундний спринт"
+            hint="Типово — за 20 днів до поїздки о 08:00. За вашим годинником — о цьому часі почнеться суб-секундний спринт"
           >
-            <Input
-              type="datetime-local"
+            <DatePicker
+              withTime
               value={form.startAt}
-              onChange={(e) => form.setStartAt(e.target.value)}
+              onChange={form.setStartAt}
+              min={localDateTimeIso()}
             />
           </Field>
           <p className="flex items-start gap-2 rounded-2xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">

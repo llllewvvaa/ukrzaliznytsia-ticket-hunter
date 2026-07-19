@@ -234,6 +234,13 @@ export function TrainPicker({
                           })
                         }
                         title={free ? 'Обрати конкретні місця' : 'Немає вільних місць'}
+                        aria-label={
+                          isPicked
+                            ? `${c.name}, обрано місця ${seatSelection!.seats.join(', ')}`
+                            : free
+                              ? `${c.name}, вільних місць: ${c.free_seats}. Обрати конкретні місця`
+                              : `${c.name}, вільних місць немає`
+                        }
                         className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium transition-colors ${
                           isPicked
                             ? 'bg-blue-600 text-white'

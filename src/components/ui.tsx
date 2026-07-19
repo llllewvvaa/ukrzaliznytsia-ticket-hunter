@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
 import { collapse, pop } from '@/lib/anim';
 import { ExpandIcon } from './icons';
@@ -59,9 +59,15 @@ export function Field({
   hint?: string;
   children: ReactNode;
 }) {
+  const labelId = useId();
+  // Grouping (not <label>) on purpose: children are often composite controls
+  // (steppers, triggers, chip lists), and a real <label> click would activate
+  // the first one. role="group" still gives screen readers the field context.
   return (
-    <div className="space-y-1.5">
-      <span className="block text-xs font-semibold tracking-wide text-gray-700">{label}</span>
+    <div className="space-y-1.5" role="group" aria-labelledby={labelId}>
+      <span id={labelId} className="block text-xs font-semibold tracking-wide text-gray-700">
+        {label}
+      </span>
       {children}
       {hint ? <span className="block text-xs leading-snug text-gray-400">{hint}</span> : null}
     </div>
@@ -164,7 +170,7 @@ export function Toggle({
       >
         <span
           className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-            checked ? 'translate-x-4' : 'translate-x-0.5'
+            checked ? 'translate-x-4.5' : 'translate-x-0.5'
           }`}
         />
       </button>

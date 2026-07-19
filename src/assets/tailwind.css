@@ -31,6 +31,19 @@ body {
 }
 
 /*
+ * Reliable focus ring for every focusable element. Lives in the base layer so
+ * Tailwind utilities still win: components in ui.tsx suppress this with
+ * `focus:outline-none`/`outline-none` and draw their own ring via box-shadow,
+ * so this only backstops ad-hoc buttons/links elsewhere.
+ */
+@layer base {
+  :focus-visible {
+    outline: 2px solid rgb(59 130 246 / 0.6);
+    outline-offset: 1px;
+  }
+}
+
+/*
  * All UI motion is driven by GSAP via src/lib/anim.ts (wizard step slide,
  * accordion collapse, shake, pops, dropdown reveal) so timings live in one
  * place and prefers-reduced-motion is handled there.

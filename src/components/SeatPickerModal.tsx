@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from './ui';
 import { SeatMap } from './SeatMap';
 import { SkeletonRows } from './Skeleton';
 import { BackIcon, CheckIcon } from './icons';
 import { dialogIn, dialogOut } from '@/lib/anim';
+import { useModalA11y } from '@/lib/a11y';
 import { query } from '@/lib/messages';
 import type { MatchRef, Wagon } from '@/lib/models';
 
@@ -29,10 +30,14 @@ export function SeatPickerModal({
   const [seats, setSeats] = useState<number[]>([]);
   const backdropRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     if (open) setMounted(true);
   }, [open]);
+
+  // Escape-to-close, Tab trap inside the card, focus return on close.
+  useModalA11y(cardRef, open && mounted, onClose);
 
   useLayoutEffect(() => {
     const backdrop = backdropRef.current;
@@ -87,11 +92,12 @@ export function SeatPickerModal({
         ref={cardRef}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
         className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
         <header className="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-3">
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-semibold text-gray-900">
+            <h3 id={titleId} className="truncate text-sm font-semibold text-gray-900">
               Оберіть місця · {match.trainNumber} ({match.classId})
             </h3>
             <p className="text-[11px] text-gray-500">

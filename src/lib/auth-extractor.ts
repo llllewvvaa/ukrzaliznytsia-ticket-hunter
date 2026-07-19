@@ -110,3 +110,14 @@ export function extractSession(storage: StorageLike): ExtractedSession | null {
     ? { authToken: found.token, sessionId: found.sessionId, userId: found.userId }
     : null;
 }
+
+// Adapt a plain key→value dump (e.g. a localStorage snapshot returned by
+// chrome.scripting.executeScript) to the StorageLike shape extractSession scans.
+export function storageFromSnapshot(snapshot: Record<string, string>): StorageLike {
+  const keys = Object.keys(snapshot);
+  return {
+    length: keys.length,
+    key: (index) => keys[index] ?? null,
+    getItem: (key) => snapshot[key] ?? null,
+  };
+}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createJobDraft, type JobFormInput } from '@/lib/job-factory';
 import { shake, stepIn } from '@/lib/anim';
-import { DATE_RE, todayPlus } from '@/lib/date';
+import { DATE_RE, saleOpenDefault, todayPlus } from '@/lib/date';
 import type { CoachType, HuntJob, JobMode, Station } from '@/lib/models';
 import type { SeatSelection } from '@/components/TrainPicker';
 import { LAST_STEP, STEPS, type Step } from './constants';
@@ -16,7 +16,7 @@ export function useNewJobForm(onSubmit: (job: HuntJob) => void, onCancel: () => 
   const [showName, setShowName] = useState(false);
   const [from, setFrom] = useState<Station | null>(null);
   const [to, setTo] = useState<Station | null>(null);
-  const [date, setDate] = useState(todayPlus(30));
+  const [date, setDateRaw] = useState(todayPlus(30));
   const [trains, setTrains] = useState<string[]>([]);
   const [coachTypes, setCoachTypes] = useState<Array<CoachType | string>>([]);
   const [seatSelection, setSeatSelection] = useState<SeatSelection | null>(null);
@@ -28,8 +28,20 @@ export function useNewJobForm(onSubmit: (job: HuntJob) => void, onCancel: () => 
   const [airConditioned, setAirConditioned] = useState(false);
   const [mode, setMode] = useState<JobMode>('monitor');
   const [pollIntervalSec, setPollIntervalSec] = useState(15);
-  const [startAt, setStartAt] = useState('');
+  const [startAt, setStartAtRaw] = useState('');
   const [maxAttempts, setMaxAttempts] = useState('5');
+
+  // Sale-open time auto-fills from the trip date (20 days before, 08:00) until
+  // the user edits it manually; a manual edit is never overwritten.
+  const startAtTouched = useRef(false);
+  const setStartAt = (v: string): void => {
+    startAtTouched.current = true;
+    setStartAtRaw(v);
+  };
+  const setDate = (iso: string): void => {
+    setDateRaw(iso);
+    if (!startAtTouched.current) setStartAtRaw(saleOpenDefault(iso));
+  };
 
   const [errors, setErrors] = useState<string[]>([]);
   const [step, setStep] = useState<Step>(0);
@@ -39,13 +51,26 @@ export function useNewJobForm(onSubmit: (job: HuntJob) => void, onCancel: () => 
 
   const panelRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLUListElement>(null);
+  const firstStep = useRef(true);
 
   useEffect(() => {
-    if (panelRef.current) stepIn(panelRef.current, dir);
+    const panel = panelRef.current;
+    if (!panel) return;
+    stepIn(panel, dir);
+    // Move focus to the new step so keyboard/screen-reader users start from
+    // its top — but not on first mount, where in-step autoFocus wins.
+    if (firstStep.current) {
+      firstStep.current = false;
+      return;
+    }
+    panel.focus({ preventScroll: true });
   }, [step]);
 
   useEffect(() => {
-    if (errorNonce > 0 && errorRef.current) shake(errorRef.current);
+    if (errorNonce > 0 && errorRef.current) {
+      shake(errorRef.current);
+      errorRef.current.focus({ preventScroll: true });
+    }
   }, [errorNonce]);
 
   const toggleCoach = (v: CoachType | string): void =>
@@ -69,6 +94,9 @@ export function useNewJobForm(onSubmit: (job: HuntJob) => void, onCancel: () => 
     setMode(nextMode);
     setTrains([]);
     setSeatSelection(null);
+    if (nextMode === 'scheduled' && !startAtTouched.current) {
+      setStartAtRaw(saleOpenDefault(date));
+    }
   };
 
   const failWith = (issues: string[]): void => {

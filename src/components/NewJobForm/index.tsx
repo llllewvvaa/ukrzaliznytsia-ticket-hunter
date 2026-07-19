@@ -43,7 +43,7 @@ export function NewJobForm({
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-2">
-        <div ref={form.panelRef}>
+        <div ref={form.panelRef} tabIndex={-1} className="outline-none">
           <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
             Крок {form.step + 1} з {STEPS.length}
           </span>
@@ -64,7 +64,9 @@ export function NewJobForm({
         {form.errors.length > 0 ? (
           <ul
             ref={form.errorRef}
-            className="space-y-1 rounded-2xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+            role="alert"
+            tabIndex={-1}
+            className="space-y-1 rounded-2xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 outline-none"
           >
             {form.errors.map((e) => (
               <li key={e}>• {e}</li>

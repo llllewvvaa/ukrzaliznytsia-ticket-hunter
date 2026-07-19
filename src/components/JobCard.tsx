@@ -103,6 +103,7 @@ export function JobCard({
             title="Місця тримаються до цього часу — встигніть оплатити"
           >
             <HoldIcon className="h-4 w-4" /> {holdLabel}
+            <span className="sr-only">Місця тримаються до цього часу — встигніть оплатити</span>
           </span>
         ) : holdOver ? (
           <span
@@ -110,6 +111,7 @@ export function JobCard({
             title="15-хвилинне утримання місць вичерпано — місця могли звільнити"
           >
             <WarnIcon className="h-4 w-4" /> Час утримання вичерпано
+            <span className="sr-only">15-хвилинне утримання місць вичерпано — місця могли звільнити</span>
           </span>
         ) : null}
         {job.state === 'scheduled' && job.startAt ? (
@@ -118,6 +120,7 @@ export function JobCard({
             title="Коли почнеться полювання за квитками"
           >
             <ScheduleIcon className="h-4 w-4" /> Старт {scheduledLabel(job.startAt)}
+            <span className="sr-only">Коли почнеться полювання за квитками</span>
           </span>
         ) : null}
         {onDetails ? (
@@ -131,6 +134,7 @@ export function JobCard({
           className="ml-auto"
           onClick={() => onControl('delete', job)}
           title="Видалити пошук"
+          aria-label="Видалити пошук"
         >
           Видалити
         </Button>
@@ -144,7 +148,9 @@ function LastErrorChip({ error }: { error: string }) {
   const clipped = msg.length > 36 ? `${msg.slice(0, 36)}…` : msg;
   return (
     <span className="inline-flex items-center gap-1 text-red-500" title={msg}>
-      <WarnIcon className="h-3.5 w-3.5 shrink-0" /> {clipped}
+      <WarnIcon className="h-3.5 w-3.5 shrink-0" />
+      <span aria-hidden="true">{clipped}</span>
+      <span className="sr-only">{msg}</span>
     </span>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Chip, Field, Input } from '@/components/ui';
 import { FloatingPanel } from './FloatingPanel';
 import { SkeletonRows } from '@/components/Skeleton';
@@ -39,7 +39,14 @@ function TimetableStationInput({
     [],
   );
 
-  const { results, open, setOpen, change } = useDebouncedSearch(fetchStations);
+  const { results, open, setOpen, change, highlight, keydown } = useDebouncedSearch(fetchStations);
+  const listId = useId();
+
+  // Keep the keyboard-highlighted option visible inside the scrollable list.
+  useEffect(() => {
+    if (highlight < 0) return;
+    document.getElementById(`${listId}-${highlight}`)?.scrollIntoView({ block: 'nearest' });
+  }, [highlight, listId]);
 
   // Timetable has its own id space; seed from booking.uz name but keep editable.
   useEffect(() => {
@@ -72,11 +79,17 @@ function TimetableStationInput({
         <Input
           value={text}
           placeholder="Станція в розкладі УЗ…"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open && results.length > 0}
+          aria-controls={listId}
+          aria-activedescendant={highlight >= 0 ? `${listId}-${highlight}` : undefined}
           onChange={(e) => {
             setText(e.target.value);
             onChange(null);
             change(e.target.value);
           }}
+          onKeyDown={(e) => keydown(e, pick)}
         />
       </div>
       <FloatingPanel
@@ -85,16 +98,25 @@ function TimetableStationInput({
         onClose={() => setOpen(false)}
         matchWidth
       >
-        <ul className="max-h-48 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl">
-          {results.map((s) => (
-            <li key={s.ids}>
-              <button
-                type="button"
-                className="block w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-blue-50"
-                onClick={() => pick(s)}
-              >
-                {s.name}
-              </button>
+        <ul
+          role="listbox"
+          id={listId}
+          aria-label={label}
+          className="max-h-48 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl"
+        >
+          {results.map((s, i) => (
+            <li
+              key={s.ids}
+              role="option"
+              id={`${listId}-${i}`}
+              aria-selected={i === highlight}
+              className={`cursor-pointer px-3 py-2 text-sm hover:bg-blue-100 ${
+                i === highlight ? 'bg-blue-100 font-medium text-blue-900' : 'text-gray-800'
+              }`}
+              onMouseDown={(e) => e.preventDefault() /* keep focus in the input */}
+              onClick={() => pick(s)}
+            >
+              {s.name}
             </li>
           ))}
         </ul>
@@ -194,6 +216,7 @@ export function TimetablePicker({
                 key={t.number}
                 type="button"
                 data-tt
+                aria-pressed={on}
                 onClick={() => toggle(t.number)}
                 className={`w-full rounded-2xl border p-3 text-left transition ${
                   on

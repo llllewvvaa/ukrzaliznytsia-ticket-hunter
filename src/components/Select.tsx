@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { FloatingPanel } from './FloatingPanel';
 import { ExpandIcon } from './icons';
 
@@ -21,6 +21,7 @@ export function Select({
   const [open, setOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const listId = useId();
   const selected = options.find((o) => o.value === value);
 
   const indexOfValue = (): number => {
@@ -63,6 +64,18 @@ export function Select({
       case 'Escape':
         setOpen(false);
         break;
+      case 'Home':
+        if (open) {
+          e.preventDefault();
+          setActiveIdx(0);
+        }
+        break;
+      case 'End':
+        if (open) {
+          e.preventDefault();
+          setActiveIdx(options.length - 1);
+        }
+        break;
       default:
         break;
     }
@@ -76,6 +89,8 @@ export function Select({
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-controls={listId}
+        aria-activedescendant={open ? `${listId}-${activeIdx}` : undefined}
         aria-label={ariaLabel}
         onClick={() => (open ? setOpen(false) : openMenu())}
         onKeyDown={onKeyDown}
@@ -92,12 +107,15 @@ export function Select({
       <FloatingPanel anchorRef={triggerRef} open={open} onClose={() => setOpen(false)} matchWidth>
         <ul
           role="listbox"
+          id={listId}
+          aria-label={ariaLabel}
           className="max-h-56 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-xl"
         >
           {options.map((o, i) => (
             <li
               key={o.value}
               role="option"
+              id={`${listId}-${i}`}
               aria-selected={o.value === value}
               onMouseEnter={() => setActiveIdx(i)}
               onClick={() => choose(o.value)}

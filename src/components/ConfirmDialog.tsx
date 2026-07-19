@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { dialogIn, dialogOut } from '@/lib/anim';
+import { useModalA11y } from '@/lib/a11y';
 import { WarnIcon } from './icons';
 import { Button } from './ui';
 
@@ -41,20 +42,11 @@ export function ConfirmDialog({
     else if (mounted) dialogOut(backdrop, card, () => setMounted(false));
   }, [open, mounted]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onCancel();
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        onConfirm();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onCancel, onConfirm]);
+  // Escape, focus trap and focus return live in the shared hook. Enter is NOT
+  // bound globally on purpose: focus is trapped on the dialog buttons, so
+  // Enter clicks whichever button is focused — a window-level Enter handler
+  // used to fire onConfirm on top of the focused Cancel button's click.
+  useModalA11y(cardRef, open && mounted, onCancel);
 
   if (!mounted) return null;
 

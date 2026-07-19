@@ -20,6 +20,8 @@ export default defineConfig({
       'alarms',
       'notifications',
       'tabs',
+      // reads booking.uz localStorage on demand (session pull, no page reload)
+      'scripting',
       'offscreen',
       'sidePanel',
       'webNavigation',
@@ -38,6 +40,13 @@ export default defineConfig({
         matches: ['https://booking.uz.gov.ua/*'],
       },
     ],
+    // Open the popup from the keyboard (rebindable at chrome://extensions/shortcuts).
+    commands: {
+      _execute_action: {
+        suggested_key: { default: 'Ctrl+Shift+U', mac: 'Command+Shift+U' },
+        description: 'Відкрити UZ Ticket Hunter',
+      },
+    },
   },
   zip: {
     name: 'ukrzaliznytsia-ticket-hunter',

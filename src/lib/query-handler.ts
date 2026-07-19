@@ -1,4 +1,5 @@
 import { hasSession } from './auth';
+import { syncSessionFromTabs } from './session-probe';
 import {
   AuthError,
   NotDiscoveredError,
@@ -28,7 +29,9 @@ export async function handleQuery(msg: QueryMessage): Promise<QueryResult> {
   try {
     switch (msg.name) {
       case 'authStatus':
-        return { ok: true, data: await hasSession() };
+        // Cache miss → pull from the booking.uz tab directly, so a fresh login
+        // shows up in the popup even without a live content script there.
+        return { ok: true, data: (await hasSession()) || (await syncSessionFromTabs()) };
       case 'profile':
         return { ok: true, data: await getProfile() };
       case 'passengers':

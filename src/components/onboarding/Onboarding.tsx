@@ -155,7 +155,11 @@ export function Onboarding() {
           <div className="flex justify-center lg:justify-end">
             <div ref={mockRef} className="relative">
               <PopupFrame activeTab={step.tab} authOk={step.authOk ?? true}>
-                <div ref={screenRef}>{step.screen}</div>
+                {/* Demo screens render real but dead controls (noop handlers);
+                    inert keeps them out of the tab order and a11y tree. */}
+                <div ref={screenRef} inert>
+                  {step.screen}
+                </div>
               </PopupFrame>
             </div>
           </div>

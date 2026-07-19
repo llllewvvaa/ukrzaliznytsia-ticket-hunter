@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 import { useSegmentIndicator } from '@/lib/use-segment-indicator';
 import type { JobMode } from '@/lib/models';
 import { HuntIcon, ScheduleIcon } from '@/components/icons';
@@ -27,7 +27,21 @@ const HUNT_TYPES: { id: JobMode; title: string; desc: string; icon: ReactNode }[
 ];
 
 export function HuntTypeToggle({ mode, onSelect }: { mode: JobMode; onSelect: (m: JobMode) => void }) {
-  const { indicatorRef, setButtonRef } = useSegmentIndicator(mode);
+  const { indicatorRef, setButtonRef, focusButton } = useSegmentIndicator(mode);
+
+  // WAI-ARIA radiogroup: arrows move selection and focus together.
+  const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>): void => {
+    const ids = HUNT_TYPES.map((t) => t.id);
+    const i = ids.indexOf(mode);
+    let next: number | null = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % ids.length;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + ids.length) % ids.length;
+    if (next === null) return;
+    e.preventDefault();
+    const id = ids[next]!;
+    onSelect(id);
+    focusButton(id);
+  };
 
   return (
     <div className="relative flex gap-2 rounded-2xl bg-gray-100 p-1" role="radiogroup" aria-label="Тип пошуку">
@@ -45,7 +59,9 @@ export function HuntTypeToggle({ mode, onSelect }: { mode: JobMode; onSelect: (m
             type="button"
             role="radio"
             aria-checked={active}
+            tabIndex={active ? 0 : -1}
             onClick={() => onSelect(t.id)}
+            onKeyDown={onKeyDown}
             className="relative z-10 flex flex-1 flex-col items-start gap-0.5 rounded-xl px-3 py-2 text-left transition-colors"
           >
             <span

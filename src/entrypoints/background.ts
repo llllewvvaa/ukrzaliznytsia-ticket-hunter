@@ -1,4 +1,6 @@
 import { getAuthHeaders, invalidate, registerAuthListener } from '@/lib/auth';
+import { isIconAlarm, refreshActionIcon, registerIconSync } from '@/lib/icon-sync';
+import { syncSessionFromTabs } from '@/lib/session-probe';
 import { configureApi } from '@/lib/uz-api';
 import { installNetworkRules } from '@/lib/net-rules';
 import { registerKeepAlive } from '@/lib/bridge';
@@ -15,11 +17,16 @@ export default defineBackground(() => {
     id: browser.runtime.id,
   });
 
-  registerAuthListener();
+  registerAuthListener(() => void refreshActionIcon());
+  // Reflect jobs + cached session on every SW wake, then keep the icon in
+  // sync with job changes (storage.session survives SW restarts but not
+  // browser restarts).
+  void refreshActionIcon();
+  registerIconSync();
 
   configureApi({
     headers: getAuthHeaders,
-    onUnauthorized: invalidate,
+    onUnauthorized: () => invalidate().then(() => refreshActionIcon()),
   });
 
   // Rewrite Origin/Referer (forbidden headers fetch can't set) for SW requests
@@ -31,7 +38,8 @@ export default defineBackground(() => {
   initSidePanel();
 
   browser.alarms.onAlarm.addListener((alarm) => {
-    void handleAlarm(alarm.name);
+    if (isIconAlarm(alarm.name)) void refreshActionIcon();
+    else void handleAlarm(alarm.name);
   });
 
   browser.runtime.onMessage.addListener((message: unknown) => {
@@ -69,6 +77,14 @@ export default defineBackground(() => {
       };
     browser.webNavigation.onCommitted.addListener(onNav('committed'), navFilter);
     browser.webNavigation.onHistoryStateUpdated.addListener(onNav('history'), navFilter);
+
+    // SPA login/logout navigations: pull the session straight from the tab so
+    // the popup and badge track it without a page reload.
+    const resync = (d: { frameId: number }): void => {
+      if (d.frameId === 0) void syncSessionFromTabs();
+    };
+    browser.webNavigation.onCommitted.addListener(resync, navFilter);
+    browser.webNavigation.onHistoryStateUpdated.addListener(resync, navFilter);
   }
 
   browser.runtime.onInstalled.addListener((details) => {

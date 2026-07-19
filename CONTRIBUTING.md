@@ -25,7 +25,7 @@ pnpm build       # production bundle
 
 ## Conventions
 
-- Architecture and house style live in [`CLAUDE.md`](CLAUDE.md): pure core + injected
+- Architecture and house style live in [`AGENTS.md`](AGENTS.md): pure core + injected
   effects (clock/sleep/DOM/network are parameters), pure `parse*` split from `fetch`,
   unconfirmed endpoints throw `NotDiscoveredError` and the UI degrades to manual entry.
 - UI copy is Ukrainian; icons come from `react-icons/md` — **no native emoji**.

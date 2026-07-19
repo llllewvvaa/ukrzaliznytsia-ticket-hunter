@@ -73,13 +73,13 @@ export async function getAuthHeaders(): Promise<UzAuthHeaders | null> {
   return session ? buildHeaders(session) : null;
 }
 
-export function registerAuthListener(): void {
+export function registerAuthListener(onChange?: (active: boolean) => void): void {
   browser.runtime.onMessage.addListener((message: unknown) => {
     if (!isAuthMessage(message)) return;
     if (message.type === TOKEN_UPDATED) {
-      void setSession(message.payload);
+      void setSession(message.payload).then(() => onChange?.(true));
     } else {
-      void invalidate();
+      void invalidate().then(() => onChange?.(false));
     }
   });
 }

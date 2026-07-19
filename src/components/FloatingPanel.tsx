@@ -10,18 +10,23 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { hidePanel, revealPanel } from '@/lib/anim';
+import { focusableIn, isFocusable } from '@/lib/a11y';
 
 export function FloatingPanel<T extends HTMLElement>({
   anchorRef,
   open,
   onClose,
   matchWidth = false,
+  grabFocus = false,
   children,
 }: {
   anchorRef: RefObject<T | null>;
   open: boolean;
   onClose: () => void;
   matchWidth?: boolean;
+  // Move focus into the panel on open (for dialog-like panels such as the
+  // calendar). Combobox-style panels keep focus in the anchor input instead.
+  grabFocus?: boolean;
   children: ReactNode;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -36,6 +41,15 @@ export function FloatingPanel<T extends HTMLElement>({
   useEffect(() => {
     if (open) setMounted(true);
   }, [open]);
+
+  // Focus goes back to the anchor (or its first focusable child) — used when
+  // the panel closes while focus is still inside it.
+  const focusAnchor = useCallback((): void => {
+    const anchor = anchorRef.current;
+    if (!anchor) return;
+    const target = isFocusable(anchor) ? anchor : focusableIn(anchor)[0];
+    target?.focus({ preventScroll: true });
+  }, [anchorRef]);
 
   const reposition = useCallback(() => {
     const anchor = anchorRef.current;
@@ -60,10 +74,13 @@ export function FloatingPanel<T extends HTMLElement>({
       reposition();
       revealPanel(el);
       reposition();
+      if (grabFocus) focusableIn(el)[0]?.focus({ preventScroll: true });
     } else {
+      // Closing: never leave focus stranded inside an unmounting portal.
+      if (el.contains(document.activeElement)) focusAnchor();
       hidePanel(el, () => setMounted(false));
     }
-  }, [open, mounted, reposition]);
+  }, [open, mounted, reposition, grabFocus, focusAnchor]);
 
   useEffect(() => {
     if (!open) return;
@@ -78,15 +95,30 @@ export function FloatingPanel<T extends HTMLElement>({
 
   useEffect(() => {
     if (!open) return;
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) return;
     const onDoc = (e: MouseEvent): void => {
       const target = e.target as Node;
       if (anchorRef.current?.contains(target)) return;
       if (panelRef.current?.contains(target)) return;
+      // Focus is still inside the panel (e.g. a calendar day): hand it back to
+      // the anchor. A click on another focusable overrides this via its own
+      // default focus behaviour, so we never steal it.
+      if (panelRef.current?.contains(document.activeElement)) focusAnchor();
       onClose();
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
-  }, [open, onClose, anchorRef]);
+  }, [open, onClose, anchorRef, focusAnchor]);
 
   if (!mounted) return null;
   return createPortal(

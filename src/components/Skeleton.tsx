@@ -11,7 +11,10 @@ export function Skeleton({ className = '' }: { className?: string }) {
     };
   }, []);
   return (
-    <span className={`relative block overflow-hidden rounded-md bg-gray-200 ${className}`}>
+    <span
+      aria-hidden="true"
+      className={`relative block overflow-hidden rounded-md bg-gray-200 ${className}`}
+    >
       <span
         ref={hl}
         className="absolute inset-0 block bg-gradient-to-r from-transparent via-white/70 to-transparent"
