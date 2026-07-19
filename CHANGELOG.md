@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2026-07-19
+
+### Changed
+
+- **Donation celebration flow** — removed the one-time donation card from the extension popup and replaced it with a spectacular native-looking celebration banner directly on the `booking.uz.gov.ua/payment` page. The celebration features an immersive GSAP confetti explosion and appears right when you need to pay for a reserved ticket.
+
 ## [1.1.0] - 2026-07-19
 
 ### Added
@@ -57,6 +63,7 @@ Initial public release.
 - The extension **never pays** — you complete payment manually within UZ's ~15-minute hold.
 - Not affiliated with Ukrzaliznytsia. Personal use only.
 
+[1.1.5]: https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases/tag/v1.1.5
 [1.1.0]: https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases/tag/v1.1.0
 [1.0.0]: https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases/tag/v1.0.0
 [0.1.0]: https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases/tag/v0.1.0

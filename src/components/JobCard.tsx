@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Badge, Button } from '@/components/ui';
+import { DonateStrip } from '@/components/donate';
 import { CartIcon, HoldIcon, PauseIcon, PlayIcon, ScheduleIcon, WarnIcon } from '@/components/icons';
 import {
   canStart,
@@ -139,6 +140,8 @@ export function JobCard({
           Видалити
         </Button>
       </div>
+
+      {job.state === 'reserved' ? <DonateStrip /> : null}
     </div>
   );
 }

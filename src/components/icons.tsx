@@ -25,6 +25,7 @@ export {
   MdArrowUpward as UpperBerthIcon,
   MdCheckCircle as SuccessIcon,
   MdShoppingCart as CartIcon,
+  MdFavorite as HeartIcon,
   MdWarningAmber as WarnIcon,
   MdSettings as SettingsIcon,
   MdViewSidebar as SidebarIcon,

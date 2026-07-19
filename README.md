@@ -9,6 +9,8 @@
 ![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/license-MIT-10B981)
 
+[![Підтримати в monobank](docs/donate-badge.svg)](https://send.monobank.ua/jar/8daDL7FGDe)
+
 </div>
 
 Розширення для Google Chrome (Manifest V3), яке **автоматично відстежує та бронює** квитки на

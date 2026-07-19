@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="236" height="28" role="img" aria-label="Підтримати в monobank">
+  <clipPath id="r"><rect width="236" height="28" rx="6" fill="#fff"/></clipPath>
+  <g clip-path="url(#r)">
+    <rect width="132" height="28" fill="#1a1a1a"/>
+    <rect x="132" width="104" height="28" fill="#f5a623"/>
+  </g>
+  <g font-family="Verdana,DejaVu Sans,sans-serif" font-size="13">
+    <g transform="translate(10,6) scale(0.68)" fill="#fff"><path d="M12 21c-4.4 0-8-3.2-8-7.2V6.4c0-.5.55-.76.9-.45l3.4 2.6A9.6 9.6 0 0 1 12 7.2c1.4 0 2.7.3 3.7 1.35l3.4-2.6c.35-.31.9-.05.9.45v7.4c0 4-3.6 7.2-8 7.2z"/></g>
+    <text x="32" y="19" fill="#fff">Підтримати в</text>
+    <text x="144" y="19" fill="#3d2700" font-weight="bold">monobank</text>
+  </g>
+</svg>

@@ -8,6 +8,7 @@ import { useSegmentIndicator } from '@/lib/use-segment-indicator';
 import { openSidePanel, sidePanelSupported } from '@/lib/sidepanel';
 import { openOnboarding } from '@/lib/onboarding';
 import { AuthIndicator } from '@/components/AuthIndicator';
+import { DonateButton } from '@/components/donate';
 import {
   AddIcon,
   BackIcon,
@@ -141,6 +142,7 @@ export function AppShell({ surface }: { surface: 'popup' | 'sidepanel' }) {
             <span className="px-1 text-xs text-gray-500">
               {jobs.length} {pluralHunts(jobs.length)}
             </span>
+
             <div className="space-y-3">
               {jobs.map((job) => (
                 <JobCard
@@ -156,8 +158,11 @@ export function AppShell({ surface }: { surface: 'popup' | 'sidepanel' }) {
       </div>
 
       {showChrome ? (
-        <footer className="border-t border-indigo-100/60 px-4 py-2 text-center text-[11px] text-gray-500">
-          Лише для особистого використання. Оплату завершуйте вручну.
+        <footer className="flex flex-col items-center gap-1.5 border-t border-indigo-100/60 px-4 py-2">
+          <DonateButton />
+          <p className="text-center text-[11px] text-gray-500">
+            Лише для особистого використання. Оплату завершуйте вручну.
+          </p>
         </footer>
       ) : null}
 
