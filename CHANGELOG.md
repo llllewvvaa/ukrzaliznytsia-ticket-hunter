@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-07-19
+
+### Added
+
+- **Session detection without page reload** — the service worker can now pull the
+  booking.uz session straight from the tab (`chrome.scripting`) on SPA navigations
+  and when the popup asks for auth status. Logging in (or out) shows up in the popup
+  and on the toolbar icon immediately, even in tabs opened before install/update.
+  Adds the `scripting` permission.
+- **State-aware toolbar icon** — amber when a reservation awaits payment, blue while
+  hunts are running, green when the session is active, gray when there is none.
+  Refreshes on job and session changes; a one-shot alarm drops the amber state once
+  the payment hold expires. (Colored icons pregenerated in `public/icon/states/`.)
+- **Sale-open auto-fill** for scheduled hunts: the start time defaults to 20 days
+  before the trip date at 08:00 and stays editable — manual edits are never
+  overwritten.
+- **Custom date + time picker** — the existing calendar gains scrollable
+  hour/minute columns (Chrome-style side layout), replacing the native
+  `datetime-local` input for the sale-open time.
+
 ## [1.0.0] - 2026-07-03
 
 First stable release. Internal refactor — no user-facing behaviour change:
@@ -37,5 +57,6 @@ Initial public release.
 - The extension **never pays** — you complete payment manually within UZ's ~15-minute hold.
 - Not affiliated with Ukrzaliznytsia. Personal use only.
 
+[1.1.0]: https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases/tag/v1.1.0
 [1.0.0]: https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases/tag/v1.0.0
 [0.1.0]: https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/releases/tag/v0.1.0
