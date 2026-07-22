@@ -1,21 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Chip, Input } from '@/components/ui';
 import { SkeletonRows } from '@/components/Skeleton';
 import { CheckIcon, ForwardIcon, SearchIcon, TicketIcon } from '@/components/icons';
 import { SeatPickerModal } from './SeatPickerModal';
-import { query } from '@/lib/messages';
-import { byDeparture, durationLabel, hhmm } from '@/lib/trip-format';
-import { staggerIn } from '@/lib/anim';
-import { DATE_RE } from '@/lib/date';
-import type { MatchRef, Station, Trip } from '@/lib/models';
-
-export type SeatSelection = { match: MatchRef; wagonNumber: string; seats: number[] };
-
-function noteForCode(code?: string): string {
-  if (code === 'not_discovered') return 'Пошук поїздів недоступний — введіть номери вручну.';
-  if (code === 'not_authenticated') return 'Залогіньтесь у booking.uz, щоб бачити поїзди.';
-  return 'Не вдалося завантажити поїзди. Спробуйте оновити.';
-}
+import { durationLabel, hhmm } from '@/lib/format/trip-format';
+import { staggerIn } from '@/lib/ui/anim';
+import { useTripSearch } from '@/hooks/use-trip-search';
+import type { MatchRef, Station, Trip, WagonClassSummary } from '@/lib/models';
+import type { SeatSelection } from '@/components/NewJobForm/types';
 
 export function TrainPicker({
   from,
@@ -36,43 +28,11 @@ export function TrainPicker({
   onSelectSeats: (sel: SeatSelection) => void;
   onClearSeats: () => void;
 }) {
-  const [trips, setTrips] = useState<Trip[] | null>(null);
-  const [note, setNote] = useState<string | undefined>();
-  const [loading, setLoading] = useState(false);
+  const { trips, note, loading, refresh } = useTripSearch(from, to, date);
   const [manual, setManual] = useState(false);
   const [pickerMatch, setPickerMatch] = useState<MatchRef | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const searchedKey = useRef<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
-
-  const search = useCallback(() => {
-    if (!from || !to) {
-      setNote('Спочатку оберіть станції.');
-      return;
-    }
-    setLoading(true);
-    setNote(undefined);
-    void query<Trip[]>('trips', { fromId: from.id, toId: to.id, date })
-      .then((r) => {
-        if (r.ok && Array.isArray(r.data)) {
-          setTrips(byDeparture(r.data));
-          setNote(r.data.length === 0 ? 'На цю дату поїздів не знайдено.' : undefined);
-        } else {
-          setTrips(null);
-          setNote(noteForCode(r.code));
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [from, to, date]);
-
-  // Fetch once per route+date.
-  useEffect(() => {
-    if (!from || !to || !DATE_RE.test(date)) return;
-    const key = `${from.id}-${to.id}-${date}`;
-    if (key === searchedKey.current) return;
-    searchedKey.current = key;
-    search();
-  }, [from, to, date, search]);
 
   useEffect(() => {
     if (trips && trips.length && listRef.current) {
@@ -88,9 +48,35 @@ export function TrainPicker({
     setPickerOpen(true);
   };
 
-  const refresh = (): void => {
-    searchedKey.current = null;
-    search();
+  const handleManualTrainsChange = (e: ChangeEvent<HTMLInputElement>): void =>
+    onChange(
+      e.target.value
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    );
+
+  const openClassPicker = (t: Trip, c: WagonClassSummary): void =>
+    openPicker({
+      tripId: t.id,
+      trainNumber: t.train.number,
+      classId: String(c.id),
+    });
+
+  const handleManualToggle = (): void => setManual((m) => !m);
+
+  const handleTrainToggle = (num: string) => (): void => toggle(num);
+
+  const handleClassClick = (t: Trip, c: WagonClassSummary) => (): void => openClassPicker(t, c);
+
+  const handleSeatConfirm = (pick: { wagonNumber: string; seats: number[] }): void => {
+    if (!pickerMatch) return;
+    onSelectSeats({
+      match: pickerMatch,
+      wagonNumber: pick.wagonNumber,
+      seats: pick.seats,
+    });
+    setPickerOpen(false);
   };
 
   const listedNumbers = new Set((trips ?? []).map((t) => t.train.number));
@@ -114,7 +100,7 @@ export function TrainPicker({
           </button>
           <button
             type="button"
-            onClick={() => setManual((m) => !m)}
+            onClick={handleManualToggle}
             className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${
               manual ? 'bg-blue-50 text-blue-700' : 'text-gray-500 hover:bg-gray-100'
             }`}
@@ -144,7 +130,7 @@ export function TrainPicker({
       {extraSelected.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
           {extraSelected.map((n) => (
-            <Chip key={n} active onClick={() => toggle(n)}>
+            <Chip key={n} active onClick={handleTrainToggle(n)}>
               {n} ✕
             </Chip>
           ))}
@@ -155,14 +141,7 @@ export function TrainPicker({
         <Input
           placeholder="Номери через кому, напр. 091К, 057К"
           value={value.join(', ')}
-          onChange={(e) =>
-            onChange(
-              e.target.value
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean),
-            )
-          }
+          onChange={handleManualTrainsChange}
         />
       ) : null}
 
@@ -184,7 +163,7 @@ export function TrainPicker({
               >
                 <button
                   type="button"
-                  onClick={() => toggle(t.train.number)}
+                  onClick={handleTrainToggle(t.train.number)}
                   aria-pressed={selected}
                   className="block w-full text-left"
                 >
@@ -226,13 +205,7 @@ export function TrainPicker({
                         key={c.id}
                         type="button"
                         disabled={!free}
-                        onClick={() =>
-                          openPicker({
-                            tripId: t.id,
-                            trainNumber: t.train.number,
-                            classId: String(c.id),
-                          })
-                        }
+                        onClick={handleClassClick(t, c)}
                         title={free ? 'Обрати конкретні місця' : 'Немає вільних місць'}
                         aria-label={
                           isPicked
@@ -274,14 +247,7 @@ export function TrainPicker({
           match={pickerMatch}
           count={null}
           onClose={() => setPickerOpen(false)}
-          onConfirm={(pick) => {
-            onSelectSeats({
-              match: pickerMatch,
-              wagonNumber: pick.wagonNumber,
-              seats: pick.seats,
-            });
-            setPickerOpen(false);
-          }}
+          onConfirm={handleSeatConfirm}
         />
       ) : null}
     </div>

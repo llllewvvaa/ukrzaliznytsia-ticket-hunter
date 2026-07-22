@@ -1,14 +1,15 @@
 import type { ReactNode } from 'react';
 import { HuntIcon, OrdersIcon, SettingsIcon, SidebarIcon, TicketIcon } from '@/components/icons';
 
-type Tab = 'hunts' | 'orders' | 'settings';
+// Named PopupTab to avoid confusion with the main AppShell Tab.
+type PopupTab = 'hunts' | 'orders' | 'settings';
 
 export function PopupFrame({
   activeTab = 'hunts',
   authOk = true,
   children,
 }: {
-  activeTab?: Tab;
+  activeTab?: PopupTab;
   authOk?: boolean;
   children: ReactNode;
 }) {
@@ -36,8 +37,16 @@ export function PopupFrame({
         </div>
 
         <div className="mt-3 flex gap-1 rounded-2xl bg-white/70 p-1 shadow-sm ring-1 ring-black/5">
-          <FrameTab active={activeTab === 'hunts'} icon={<HuntIcon className="h-4 w-4" />} label="Пошук" />
-          <FrameTab active={activeTab === 'orders'} icon={<OrdersIcon className="h-4 w-4" />} label="Квитки" />
+          <FrameTab
+            active={activeTab === 'hunts'}
+            icon={<HuntIcon className="h-4 w-4" />}
+            label="Пошук"
+          />
+          <FrameTab
+            active={activeTab === 'orders'}
+            icon={<OrdersIcon className="h-4 w-4" />}
+            label="Квитки"
+          />
           <FrameTab
             active={activeTab === 'settings'}
             icon={<SettingsIcon className="h-4 w-4" />}

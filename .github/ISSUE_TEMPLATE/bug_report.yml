@@ -1,6 +1,6 @@
 name: Bug report
 description: Something isn't working (not specific to an API/endpoint change).
-title: "[bug] "
+title: '[bug] '
 labels: [bug]
 body:
   - type: textarea

@@ -11,7 +11,7 @@ export default defineContentScript({
     try {
       const jobs = await listJobs();
       const hasReservedJob = jobs.some((j) => j.state === 'reserved');
-      
+
       if (!hasReservedJob) {
         return;
       }

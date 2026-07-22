@@ -1,14 +1,19 @@
+import type { ChangeEvent } from 'react';
 import { Field, Input } from '@/components/ui';
 import { DatePicker } from '@/components/DatePicker';
 import { NumberStepper } from '@/components/NumberStepper';
 import { ScheduleIcon } from '@/components/icons';
-import { localDateTimeIso } from '@/lib/date';
-import { FORM_BOUNDS } from '@/lib/job-factory';
-import { SummaryRow } from '../parts';
-import type { NewJobFormState } from '../use-new-job-form';
+import { localDateTimeIso } from '@/lib/format/date';
+import { FORM_BOUNDS } from '@/lib/engine/job-factory';
+import { SummaryRow } from '../SummaryRow';
+import type { NewJobFormState } from '../types';
 
 export function StepReview({ form }: { form: NewJobFormState }) {
   const { seatSelection } = form;
+
+  const onMaxAttemptsChange = (e: ChangeEvent<HTMLInputElement>): void =>
+    form.setMaxAttempts(e.target.value);
+
   return (
     <div className="space-y-4">
       {form.mode === 'scheduled' ? (
@@ -28,8 +33,8 @@ export function StepReview({ form }: { form: NewJobFormState }) {
             <ScheduleIcon className="mt-0.5 h-4 w-4 shrink-0" />
             <span>
               Тримайте розширення відкритим до старту (найкраще — бічну панель, вона не
-              закривається), а комп'ютер — активним. Одразу після відкриття бот почне ловити квитки з
-              наявних вагонів.
+              закривається), а комп'ютер — активним. Одразу після відкриття бот почне ловити квитки
+              з наявних вагонів.
             </span>
           </p>
         </div>
@@ -53,7 +58,7 @@ export function StepReview({ form }: { form: NewJobFormState }) {
               type="number"
               min={1}
               value={form.maxAttempts}
-              onChange={(e) => form.setMaxAttempts(e.target.value)}
+              onChange={onMaxAttemptsChange}
               placeholder="без обмеження"
             />
           </Field>
@@ -73,7 +78,10 @@ export function StepReview({ form }: { form: NewJobFormState }) {
             value={form.startAt ? new Date(form.startAt).toLocaleString() : 'не вказано'}
           />
         ) : null}
-        <SummaryRow label="Поїзди" value={form.trains.length ? form.trains.join(', ') : 'будь-який'} />
+        <SummaryRow
+          label="Поїзди"
+          value={form.trains.length ? form.trains.join(', ') : 'будь-який'}
+        />
         <SummaryRow
           label="Місця"
           value={

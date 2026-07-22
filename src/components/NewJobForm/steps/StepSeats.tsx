@@ -1,11 +1,13 @@
 import { Button, Field, Toggle } from '@/components/ui';
 import { Select } from '@/components/Select';
 import { AcIcon, ToiletIcon, TogetherIcon } from '@/components/icons';
-import { IconLabel } from '../parts';
-import type { Berth, NewJobFormState } from '../use-new-job-form';
+import { IconLabel } from '../IconLabel';
+import type { Berth, NewJobFormState } from '../types';
 
 export function StepSeats({ form }: { form: NewJobFormState }) {
   const { seatSelection } = form;
+
+  const handleBerthChange = (v: string): void => form.setBerth(v as Berth);
 
   if (seatSelection) {
     return (
@@ -33,7 +35,7 @@ export function StepSeats({ form }: { form: NewJobFormState }) {
             { value: 'lower', label: 'Тільки нижні' },
             { value: 'upper', label: 'Тільки верхні' },
           ]}
-          onChange={(v) => form.setBerth(v as Berth)}
+          onChange={handleBerthChange}
         />
       </Field>
       <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">

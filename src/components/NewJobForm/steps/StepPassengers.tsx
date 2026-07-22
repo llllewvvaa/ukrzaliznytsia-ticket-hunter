@@ -1,8 +1,8 @@
 import { Toggle } from '@/components/ui';
 import { PassengerPicker } from '@/components/PassengerPicker';
 import { BeddingIcon } from '@/components/icons';
-import { IconLabel } from '../parts';
-import type { NewJobFormState } from '../use-new-job-form';
+import { IconLabel } from '../IconLabel';
+import type { NewJobFormState } from '../types';
 
 export function StepPassengers({ form }: { form: NewJobFormState }) {
   const { seatSelection } = form;

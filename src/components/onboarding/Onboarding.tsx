@@ -1,95 +1,14 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui';
 import { BackIcon, ExternalIcon, ForwardIcon, TicketIcon } from '@/components/icons';
-import { onboardingReveal, onboardingStep } from '@/lib/anim';
-import { closeOnboardingTab, markOnboardingSeen, openBookingFromOnboarding } from '@/lib/onboarding';
-import { PopupFrame } from './PopupFrame';
+import { onboardingReveal, onboardingStep } from '@/lib/ui/anim';
 import {
-  DoneScreen,
-  HuntsScreen,
-  PassengersScreen,
-  ReserveScreen,
-  RouteScreen,
-  SeatsScreen,
-  SettingsScreen,
-} from './mockScreens';
-
-interface Step {
-  tab: 'hunts' | 'orders' | 'settings';
-  authOk?: boolean;
-  eyebrow: string;
-  title: string;
-  body: string;
-  pills: string[];
-  screen: ReactNode;
-}
-
-const STEPS: Step[] = [
-  {
-    tab: 'hunts',
-    eyebrow: 'Огляд',
-    title: 'Ваш мисливець за квитками',
-    body: 'UZ Ticket Hunter сам стежить за квитками на booking.uz і бронює місце, щойно воно звільниться. Оплату ви завершуєте вручну — у межах ~15-хвилинного утримання.',
-    pills: ['Моніторинг', 'Автобронювання', 'Оплата вручну'],
-    screen: <HuntsScreen />,
-  },
-  {
-    tab: 'hunts',
-    eyebrow: 'Крок 1 · Вхід',
-    title: 'Увійдіть на booking.uz',
-    body: 'Залогіньтесь у booking.uz у цьому браузері — розширення підхопить вашу сесію автоматично. Зелена позначка «Сесія активна» вгорі означає, що все готово.',
-    pills: ['Ваша сесія', 'Автоматично', 'Паролі лишаються у вас'],
-    screen: <HuntsScreen />,
-  },
-  {
-    tab: 'hunts',
-    eyebrow: 'Крок 2 · Маршрут',
-    title: 'Створіть пошук',
-    body: 'Вкажіть станції та дату. За бажанням звузьте до конкретних поїздів і типів вагонів — або лишіть «будь-який», і бот перевірятиме всі.',
-    pills: ['Маршрут', 'Дата', 'Поїзди'],
-    screen: <RouteScreen />,
-  },
-  {
-    tab: 'hunts',
-    eyebrow: 'Крок 3 · Місця',
-    title: 'Місця — авто або вручну',
-    body: 'Довірте вибір боту за вподобаннями (полиця, кондиціонер, подалі від туалету) — тоді він бере місця ближче до центру вагона, далі до початку й лише потім до кінця. Або оберіть конкретні місця на схемі.',
-    pills: ['Полиця', 'Подалі від туалету', 'Ручний вибір'],
-    screen: <SeatsScreen />,
-  },
-  {
-    tab: 'hunts',
-    eyebrow: 'Крок 4 · Пасажири',
-    title: 'Пасажири та режим',
-    body: 'Оберіть пасажирів — по одному на кожне місце. «Моніторинг» стежить постійно, «Запланований» стартує за секунди до відкриття продажу квитків.',
-    pills: ['Пасажири', 'Моніторинг', 'Запланований'],
-    screen: <PassengersScreen />,
-  },
-  {
-    tab: 'hunts',
-    eyebrow: 'Крок 5 · Резерв',
-    title: 'Бронювання і кошик',
-    body: 'Щойно місце знайдено, бот його бронює й відкриває кошик. У вас ~15 хвилин на оплату. reCAPTCHA завжди проходите ви — бот її не обходить.',
-    pills: ['~15 хвилин', 'Кошик', 'reCAPTCHA — вручну'],
-    screen: <ReserveScreen />,
-  },
-  {
-    tab: 'settings',
-    eyebrow: 'Зручність',
-    title: 'Бічна панель і налаштування',
-    body: 'Винесіть розширення в бічну панель, щоб воно було відкрите поряд із booking.uz і не закривалося. Там само — режим дебагу для діагностики.',
-    pills: ['Бічна панель', 'Дебаг', 'Синхронізація'],
-    screen: <SettingsScreen />,
-  },
-  {
-    tab: 'hunts',
-    eyebrow: 'Готово',
-    title: 'Вперед — створіть перший пошук',
-    body: 'Відкрийте booking.uz і увійдіть — розширення підхопить вашу сесію, і можна створювати перший пошук. Цей гайд завжди можна відкрити знову з «Налаштувань».',
-    pills: ['Лише особисте використання', 'Чесна гра'],
-    screen: <DoneScreen />,
-  },
-];
+  closeOnboardingTab,
+  markOnboardingSeen,
+  openBookingFromOnboarding,
+} from '@/lib/ui/onboarding';
+import { PopupFrame } from './PopupFrame';
+import { STEPS } from './constants';
 
 export function Onboarding() {
   const [i, setI] = useState(0);
@@ -104,6 +23,9 @@ export function Onboarding() {
   const go = (n: number): void => setI(Math.min(STEPS.length - 1, Math.max(0, n)));
   const finish = (): void => void markOnboardingSeen().then(closeOnboardingTab);
   const goToBooking = (): void => void openBookingFromOnboarding();
+  const goPrev = (): void => go(i - 1);
+  const goNext = (): void => go(i + 1);
+  const goToStep = (idx: number) => (): void => go(idx);
 
   // Mark seen on mount so the install auto-open fires only once.
   useEffect(() => {
@@ -124,8 +46,10 @@ export function Onboarding() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'ArrowRight') last ? finish() : go(i + 1);
-      else if (e.key === 'ArrowLeft') go(i - 1);
+      if (e.key === 'ArrowRight') {
+        if (last) finish();
+        else go(i + 1);
+      } else if (e.key === 'ArrowLeft') go(i - 1);
       else if (e.key === 'Escape') finish();
     };
     window.addEventListener('keydown', onKey);
@@ -186,7 +110,7 @@ export function Onboarding() {
             </div>
 
             <div className="mt-8 flex items-center gap-3">
-              <Button variant="secondary" onClick={() => go(i - 1)} disabled={i === 0}>
+              <Button variant="secondary" onClick={goPrev} disabled={i === 0}>
                 <BackIcon className="h-4 w-4" /> Назад
               </Button>
               {last ? (
@@ -194,7 +118,7 @@ export function Onboarding() {
                   <ExternalIcon className="h-4 w-4" /> Відкрити booking.uz
                 </Button>
               ) : (
-                <Button variant="primary" onClick={() => go(i + 1)}>
+                <Button variant="primary" onClick={goNext}>
                   Далі <ForwardIcon className="h-4 w-4" />
                 </Button>
               )}
@@ -205,7 +129,7 @@ export function Onboarding() {
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => go(idx)}
+                  onClick={goToStep(idx)}
                   aria-label={`Крок ${idx + 1}`}
                   className={`h-2 rounded-full transition-all ${
                     idx === i ? 'w-6 bg-blue-600' : 'w-2 bg-gray-300 hover:bg-gray-400'

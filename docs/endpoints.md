@@ -2,7 +2,7 @@
 
 > Result of **Step 1 (Discovery spike)**. Everything below was derived from a
 > `booking.uz.gov.ua.har` (143 entries) + 4 HTML snapshots, extracted into `fixtures/*.json`.
-> Items marked **TBD** require a *fresh* authenticated HAR (active search + login) that cannot be
+> Items marked **TBD** require a _fresh_ authenticated HAR (active search + login) that cannot be
 > captured offline — see [Open items](#open-items--requires-fresh-har).
 >
 > **Note:** the raw HAR and page snapshots are **not** committed to this repository — they
@@ -11,31 +11,32 @@
 
 ## Hosts
 
-| Host | Role |
-|---|---|
-| `https://app.uz.gov.ua/api` | Real REST API (`BASE_URL_API` in the Nuxt config, confirmed in `main-state.html` / `train-decide.html`). |
-| `https://booking.uz.gov.ua` | Nuxt 3 SPA frontend (Pinia + `piniaPluginPersistedstate`). Origin of all API calls. |
-| `https://www.uz.gov.ua` | Public **static timetable** site (no auth). Used only to list scheduled trains **before sales open** for the pre-sale flow — see [Timetable](#timetable-static-schedule). |
+| Host                        | Role                                                                                                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `https://app.uz.gov.ua/api` | Real REST API (`BASE_URL_API` in the Nuxt config, confirmed in `main-state.html` / `train-decide.html`).                                                                  |
+| `https://booking.uz.gov.ua` | Nuxt 3 SPA frontend (Pinia + `piniaPluginPersistedstate`). Origin of all API calls.                                                                                       |
+| `https://www.uz.gov.ua`     | Public **static timetable** site (no auth). Used only to list scheduled trains **before sales open** for the pre-sale flow — see [Timetable](#timetable-static-schedule). |
 
 ## Timetable (static schedule)
 
 Isolated in `lib/timetable.ts` (separate from `uz-api.ts`: different host, no booking.uz auth,
 HTML not JSON). Read-only helper — callers degrade to manual train-number entry on failure.
 
-| Endpoint | Response | Parser |
-|---|---|---|
-| `GET /passengers/timetable/suggest-station/?q={q}` | `text/plain` JSON: `["Назва~id,id,…", …]` | `parseSuggestStations` |
+| Endpoint                                                                                                          | Response                                                                              | Parser                                                          |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `GET /passengers/timetable/suggest-station/?q={q}`                                                                | `text/plain` JSON: `["Назва~id,id,…", …]`                                             | `parseSuggestStations`                                          |
 | `GET /passengers/timetable/?from_station={ids}&to_station={ids}&select_time=2&time_from=00&time_to=24&by_route=1` | HTML table (`#cpn-timetable`): № · маршрут · періодичність · станція/час відпр./приб. | `parseTimetableHtml` (fixture: `fixtures/timetable-route.html`) |
 
 **Caveats:**
+
 - `suggest-station` answers the literal **`false`** when nothing matches the query, and it
-  substring-matches its *own* naming (`Київ-Пас.`, `Київ Місто`) — so a full booking.uz name
+  substring-matches its _own_ naming (`Київ-Пас.`, `Київ Місто`) — so a full booking.uz name
   like `Київ-Пасажирський` misses. The UI drives it the way the site does: the user searches &
   **picks** the timetable station (`TimetableStationInput`), and we feed the chosen id bundle into
   the timetable page. The station inputs are auto-seeded from the booking.uz names by widening the
   query down to the city stem (`stationQueryCandidates`) and picking the best hit (`pickBestStation`);
   `Київ` returns the `739,47125,…` city bundle (all terminals).
-- Timetable station ids are **bundled per city** (`739,47125,…`) — a *different id space* from
+- Timetable station ids are **bundled per city** (`739,47125,…`) — a _different id space_ from
   booking.uz's numeric station ids. We only extract a train **number**; the reserve still runs off
   the booking.uz route + that number.
 - Number formats differ (timetable `"66"` vs booking.uz `"066Ш"`) → `matchTrip` compares the
@@ -61,7 +62,7 @@ referer: https://booking.uz.gov.ua/
 ```
 
 - `x-user-agent` user id (`1000001`) === `profile.id` (account id), **not** `passenger.id`.
-- **`Authorization` header**: its *value* is redacted in this HAR export, but the OPTIONS preflight
+- **`Authorization` header**: its _value_ is redacted in this HAR export, but the OPTIONS preflight
   advertises `access-control-request-headers: authorization,content-type,x-client-locale,x-session-id,x-user-agent`.
   → A `Authorization: Bearer <jwt>` is **assumed** but the exact Pinia/localStorage key holding the
   token is **TBD** (validated against a fresh HAR + live page inspection).
@@ -70,7 +71,7 @@ referer: https://booking.uz.gov.ua/
 ### Origin / Referer for SW requests (DeclarativeNetRequest)
 
 `origin` and `referer` are **forbidden** request headers — the browser ignores any attempt to set
-them via `fetch(..., { headers })`, so they are *not* in `buildHeaders` (`src/lib/auth.ts`). Requests
+them via `fetch(..., { headers })`, so they are _not_ in `buildHeaders` (`src/lib/auth.ts`). Requests
 the **service worker** makes to `app.uz.gov.ua` therefore go out with the extension's own origin
 (`chrome-extension://…`) instead of `https://booking.uz.gov.ua`, risking CORS/WAF rejection.
 
@@ -97,27 +98,27 @@ condition = { requestDomains: ["app.uz.gov.ua"], tabIds: [-1] }   // -1 = TAB_ID
 ## reCAPTCHA
 
 reCAPTCHA is integrated **app-wide**: `https://www.gstatic.com/recaptcha/releases/.../recaptcha__en.js`
-loads on *all* page snapshots, and challenge assets (`audio_2x`, `image_2x`, `refresh_2x`, `info_2x`)
+loads on _all_ page snapshots, and challenge assets (`audio_2x`, `image_2x`, `refresh_2x`, `info_2x`)
 appear in the HAR. The `POST /api/v4/orders` **request body in this HAR contains no reCAPTCHA token**
 (see `fixtures/create-order-payload.json`), so whether `/orders` is reCAPTCHA-gated (token in a
-header vs body, v2/v3/Enterprise, sitekey) is **TBD**. Architecture assumes it *may* be gated and
+header vs body, v2/v3/Enterprise, sitekey) is **TBD**. Architecture assumes it _may_ be gated and
 performs the reserve inside the page context to reuse the SPA's own token. (sitekey **TBD**.)
 
 ## Confirmed endpoints
 
-| Method | Path | Status seen | Fixture | Notes |
-|---|---|---|---|---|
-| GET | `/api/home-web` | 200 | `home-web.json` | banners/promo (not used by hunting) |
-| GET | `/api/stations?search={q}` | 200 | `stations.json` | station autocomplete (confirmed **live**, see below) |
-| GET | `/api/v3/trips?station_from_id&station_to_id&with_transfers&date` | 200 | `search.json` | trip search for a route+date (confirmed **live**, see below) |
-| GET | `/api/v2/profile` | 200 | `profile.json` | current account: `id`, `phone`, `email`, `passenger{...}` |
-| GET | `/api/v2/passengers` | 200 | `passengers.json` | array of saved passengers `{id, first_name, last_name, birthday, ticket_type, ...}` |
-| GET | `/api/v3/trips/{tripId}` | 200 | `trip-3000001.json` | trip detail (see shape below) |
-| POST | `/api/trips/{tripId}/seats/hold` | 200 | — | hold chosen seats before ordering (confirmed **live**, see below) |
-| POST | `/api/v4/orders` | 429 | `create-order-429.json` | create reservation; body in `create-order-payload.json` |
-| GET | `/api/v4/carts/{cartId}` | 200/202 | `cart-pending-202.json`, `cart-ready.json` | queue polling; `retry_in` (sec) until 200; ready carries `expire_at` |
-| GET | `/api/v4/orders-with-routes` | 200 | `orders-active.json` | current (unpaid/upcoming) orders for the «Мої квитки» tab (confirmed **live**) |
-| GET | `/api/v2/orders/archived?page=` | 200 | `orders-archived.json` | paginated booking history (confirmed **live**) |
+| Method | Path                                                              | Status seen | Fixture                                    | Notes                                                                               |
+| ------ | ----------------------------------------------------------------- | ----------- | ------------------------------------------ | ----------------------------------------------------------------------------------- |
+| GET    | `/api/home-web`                                                   | 200         | `home-web.json`                            | banners/promo (not used by hunting)                                                 |
+| GET    | `/api/stations?search={q}`                                        | 200         | `stations.json`                            | station autocomplete (confirmed **live**, see below)                                |
+| GET    | `/api/v3/trips?station_from_id&station_to_id&with_transfers&date` | 200         | `search.json`                              | trip search for a route+date (confirmed **live**, see below)                        |
+| GET    | `/api/v2/profile`                                                 | 200         | `profile.json`                             | current account: `id`, `phone`, `email`, `passenger{...}`                           |
+| GET    | `/api/v2/passengers`                                              | 200         | `passengers.json`                          | array of saved passengers `{id, first_name, last_name, birthday, ticket_type, ...}` |
+| GET    | `/api/v3/trips/{tripId}`                                          | 200         | `trip-3000001.json`                        | trip detail (see shape below)                                                       |
+| POST   | `/api/trips/{tripId}/seats/hold`                                  | 200         | —                                          | hold chosen seats before ordering (confirmed **live**, see below)                   |
+| POST   | `/api/v4/orders`                                                  | 429         | `create-order-429.json`                    | create reservation; body in `create-order-payload.json`                             |
+| GET    | `/api/v4/carts/{cartId}`                                          | 200/202     | `cart-pending-202.json`, `cart-ready.json` | queue polling; `retry_in` (sec) until 200; ready carries `expire_at`                |
+| GET    | `/api/v4/orders-with-routes`                                      | 200         | `orders-active.json`                       | current (unpaid/upcoming) orders for the «Мої квитки» tab (confirmed **live**)      |
+| GET    | `/api/v2/orders/archived?page=`                                   | 200         | `orders-archived.json`                     | paginated booking history (confirmed **live**)                                      |
 
 ### `GET /api/stations?search={q}` (confirmed live)
 
@@ -305,11 +306,11 @@ Paginated booking history (the **archive** section of the «Мої квитки�
 
 ## SPA routes (from HTML snapshots)
 
-| Screen | Route | API call |
-|---|---|---|
-| search results | `/search-trips/{fromId}/{toId}/list?startDate=YYYY-MM-DD` | `GET /api/v3/trips?station_from_id=&station_to_id=&with_transfers=0&date=` (confirmed) |
-| passengers/reserve | `/trips/{tripId}/passengers` | |
-| checkout | `/payment` | pay a held cart. The cart-ready API sends **no** `payment_url` and the bare `/cart/` route 404s on a hard navigation, so the extension opens `/payment` (shared cookies → authenticated; SPA loads the active cart). |
+| Screen             | Route                                                     | API call                                                                                                                                                                                                             |
+| ------------------ | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| search results     | `/search-trips/{fromId}/{toId}/list?startDate=YYYY-MM-DD` | `GET /api/v3/trips?station_from_id=&station_to_id=&with_transfers=0&date=` (confirmed)                                                                                                                               |
+| passengers/reserve | `/trips/{tripId}/passengers`                              |                                                                                                                                                                                                                      |
+| checkout           | `/payment`                                                | pay a held cart. The cart-ready API sends **no** `payment_url` and the bare `/cart/` route 404s on a hard navigation, so the extension opens `/payment` (shared cookies → authenticated; SPA loads the active cart). |
 
 Station ids seen: `2200001` Київ-Пас, `2218218` Татарів, `2300000` (destination region). These are
 the same ids used in `GET /api/v3/trips/{id}` (`station_from.id` / `station_to.id`).
@@ -318,8 +319,8 @@ the same ids used in `GET /api/v3/trips/{id}` (`station_from.id` / `station_to.i
 
 These were **not** captured (the bundled HAR starts on an already-open trip `3000001`):
 
-> **Resolved since:** *Stations autocomplete* (`GET /api/stations?search={q}`, `fixtures/stations.json`)
-> and *Search trips* (`GET /api/v3/trips?station_from_id=&station_to_id=&with_transfers=0&date=`,
+> **Resolved since:** _Stations autocomplete_ (`GET /api/stations?search={q}`, `fixtures/stations.json`)
+> and _Search trips_ (`GET /api/v3/trips?station_from_id=&station_to_id=&with_transfers=0&date=`,
 > `fixtures/search.json`) are now confirmed live — see [Confirmed endpoints](#confirmed-endpoints).
 
 1. **Wagons by class** — likely `GET /api/v3/trips/{id}/wagons?class=П` returning encrypted `wagon_id` + free seat numbers. **TBD**.
@@ -334,4 +335,4 @@ These were **not** captured (the bundled HAR starts on an already-open trip `300
 > `booking.uz.gov.ua.har`; then re-run the extraction to fill the fixtures
 > (`wagons.json`, `seats.json`) and update this doc.
 > Until then, the code paths for the TBD endpoints in `lib/uz-api.ts` are written against the
-> *assumed* signatures above and isolated so they can be rotated without touching call sites.
+> _assumed_ signatures above and isolated so they can be rotated without touching call sites.

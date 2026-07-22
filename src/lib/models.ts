@@ -1,20 +1,9 @@
 export type JobState =
-  | 'idle'
-  | 'scheduled'
-  | 'hunting'
-  | 'reserving'
-  | 'paused'
-  | 'reserved'
-  | 'failed'
-  | 'cancelled';
+  'idle' | 'scheduled' | 'hunting' | 'reserving' | 'paused' | 'reserved' | 'failed' | 'cancelled';
 
 export type JobMode = 'monitor' | 'scheduled' | 'native';
 
-export type PauseReason =
-  | 'user'
-  | 'not_authenticated'
-  | 'captcha'
-  | 'rate_limited';
+export type PauseReason = 'user' | 'not_authenticated' | 'captcha' | 'rate_limited';
 
 export interface Station {
   id: number;
@@ -140,11 +129,7 @@ export interface HuntJob {
   lastMatch?: MatchRef;
 }
 
-export const ACTIVE_STATES: readonly JobState[] = [
-  'scheduled',
-  'hunting',
-  'reserving',
-];
+export const ACTIVE_STATES: readonly JobState[] = ['scheduled', 'hunting', 'reserving'];
 
 export type LogOutcome =
   | 'no_match'
@@ -240,12 +225,7 @@ export interface MatchRef {
 
 export interface ReserveOutcome {
   status:
-    | 'order_enqueued'
-    | 'cart_pending'
-    | 'reserve_ok'
-    | 'captcha'
-    | 'rate_limited'
-    | 'reserve_fail';
+    'order_enqueued' | 'cart_pending' | 'reserve_ok' | 'captcha' | 'rate_limited' | 'reserve_fail';
   cartId?: number;
   retryInSec?: number;
   paymentUrl?: string;

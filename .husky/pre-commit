@@ -1,0 +1,12 @@
+# GUI git clients (WebStorm, GitHub Desktop) don't inherit the shell PATH —
+# fall back to common pnpm install locations.
+if ! command -v pnpm >/dev/null 2>&1; then
+  for d in "$HOME/Library/pnpm/bin" "$HOME/Library/pnpm" "$HOME/.local/share/pnpm" /opt/homebrew/bin /usr/local/bin; do
+    if [ -x "$d/pnpm" ]; then
+      PATH="$d:$PATH"
+      export PATH
+      break
+    fi
+  done
+fi
+pnpm exec lint-staged

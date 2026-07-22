@@ -1,6 +1,6 @@
 name: Endpoint / API change
 description: A booking.uz / app.uz endpoint changed, broke, or needs discovery — attach a debug capture.
-title: "[endpoint] "
+title: '[endpoint] '
 labels: [endpoint]
 body:
   - type: markdown

@@ -1,0 +1,9 @@
+/*
+ * The banner is injected into booking.uz.gov.ua by the payment-celebration
+ * content script, which ships no other CSS. Only theme + utilities are
+ * imported — preflight resets would leak onto the host page — and every
+ * utility is `uz:`-prefixed so generated classes can never collide with the
+ * host SPA's own class names.
+ */
+@import 'tailwindcss/theme.css' prefix(uz);
+@import 'tailwindcss/utilities.css';

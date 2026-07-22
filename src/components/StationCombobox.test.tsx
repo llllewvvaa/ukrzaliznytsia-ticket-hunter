@@ -16,10 +16,7 @@ vi.mock('@/lib/messages', () => ({
 }));
 
 function typeInto(input: HTMLInputElement, value: string): void {
-  const setter = Object.getOwnPropertyDescriptor(
-    window.HTMLInputElement.prototype,
-    'value',
-  )!.set!;
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')!.set!;
   setter.call(input, value);
   input.dispatchEvent(new Event('input', { bubbles: true }));
 }

@@ -1,5 +1,5 @@
-import { hasSession } from './auth';
-import { syncSessionFromTabs } from './session-probe';
+import { hasSession } from '@/lib/api/auth';
+import { syncSessionFromTabs } from '@/lib/api/session-probe';
 import {
   AuthError,
   NotDiscoveredError,
@@ -11,16 +11,17 @@ import {
   getWagonsForClass,
   searchStations,
   searchTrips,
-} from './uz-api';
-import { clearDebugLog, getDebugLog } from './debug';
-import { openCheckoutForCart } from './success';
-import { fetchRouteTimetable, fetchStationSuggest } from './timetable';
+} from '@/lib/api/uz-api';
+import { clearDebugLog, getDebugLog } from '@/lib/ui/debug';
+import { openCheckoutForCart } from '@/lib/engine/success';
+import { fetchRouteTimetable, fetchStationSuggest } from '@/lib/format/timetable';
 import type { QueryMessage, QueryResult } from './messages';
 import type { SearchTripsParams } from './models';
 
 function classify(err: unknown): QueryResult {
   if (err instanceof AuthError) return { ok: false, code: 'not_authenticated', error: err.message };
-  if (err instanceof NotDiscoveredError) return { ok: false, code: 'not_discovered', error: err.message };
+  if (err instanceof NotDiscoveredError)
+    return { ok: false, code: 'not_discovered', error: err.message };
   if (err instanceof RateLimitError) return { ok: false, code: 'rate_limited', error: err.message };
   return { ok: false, code: 'error', error: err instanceof Error ? err.message : String(err) };
 }

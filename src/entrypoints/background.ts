@@ -1,16 +1,16 @@
-import { getAuthHeaders, invalidate, registerAuthListener } from '@/lib/auth';
-import { isIconAlarm, refreshActionIcon, registerIconSync } from '@/lib/icon-sync';
-import { syncSessionFromTabs } from '@/lib/session-probe';
-import { configureApi } from '@/lib/uz-api';
-import { installNetworkRules } from '@/lib/net-rules';
-import { registerKeepAlive } from '@/lib/bridge';
-import { handleAlarm, handleControlMessage, restoreActiveJobs } from '@/lib/orchestrator';
-import { installReserveDispatcher } from '@/lib/reserve-dispatch';
+import { getAuthHeaders, invalidate, registerAuthListener } from '@/lib/api/auth';
+import { isIconAlarm, refreshActionIcon, registerIconSync } from '@/lib/ui/icon-sync';
+import { syncSessionFromTabs } from '@/lib/api/session-probe';
+import { configureApi } from '@/lib/api/uz-api';
+import { installNetworkRules } from '@/lib/api/net-rules';
+import { registerKeepAlive } from '@/lib/engine/bridge';
+import { handleAlarm, handleControlMessage, restoreActiveJobs } from '@/lib/engine/orchestrator';
+import { installReserveDispatcher } from '@/lib/engine/reserve-dispatch';
 import { isDebugEventMessage, isJobControlMessage, isQueryMessage } from '@/lib/messages';
 import { handleQuery } from '@/lib/query-handler';
-import { debugEnabled, recordSW } from '@/lib/debug';
-import { initSidePanel } from '@/lib/sidepanel';
-import { onboardingSeen, openOnboarding } from '@/lib/onboarding';
+import { debugEnabled, recordSW } from '@/lib/ui/debug';
+import { initSidePanel } from '@/lib/ui/sidepanel';
+import { onboardingSeen, openOnboarding } from '@/lib/ui/onboarding';
 
 export default defineBackground(() => {
   console.debug('[uz] background service worker started', {
