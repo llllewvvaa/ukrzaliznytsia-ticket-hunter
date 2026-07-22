@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Security vulnerability
+  - name: Вразливість безпеки
     url: https://github.com/llllewvvaa/ukrzaliznytsia-ticket-hunter/security/policy
-    about: Report a security issue privately — please do not open a public issue.
+    about: Повідомте про проблему безпеки приватно — будь ласка, не створюйте публічне issue.

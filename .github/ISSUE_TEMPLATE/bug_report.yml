@@ -1,30 +1,30 @@
-name: Bug report
-description: Something isn't working (not specific to an API/endpoint change).
+name: Звіт про помилку
+description: Щось не працює (не пов'язано зі зміною API/ендпоінта).
 title: '[bug] '
 labels: [bug]
 body:
   - type: textarea
     id: what
     attributes:
-      label: What happened
-      description: What you did, what you expected, and what happened instead. Screenshots help.
+      label: Що сталося
+      description: Що ви робили, чого очікували і що сталося натомість. Скриншоти дуже допомагають.
     validations:
       required: true
   - type: input
     id: version
     attributes:
-      label: Extension version
-      placeholder: e.g. 0.1.0 (see chrome://extensions)
+      label: Версія розширення
+      placeholder: напр. 0.1.0 (див. chrome://extensions)
     validations:
       required: false
   - type: input
     id: env
     attributes:
-      label: Browser / OS
-      placeholder: e.g. Chrome 126 on macOS 14
+      label: Браузер / ОС
+      placeholder: напр. Chrome 126 на macOS 14
     validations:
       required: false
   - type: markdown
     attributes:
       value: |
-        If it involves booking.uz requests, a **debug capture** helps a lot — see the **Endpoint / API change** template for how to record one. The export is auto-redacted (tokens, session id, names, email, card data are stripped).
+        Якщо проблема стосується запитів до booking.uz, дуже допомагає **дебаг-запис** — як його зробити, описано в шаблоні **«Зміна ендпоінта / API»**. Експорт автоматично очищається (токени, session id, імена, email, дані картки видаляються).

@@ -1,45 +1,45 @@
-name: Endpoint / API change
-description: A booking.uz / app.uz endpoint changed, broke, or needs discovery — attach a debug capture.
+name: Зміна ендпоінта / API
+description: Ендпоінт booking.uz / app.uz змінився, зламався або потребує дослідження — додайте дебаг-запис.
 title: '[endpoint] '
 labels: [endpoint]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping keep the API layer working. For endpoint issues we need a **debug capture** so the request/response shapes can be compared.
+        Дякуємо, що допомагаєте тримати API-шар робочим. Для проблем з ендпоінтами нам потрібен **дебаг-запис**, щоб порівняти форми запитів і відповідей.
 
-        The export is **automatically redacted** — Bearer/JWT tokens, `x-session-id`, your user id, names, email, phone, document and card fields are stripped or replaced with a stable hash before the file is written. Please still glance over it before attaching.
+        Експорт **автоматично очищається** — Bearer/JWT токени, `x-session-id`, ваш user id, імена, email, телефон, документи та дані картки видаляються або замінюються стабільним хешем ще до запису файла. Проте перегляньте файл перед тим, як прикріплювати.
   - type: textarea
     id: summary
     attributes:
-      label: What changed / what's broken
-      description: Which flow (station search, monitor, reserve, «Мої квитки»…) and what you saw — an error, an empty result, or wrong data.
+      label: Що змінилося / що зламалося
+      description: Який сценарій (пошук станцій, моніторинг, резерв, «Мої квитки»…) і що ви побачили — помилку, порожній результат чи неправильні дані.
     validations:
       required: true
   - type: input
     id: endpoint
     attributes:
-      label: Endpoint (if known)
-      placeholder: e.g. GET /api/v4/orders-with-routes
+      label: Ендпоінт (якщо відомий)
+      placeholder: напр. GET /api/v4/orders-with-routes
     validations:
       required: false
   - type: textarea
     id: debug
     attributes:
-      label: Debug capture
+      label: Дебаг-запис
       description: |
-        1. Open the extension's **Options** page → **«Дебаг»** section → enable **«Запис усіх запитів і подій»**.
-        2. Reproduce the problem in the booking.uz tab.
-        3. Click **«Експортувати JSON»** and drag the `uz-debug-*.json` file into the box below.
-      placeholder: Drag & drop the uz-debug-*.json here (or paste the relevant events).
+        1. Відкрийте сторінку **«Налаштування»** розширення → розділ **«Дебаг»** → увімкніть **«Запис усіх запитів і подій»**.
+        2. Відтворіть проблему у вкладці booking.uz.
+        3. Натисніть **«Експортувати JSON»** і перетягніть файл `uz-debug-*.json` у поле нижче.
+      placeholder: Перетягніть uz-debug-*.json сюди (або вставте відповідні події).
     validations:
       required: true
   - type: checkboxes
     id: confirm
     attributes:
-      label: Before submitting
+      label: Перед надсиланням
       options:
-        - label: I attached the exported debug JSON (it is auto-redacted).
+        - label: Я прикріпив(-ла) експортований дебаг-JSON (він автоматично очищений).
           required: true
-        - label: I reviewed the file and it contains no personal data I want to keep private.
+        - label: Я переглянув(-ла) файл — у ньому немає персональних даних, які я не хочу публікувати.
           required: true
