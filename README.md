@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/hero.png" alt="UZ Ticket Hunter" width="860">
+<img src="docs/hero.png" alt="УЗ Ticket Hunter" width="860">
 
 &nbsp;
 
@@ -31,7 +31,7 @@
 
 ## Знімки екрана
 
-<img src="docs/showcase.png" alt="UZ Ticket Hunter — список полювань, вибір потяга та збережені квитки" width="880">
+<img src="docs/showcase.png" alt="УЗ Ticket Hunter — список полювань, вибір потяга та збережені квитки" width="880">
 
 > Інтерфейс українською; типи вагонів позначені як в УЗ (Л/К/П/С1/С2). Усі дані на знімках вигадані.
 
@@ -183,4 +183,4 @@ pnpm dev            # dev-збірка з HMR (Chrome)
 
 ## Ліцензія
 
-[MIT](LICENSE) © Учасники UZ Ticket Hunter.
+[MIT](LICENSE) © Учасники УЗ Ticket Hunter.

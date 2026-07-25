@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Chip, Input } from '@/components/ui';
 import { SkeletonRows } from '@/components/Skeleton';
-import { CheckIcon, ForwardIcon, SearchIcon, TicketIcon } from '@/components/icons';
+import { CheckIcon, ForwardIcon, SearchIcon } from '@/components/icons';
 import { SeatPickerModal } from './SeatPickerModal';
 import { durationLabel, hhmm } from '@/lib/format/trip-format';
 import { staggerIn } from '@/lib/ui/anim';
@@ -222,7 +222,7 @@ export function TrainPicker({
                               : 'cursor-not-allowed bg-gray-100 text-gray-400'
                         }`}
                       >
-                        {free ? <TicketIcon className="h-3 w-3" /> : null}
+                        {free ? <img src="/icon/128.png" alt="" className="h-3 w-3" /> : null}
                         {c.name} ·{' '}
                         {isPicked
                           ? `місця ${seatSelection!.seats.join(', ')}`

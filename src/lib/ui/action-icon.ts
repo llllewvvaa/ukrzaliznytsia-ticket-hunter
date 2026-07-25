@@ -13,10 +13,10 @@ export interface ActionInput {
 }
 
 const TITLES: Record<ActionState, string> = {
-  reserved: 'UZ Ticket Hunter — бронь очікує оплати на booking.uz!',
-  hunts: 'UZ Ticket Hunter — йде полювання за квитками',
-  active: 'UZ Ticket Hunter — сесія booking.uz активна',
-  off: 'UZ Ticket Hunter — немає активної сесії booking.uz',
+  reserved: 'УЗ Ticket Hunter — бронь очікує оплати на booking.uz!',
+  hunts: 'УЗ Ticket Hunter — йде полювання за квитками',
+  active: 'УЗ Ticket Hunter — сесія booking.uz активна',
+  off: 'УЗ Ticket Hunter — немає активної сесії booking.uz',
 };
 
 const SIZES = [16, 32, 48, 128] as const;
@@ -30,10 +30,10 @@ export function resolveActionState(input: ActionInput): ActionState {
 
 export function actionTitle(state: ActionState, input: ActionInput): string {
   if (state === 'reserved' && input.reservedJobs > 1) {
-    return `UZ Ticket Hunter — броней очікує оплати: ${input.reservedJobs}!`;
+    return `УЗ Ticket Hunter — броней очікує оплати: ${input.reservedJobs}!`;
   }
   if (state === 'hunts') {
-    return `UZ Ticket Hunter — активних полювань: ${input.activeJobs}`;
+    return `УЗ Ticket Hunter — активних полювань: ${input.activeJobs}`;
   }
   return TITLES[state];
 }

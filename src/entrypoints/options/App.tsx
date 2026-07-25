@@ -3,7 +3,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useJobs } from '@/hooks/use-store';
 import { useAppNavigation } from '@/hooks/use-app-navigation';
 import { AuthIndicator } from '@/components/AuthIndicator';
-import { AddIcon, BackIcon, TicketIcon } from '@/components/icons';
+import { AddIcon, BackIcon } from '@/components/icons';
 import { NewJobForm } from '@/components/NewJobForm';
 import { JobDetails } from '@/components/JobDetails';
 import { DebugPanel } from '@/components/DebugPanel';
@@ -31,8 +31,8 @@ export default function App() {
       <div className="mx-auto max-w-3xl p-6">
         <header className="mb-6 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <TicketIcon className="h-7 w-7 text-blue-600" />
-            <h1 className="text-xl font-bold">UZ Ticket Hunter</h1>
+            <img src="/icon/128.png" alt="" className="h-7 w-7" />
+            <h1 className="text-xl font-bold">УЗ Ticket Hunter</h1>
           </div>
           <div className="flex items-center gap-3">
             <AuthIndicator />

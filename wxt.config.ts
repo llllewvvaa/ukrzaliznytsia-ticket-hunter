@@ -5,7 +5,7 @@ export default defineConfig({
   srcDir: 'src',
   modules: ['@wxt-dev/module-react'],
   manifest: {
-    name: 'UZ Ticket Hunter',
+    name: 'УЗ Ticket Hunter — автопошук квитків Укрзалізниці',
     description:
       'Моніторить і бронює квитки Укрзалізниці (УЗ) на booking.uz.gov.ua. Лише для особистого використання.',
     icons: {
@@ -44,7 +44,7 @@ export default defineConfig({
     commands: {
       _execute_action: {
         suggested_key: { default: 'Ctrl+Shift+U', mac: 'Command+Shift+U' },
-        description: 'Відкрити UZ Ticket Hunter',
+        description: 'Відкрити УЗ Ticket Hunter',
       },
     },
   },

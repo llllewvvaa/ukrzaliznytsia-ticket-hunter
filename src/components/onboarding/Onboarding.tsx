@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui';
-import { BackIcon, ExternalIcon, ForwardIcon, TicketIcon } from '@/components/icons';
+import { BackIcon, ExternalIcon, ForwardIcon } from '@/components/icons';
 import { onboardingReveal, onboardingStep } from '@/lib/ui/anim';
 import {
   closeOnboardingTab,
@@ -64,7 +64,7 @@ export function Onboarding() {
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
-            <TicketIcon className="h-5 w-5 text-blue-600" /> UZ Ticket Hunter
+            <img src="/icon/128.png" alt="" className="h-5 w-5" /> УЗ Ticket Hunter
           </div>
           <button
             type="button"

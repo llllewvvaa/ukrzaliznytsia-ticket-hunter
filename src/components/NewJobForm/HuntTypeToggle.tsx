@@ -13,7 +13,7 @@ const HUNT_TYPES: { id: JobMode; title: string; desc: string; icon: ReactNode }[
   {
     id: 'scheduled',
     title: 'До відкриття',
-    desc: 'Продажі ще ні',
+    desc: 'Продажі ще немає',
     icon: <ScheduleIcon className="h-4 w-4" />,
   },
 ];

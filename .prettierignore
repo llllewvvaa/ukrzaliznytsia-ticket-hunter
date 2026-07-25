@@ -2,3 +2,7 @@
 .output
 pnpm-lock.yaml
 fixtures
+
+# self-contained Next.js subproject (has its own tooling) + design mockups
+site
+store/site-designs

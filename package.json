@@ -1,6 +1,6 @@
 {
   "name": "uz-extension",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "description": "Chrome MV3 extension that hunts and reserves Ukrzaliznytsia (UZ) train tickets on booking.uz.gov.ua",
@@ -30,6 +30,7 @@
     "dev": "wxt",
     "build": "wxt build",
     "zip": "wxt zip",
+    "release": "wxt zip && mkdir -p releases && cp .output/*_${npm_package_version}.zip releases/",
     "compile": "wxt prepare && tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

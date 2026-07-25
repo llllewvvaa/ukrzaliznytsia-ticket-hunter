@@ -1,5 +1,5 @@
 import { Badge, Button } from '@/components/ui';
-import { BackIcon, CartIcon, TicketIcon, WarnIcon } from '@/components/icons';
+import { BackIcon, CartIcon, WarnIcon } from '@/components/icons';
 import { SeatPickerModal } from '../SeatPickerModal';
 import { useLogs } from '@/hooks/use-store';
 import { openCheckout } from '@/lib/ui/checkout';
@@ -108,7 +108,7 @@ export function JobDetails({ job, onBack }: { job: HuntJob; onBack: () => void }
             disabled={resolving || submitting != null}
             onClick={openManual}
           >
-            <TicketIcon className="h-4 w-4" />
+            <img src="/icon/128.png" alt="" className="h-4 w-4" />
             {resolving ? 'Завантаження…' : 'Обрати місця вручну'}
           </Button>
           {resolveError ? <p className="text-[11px] text-red-600">{resolveError}</p> : null}

@@ -7,7 +7,7 @@ import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['.wxt/', '.output/', 'fixtures/', 'public/', 'docs/', 'pnpm-lock.yaml'],
+    ignores: ['.wxt/', '.output/', 'fixtures/', 'public/', 'docs/', 'site/', 'pnpm-lock.yaml'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

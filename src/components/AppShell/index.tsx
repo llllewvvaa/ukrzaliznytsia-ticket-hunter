@@ -9,7 +9,7 @@ import { openOnboarding } from '@/lib/ui/onboarding';
 import { pluralHunts } from '@/lib/format/job-format';
 import { AuthIndicator } from '@/components/AuthIndicator';
 import { DonateButton } from '@/components/donate';
-import { AddIcon, BackIcon, SidebarIcon, TicketIcon } from '@/components/icons';
+import { AddIcon, BackIcon, SidebarIcon } from '@/components/icons';
 import { EmptyState } from '@/components/EmptyState';
 import { SkeletonCards } from '@/components/Skeleton';
 import { JobCard } from '@/components/JobCard';
@@ -83,7 +83,7 @@ export function AppShell({ surface }: { surface: 'popup' | 'sidepanel' }) {
                 <BackIcon className="h-5 w-5" />
               </button>
             ) : (
-              <TicketIcon className="h-5 w-5 shrink-0 text-blue-600" />
+              <img src="/icon/128.png" alt="" className="h-5 w-5 shrink-0" />
             )}
             <h1 className="truncate text-base font-bold text-gray-900">
               {isDetail ? 'Деталі пошуку' : 'Ticket Hunter'}

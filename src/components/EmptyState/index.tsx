@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui';
-import { AddIcon, TicketIcon } from '@/components/icons';
+import { AddIcon } from '@/components/icons';
 
 export function EmptyState({ onNew, onHelp }: { onNew: () => void; onHelp?: () => void }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-6 py-10 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
-        <TicketIcon className="h-6 w-6 text-blue-600" />
+        <img src="/icon/128.png" alt="" className="h-6 w-6" />
       </div>
       <div className="space-y-1">
         <p className="text-sm font-semibold text-gray-800">Пошуків ще немає</p>
