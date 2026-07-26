@@ -24,7 +24,10 @@ const readLogs = (): Promise<LogsMap> => readMap<LogEntry[]>(LOGS_KEY);
 const writeLogs = (logs: LogsMap): Promise<void> => writeMap(LOGS_KEY, logs);
 
 export function newJobId(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `job_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  return (
+    globalThis.crypto?.randomUUID?.() ??
+    `job_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  );
 }
 
 export async function listJobs(): Promise<HuntJob[]> {
@@ -45,10 +48,7 @@ export async function saveJob(job: HuntJob): Promise<HuntJob> {
   return next;
 }
 
-export async function patchJob(
-  id: string,
-  patch: Partial<HuntJob>,
-): Promise<HuntJob | undefined> {
+export async function patchJob(id: string, patch: Partial<HuntJob>): Promise<HuntJob | undefined> {
   const jobs = await readJobs();
   const current = jobs[id];
   if (!current) return undefined;
@@ -79,10 +79,7 @@ export async function appendLog(entry: LogEntry): Promise<void> {
   await writeLogs(logs);
 }
 
-export async function getLogs(
-  jobId: string,
-  limit = LOG_CAP,
-): Promise<LogEntry[]> {
+export async function getLogs(jobId: string, limit = LOG_CAP): Promise<LogEntry[]> {
   const logs = await readLogs();
   const list = logs[jobId] ?? [];
   return list.slice(-limit).reverse();

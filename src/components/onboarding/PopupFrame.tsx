@@ -1,14 +1,15 @@
 import type { ReactNode } from 'react';
-import { HuntIcon, OrdersIcon, SettingsIcon, SidebarIcon, TicketIcon } from '@/components/icons';
+import { HuntIcon, OrdersIcon, SettingsIcon, SidebarIcon } from '@/components/icons';
 
-type Tab = 'hunts' | 'orders' | 'settings';
+// Named PopupTab to avoid confusion with the main AppShell Tab.
+type PopupTab = 'hunts' | 'orders' | 'settings';
 
 export function PopupFrame({
   activeTab = 'hunts',
   authOk = true,
   children,
 }: {
-  activeTab?: Tab;
+  activeTab?: PopupTab;
   authOk?: boolean;
   children: ReactNode;
 }) {
@@ -17,7 +18,7 @@ export function PopupFrame({
       <header className="border-b border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50 px-4 pb-3 pt-3.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <TicketIcon className="h-5 w-5 text-blue-600" />
+            <img src="/icon/128.png" alt="" className="h-5 w-5" />
             <h1 className="text-base font-bold text-gray-900">Ticket Hunter</h1>
           </div>
           <div className="flex items-center gap-1.5">
@@ -36,8 +37,16 @@ export function PopupFrame({
         </div>
 
         <div className="mt-3 flex gap-1 rounded-2xl bg-white/70 p-1 shadow-sm ring-1 ring-black/5">
-          <FrameTab active={activeTab === 'hunts'} icon={<HuntIcon className="h-4 w-4" />} label="Пошук" />
-          <FrameTab active={activeTab === 'orders'} icon={<OrdersIcon className="h-4 w-4" />} label="Квитки" />
+          <FrameTab
+            active={activeTab === 'hunts'}
+            icon={<HuntIcon className="h-4 w-4" />}
+            label="Пошук"
+          />
+          <FrameTab
+            active={activeTab === 'orders'}
+            icon={<OrdersIcon className="h-4 w-4" />}
+            label="Квитки"
+          />
           <FrameTab
             active={activeTab === 'settings'}
             icon={<SettingsIcon className="h-4 w-4" />}

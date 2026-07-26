@@ -2,11 +2,7 @@ import { browser } from 'wxt/browser';
 import type { DebugEvent } from './models';
 
 function hasType(msg: unknown, type: string): msg is Record<string, unknown> {
-  return (
-    typeof msg === 'object' &&
-    msg !== null &&
-    (msg as { type?: unknown }).type === type
-  );
+  return typeof msg === 'object' && msg !== null && (msg as { type?: unknown }).type === type;
 }
 
 export const JOB_CONTROL = 'jobControl' as const;
@@ -25,7 +21,10 @@ export function isJobControlMessage(msg: unknown): msg is JobControlMessage {
 
 export function sendControl(action: ControlAction, jobId: string): Promise<void> {
   const msg: JobControlMessage = { type: JOB_CONTROL, action, jobId };
-  return browser.runtime.sendMessage(msg).then(() => undefined).catch(() => undefined);
+  return browser.runtime
+    .sendMessage(msg)
+    .then(() => undefined)
+    .catch(() => undefined);
 }
 
 export const QUERY = 'uzQuery' as const;
@@ -51,11 +50,7 @@ export interface QueryMessage {
   params?: unknown;
 }
 
-export type QueryErrorCode =
-  | 'not_authenticated'
-  | 'not_discovered'
-  | 'rate_limited'
-  | 'error';
+export type QueryErrorCode = 'not_authenticated' | 'not_discovered' | 'rate_limited' | 'error';
 
 export interface QueryResult<T = unknown> {
   ok: boolean;

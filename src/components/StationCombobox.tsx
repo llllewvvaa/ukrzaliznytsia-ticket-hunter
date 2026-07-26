@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 import { query } from '@/lib/messages';
-import { useDebouncedSearch, type SearchToken } from '@/lib/use-debounced-search';
+import { useDebouncedSearch, type SearchToken } from '@/hooks/use-debounced-search';
+import { createSearchInputChange } from '@/lib/ui/search-input';
+import { stationNoteForCode } from '@/lib/format/query-notes';
 import { Button, Field, Input } from '@/components/ui';
 import { FloatingPanel } from './FloatingPanel';
 import type { Station } from '@/lib/models';
-
-function noteForCode(code?: string): string {
-  if (code === 'not_discovered') return 'Пошук станцій ще недоступний — введіть ID станції вручну.';
-  if (code === 'not_authenticated') return 'Залогіньтесь у booking.uz, щоб шукати станції.';
-  return 'Помилка пошуку станцій.';
-}
 
 export function StationCombobox({
   label,
@@ -39,7 +36,7 @@ export function StationCombobox({
         return r.data;
       }
       setManual(true);
-      setNote(noteForCode(r.code));
+      setNote(stationNoteForCode(r.code));
       return null;
     },
     [],
@@ -67,6 +64,17 @@ export function StationCombobox({
     }
   };
 
+  const onInputChange = createSearchInputChange({ setText, onChange, change });
+
+  const onInputKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => keydown(e, pick);
+
+  // keep focus in the input
+  const keepInputFocus = (e: MouseEvent<HTMLLIElement>): void => e.preventDefault();
+
+  const handleOptionClick = (s: Station) => (): void => pick(s);
+
+  const onManualIdChange = (e: ChangeEvent<HTMLInputElement>): void => setManualId(e.target.value);
+
   return (
     <Field label={label} hint={value ? `ID: ${value.id}` : note}>
       <div ref={anchorRef}>
@@ -78,12 +86,8 @@ export function StationCombobox({
           aria-expanded={open && results.length > 0}
           aria-controls={listId}
           aria-activedescendant={highlight >= 0 ? `${listId}-${highlight}` : undefined}
-          onChange={(e) => {
-            setText(e.target.value);
-            onChange(null);
-            change(e.target.value);
-          }}
-          onKeyDown={(e) => keydown(e, pick)}
+          onChange={onInputChange}
+          onKeyDown={onInputKeyDown}
         />
       </div>
       <FloatingPanel
@@ -107,8 +111,8 @@ export function StationCombobox({
               className={`cursor-pointer px-3 py-2 text-sm hover:bg-blue-100 ${
                 i === highlight ? 'bg-blue-100 font-medium text-blue-900' : 'text-gray-800'
               }`}
-              onMouseDown={(e) => e.preventDefault() /* keep focus in the input */}
-              onClick={() => pick(s)}
+              onMouseDown={keepInputFocus}
+              onClick={handleOptionClick(s)}
             >
               {s.name}
             </li>
@@ -122,7 +126,7 @@ export function StationCombobox({
             value={manualId}
             inputMode="numeric"
             placeholder="ID станції (напр. 2200001)"
-            onChange={(e) => setManualId(e.target.value)}
+            onChange={onManualIdChange}
           />
           <Button size="sm" onClick={applyManual}>
             OK

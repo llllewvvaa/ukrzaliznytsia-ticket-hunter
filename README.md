@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/hero.png" alt="UZ Ticket Hunter" width="860">
+<img src="docs/hero.png" alt="УЗ Ticket Hunter" width="860">
 
 &nbsp;
 
@@ -31,7 +31,7 @@
 
 ## Знімки екрана
 
-<img src="docs/showcase.png" alt="UZ Ticket Hunter — список полювань, вибір потяга та збережені квитки" width="880">
+<img src="docs/showcase.png" alt="УЗ Ticket Hunter — список полювань, вибір потяга та збережені квитки" width="880">
 
 > Інтерфейс українською; типи вагонів позначені як в УЗ (Л/К/П/С1/С2). Усі дані на знімках вигадані.
 
@@ -135,7 +135,7 @@ pnpm dev            # dev-збірка з HMR (Chrome)
 
 ### Як користуватися
 
-1. **Нове полювання** — відкрийте попап і натисніть *Нове полювання* (усе відбувається в
+1. **Нове полювання** — відкрийте попап і натисніть _Нове полювання_ (усе відбувається в
    попапі; сторінка Опцій пропонує той самий процес на повний екран). Виберіть станції
    звідки/куди, дату, за бажанням улюблені потяги й типи вагонів (`Л/К/П/С1/С2`), пасажирів і
    послугу `постільна білизна`.
@@ -161,14 +161,14 @@ pnpm dev            # dev-збірка з HMR (Chrome)
 
 ## Команди
 
-| Команда | Що робить |
-|---|---|
-| `pnpm dev` | Dev-збірка + HMR для Chrome |
-| `pnpm build` | Продакшн-збірка → `.output/chrome-mv3` |
-| `pnpm zip` | Запакувати продакшн-збірку |
-| `pnpm compile` | `wxt prepare` + `tsc --noEmit` (перевірка типів) |
-| `pnpm test` | Юніт-тести (Vitest + WXT `fakeBrowser`) |
-| `pnpm test:watch` | Vitest у режимі спостереження |
+| Команда           | Що робить                                        |
+| ----------------- | ------------------------------------------------ |
+| `pnpm dev`        | Dev-збірка + HMR для Chrome                      |
+| `pnpm build`      | Продакшн-збірка → `.output/chrome-mv3`           |
+| `pnpm zip`        | Запакувати продакшн-збірку                       |
+| `pnpm compile`    | `wxt prepare` + `tsc --noEmit` (перевірка типів) |
+| `pnpm test`       | Юніт-тести (Vitest + WXT `fakeBrowser`)          |
+| `pnpm test:watch` | Vitest у режимі спостереження                    |
 
 ## Внесок
 
@@ -183,4 +183,4 @@ pnpm dev            # dev-збірка з HMR (Chrome)
 
 ## Ліцензія
 
-[MIT](LICENSE) © Учасники UZ Ticket Hunter.
+[MIT](LICENSE) © Учасники УЗ Ticket Hunter.

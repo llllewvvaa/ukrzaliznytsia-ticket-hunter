@@ -1,5 +1,4 @@
 export {
-  MdConfirmationNumber as TicketIcon,
   MdTravelExplore as HuntIcon,
   MdReceiptLong as OrdersIcon,
   MdTrain as TrainIcon,

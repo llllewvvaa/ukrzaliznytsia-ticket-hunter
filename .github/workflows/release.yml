@@ -47,6 +47,14 @@ jobs:
 
       - run: pnpm zip
 
+      - name: Submit to Chrome Web Store
+        run: pnpm wxt submit --chrome-zip .output/*-chrome.zip --chrome-skip-submit-review
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+
       - uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         with:
           tag_name: v${{ needs.check.outputs.version }}

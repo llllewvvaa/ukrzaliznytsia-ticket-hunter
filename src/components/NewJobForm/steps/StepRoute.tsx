@@ -1,13 +1,18 @@
+import type { ChangeEvent } from 'react';
 import { Chip, Field, Input } from '@/components/ui';
 import { StationCombobox } from '@/components/StationCombobox';
 import { DatePicker } from '@/components/DatePicker';
 import { AddIcon, SwapIcon } from '@/components/icons';
-import { todayPlus } from '@/lib/date';
+import { todayPlus } from '@/lib/format/date';
 import { QUICK_DATES } from '../constants';
-import { HuntTypeToggle } from '../parts';
-import type { NewJobFormState } from '../use-new-job-form';
+import { HuntTypeToggle } from '../HuntTypeToggle';
+import type { NewJobFormState } from '../types';
 
 export function StepRoute({ form }: { form: NewJobFormState }) {
+  const handleQuickDateClick = (date: string) => (): void => form.setDate(date);
+
+  const onNameChange = (e: ChangeEvent<HTMLInputElement>): void => form.setName(e.target.value);
+
   return (
     <div className="space-y-4">
       <HuntTypeToggle mode={form.mode} onSelect={form.selectType} />
@@ -32,7 +37,7 @@ export function StepRoute({ form }: { form: NewJobFormState }) {
         {QUICK_DATES.map((q) => {
           const v = todayPlus(q.days);
           return (
-            <Chip key={q.days} active={form.date === v} onClick={() => form.setDate(v)}>
+            <Chip key={q.days} active={form.date === v} onClick={handleQuickDateClick(v)}>
               {q.label}
             </Chip>
           );
@@ -44,7 +49,7 @@ export function StepRoute({ form }: { form: NewJobFormState }) {
           <Input
             autoFocus
             value={form.name}
-            onChange={(e) => form.setName(e.target.value)}
+            onChange={onNameChange}
             placeholder="напр. Відпустка"
           />
         </Field>

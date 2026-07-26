@@ -11,6 +11,9 @@ stats-*.json
 dist
 *.tsbuildinfo
 
+# packaged release artifacts (pnpm release)
+/releases/
+
 # editor / os
 .idea
 .junie/
@@ -25,3 +28,5 @@ dist
 *.har
 /*-state.html
 /*-decide.html
+store/
+scripts/

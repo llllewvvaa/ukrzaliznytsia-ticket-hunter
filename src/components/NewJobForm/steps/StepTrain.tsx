@@ -2,10 +2,13 @@ import { Chip, Field } from '@/components/ui';
 import { TrainPicker } from '@/components/TrainPicker';
 import { TimetablePicker } from '@/components/TimetablePicker';
 import { COACH_TYPES } from '../constants';
-import type { NewJobFormState } from '../use-new-job-form';
+import type { CoachType } from '@/lib/models';
+import type { NewJobFormState } from '../types';
 
 export function StepTrain({ form }: { form: NewJobFormState }) {
   const { seatSelection } = form;
+
+  const handleCoachToggle = (id: CoachType) => (): void => form.toggleCoach(id);
   return (
     <div className="space-y-4">
       {form.mode === 'scheduled' ? (
@@ -45,7 +48,7 @@ export function StepTrain({ form }: { form: NewJobFormState }) {
               <Chip
                 key={c.id}
                 active={form.coachTypes.includes(c.id)}
-                onClick={() => form.toggleCoach(c.id)}
+                onClick={handleCoachToggle(c.id)}
               >
                 {c.id} · {c.name}
               </Chip>

@@ -17,7 +17,9 @@ export default defineContentScript({
           { __uzDebug: true, event: { ctx: 'page', t: Date.now(), ...ev } },
           origin,
         );
-      } catch {}
+      } catch {
+        // page world torn down mid-post — debug events are best-effort
+      }
     }
 
     // UZ API/nav traffic only; skip static assets.
@@ -59,7 +61,9 @@ export default defineContentScript({
         if (h instanceof Headers) h.forEach((v, k) => put(k, v));
         else if (Array.isArray(h)) for (const [k, v] of h) put(k, String(v));
         else for (const [k, v] of Object.entries(h)) put(k, String(v));
-      } catch {}
+      } catch {
+        // exotic HeadersInit — log what we managed to read
+      }
       return out;
     }
 
@@ -148,7 +152,9 @@ export default defineContentScript({
                 this.responseType === '' || this.responseType === 'text'
                   ? String(this.responseText)
                   : `[${this.responseType}]`;
-            } catch {}
+            } catch {
+              // responseText throws for non-text responseTypes — keep the placeholder
+            }
             emit({
               kind: 'req',
               method: d.method,

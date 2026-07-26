@@ -1,26 +1,21 @@
-import { extractSession, type ExtractedSession } from '@/lib/auth-extractor';
-import {
-  TOKEN_CLEARED,
-  TOKEN_UPDATED,
-  buildHeaders,
-  type AuthMessage,
-} from '@/lib/auth';
-import { configureApi } from '@/lib/uz-api';
+import { extractSession, type ExtractedSession } from '@/lib/api/auth-extractor';
+import { TOKEN_CLEARED, TOKEN_UPDATED, buildHeaders, type AuthMessage } from '@/lib/api/auth';
+import { configureApi } from '@/lib/api/uz-api';
 import {
   RESERVE_METHOD,
   RESERVE_PING,
   RESERVE_STATUS,
   serveInContentScript,
   type RpcHandler,
-} from '@/lib/bridge';
-import { executeReserve } from '@/lib/reserve';
+} from '@/lib/engine/bridge';
+import { executeReserve } from '@/lib/engine/reserve';
 import { isSeedCartMessage } from '@/lib/messages';
-import { record, startPageDebugBridge } from '@/lib/debug';
+import { record, startPageDebugBridge } from '@/lib/ui/debug';
 import type { HuntJob, ReserveOutcome, UzAuthHeaders } from '@/lib/models';
-import type { TripMatch } from '@/lib/orchestrator';
+import type { TripMatch } from '@/lib/engine/orchestrator';
 
 function currentHeaders(): UzAuthHeaders | null {
-  let session: ExtractedSession | null = null;
+  let session: ExtractedSession | null;
   try {
     session = extractSession(window.localStorage);
   } catch {
