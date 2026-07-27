@@ -4,6 +4,10 @@
 
 &nbsp;
 
+[![Доступно в Chrome Web Store](https://img.shields.io/chrome-web-store/v/fnekjmhgijpiaimljfancdckfdbddhbe?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white&color=4285F4&style=for-the-badge)](https://chromewebstore.google.com/detail/%D1%83%D0%B7-ticket-hunter-%E2%80%94-%D0%B0%D0%B2%D1%82%D0%BE%D0%BF%D0%BE/fnekjmhgijpiaimljfancdckfdbddhbe?authuser=0&hl=uk)
+
+&nbsp;
+
 ![Chrome MV3](https://img.shields.io/badge/Chrome-MV3-4285F4?logo=googlechrome&logoColor=white)
 ![Built with WXT + React 19](https://img.shields.io/badge/built%20with-WXT%20%2B%20React%2019-0EA5E9)
 ![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
@@ -36,6 +40,13 @@
 > Інтерфейс українською; типи вагонів позначені як в УЗ (Л/К/П/С1/С2). Усі дані на знімках вигадані.
 
 ## Встановлення
+
+**З Chrome Web Store (рекомендовано):**
+
+Перейдіть на сторінку розширення та натисніть "Додати в Chrome":
+[![Доступно в Chrome Web Store](https://img.shields.io/chrome-web-store/v/fnekjmhgijpiaimljfancdckfdbddhbe?label=Доступно%20в%20Chrome%20Web%20Store&logo=googlechrome&logoColor=white&color=4285F4&style=for-the-badge)](https://chromewebstore.google.com/detail/%D1%83%D0%B7-ticket-hunter-%E2%80%94-%D0%B0%D0%B2%D1%82%D0%BE%D0%BF%D0%BE/fnekjmhgijpiaimljfancdckfdbddhbe?authuser=0&hl=uk)
+
+<br>
 
 **Зі збірки-релізу — без програмування:**
 

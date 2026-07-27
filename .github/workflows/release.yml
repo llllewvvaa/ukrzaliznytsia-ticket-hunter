@@ -48,7 +48,7 @@ jobs:
       - run: pnpm zip
 
       - name: Submit to Chrome Web Store
-        run: pnpm wxt submit --chrome-zip .output/*-chrome.zip --chrome-skip-submit-review
+        run: pnpm wxt submit --chrome-zip .output/*.zip --chrome-skip-submit-review
         env:
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}

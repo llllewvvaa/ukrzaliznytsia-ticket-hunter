@@ -30,3 +30,4 @@ dist
 /*-decide.html
 store/
 scripts/
+.env.*
