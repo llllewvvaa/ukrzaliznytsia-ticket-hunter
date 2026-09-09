@@ -1,0 +1,31 @@
+{
+  "name": "uz-watch-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Guest-mode Ukrzaliznytsia availability watcher: route atlas, candidate brain, adaptive polling",
+  "license": "MIT",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "compile": "tsc --noEmit",
+    "probe": "tsx src/scripts/probe.ts",
+    "probe:seats": "tsx src/scripts/probe-seats.ts",
+    "atlas:build": "tsx src/scripts/atlas-build.ts",
+    "ways": "tsx src/scripts/ways.ts",
+    "watch:demo": "tsx src/scripts/watch-demo.ts",
+    "stats:budget": "tsx src/scripts/stats-budget.ts",
+    "serve": "tsx src/scripts/serve.ts",
+    "dev:serve": "UZ_DEV_NO_AUTH=1 tsx src/scripts/serve.ts"
+  },
+  "dependencies": {
+    "grammy": "^1.46.0",
+    "playwright": "^1.56.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.9"
+  }
+}

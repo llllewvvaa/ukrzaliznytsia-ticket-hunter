@@ -1,0 +1,6 @@
+!src/store/
+!src/scripts/
+!.env.example
+node_modules
+dist
+*.tsbuildinfo
