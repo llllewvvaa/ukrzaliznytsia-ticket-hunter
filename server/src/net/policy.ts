@@ -4,6 +4,9 @@ export const RATE_LIMIT_MIN_PAUSE_MS = 30_000;
 export const BACKOFF_CAP_MS = 60_000;
 export const GATE_PAUSE_MS = 10 * 60_000;
 export const GATE_TRIP_THRESHOLD = 3;
+export const SERVER_ERROR_MIN_PAUSE_MS = 15_000;
+export const SERVER_ERROR_TRIP_THRESHOLD = 5;
+export const SERVER_ERROR_PAUSE_MS = 5 * 60_000;
 
 export type ResponseKind =
   | 'ok'
@@ -30,7 +33,7 @@ export function retryDelayMs(attempt: number, kind: ResponseKind, retryAfterSec?
   if (kind === 'rate_limited') {
     return Math.max(RATE_LIMIT_MIN_PAUSE_MS, (retryAfterSec ?? 0) * 1_000);
   }
-  const base = MONITOR_MIN_MS * 2 ** Math.max(0, attempt - 1);
+  const base = SERVER_ERROR_MIN_PAUSE_MS * 2 ** Math.max(0, attempt - 1);
   return Math.min(base, BACKOFF_CAP_MS);
 }
 
@@ -49,16 +52,28 @@ export const initialGateState: GateState = {
 };
 
 export function onResponse(state: GateState, kind: ResponseKind, now: number): GateState {
-  if (kind !== 'gated') {
-    return { consecutive: 0, pausedUntil: 0, needsReload: false, tripped: false };
+  if (kind === 'gated') {
+    const consecutive = state.consecutive + 1;
+    return {
+      consecutive,
+      pausedUntil: now + GATE_PAUSE_MS,
+      needsReload: true,
+      tripped: consecutive >= GATE_TRIP_THRESHOLD,
+    };
   }
-  const consecutive = state.consecutive + 1;
-  return {
-    consecutive,
-    pausedUntil: now + GATE_PAUSE_MS,
-    needsReload: true,
-    tripped: consecutive >= GATE_TRIP_THRESHOLD,
-  };
+
+  if (kind === 'server_error' || kind === 'rate_limited') {
+    const consecutive = state.consecutive + 1;
+    const tripped = consecutive >= SERVER_ERROR_TRIP_THRESHOLD;
+    return {
+      consecutive,
+      pausedUntil: tripped ? now + SERVER_ERROR_PAUSE_MS : state.pausedUntil,
+      needsReload: tripped,
+      tripped,
+    };
+  }
+
+  return { consecutive: 0, pausedUntil: 0, needsReload: false, tripped: false };
 }
 
 export function isPaused(state: GateState, now: number): boolean {

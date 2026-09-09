@@ -38,9 +38,9 @@ describe('retryDelayMs', () => {
     expect(retryDelayMs(1, 'rate_limited', 90)).toBe(90_000);
   });
 
-  it('doubles per attempt and stops at the cap', () => {
-    expect(retryDelayMs(1, 'server_error')).toBe(5_000);
-    expect(retryDelayMs(2, 'server_error')).toBe(10_000);
+  it('waits at least fifteen seconds after a server error and doubles from there', () => {
+    expect(retryDelayMs(1, 'server_error')).toBe(15_000);
+    expect(retryDelayMs(2, 'server_error')).toBe(30_000);
     expect(retryDelayMs(9, 'server_error')).toBe(BACKOFF_CAP_MS);
   });
 });
@@ -58,6 +58,20 @@ describe('gate state', () => {
     let state = initialGateState;
     for (const t of [1, 2, 3]) state = onResponse(state, 'gated', t);
     expect(state.tripped).toBe(true);
+  });
+
+  it('trips after a run of server errors and pauses', () => {
+    let state = initialGateState;
+    for (let i = 0; i < 5; i += 1) state = onResponse(state, 'server_error', 1_000);
+    expect(state.tripped).toBe(true);
+    expect(state.pausedUntil).toBeGreaterThan(1_000);
+  });
+
+  it('tolerates isolated server errors without pausing', () => {
+    let state = onResponse(initialGateState, 'server_error', 1_000);
+    state = onResponse(state, 'ok', 2_000);
+    expect(state.tripped).toBe(false);
+    expect(state.pausedUntil).toBe(0);
   });
 
   it('resets completely on any successful answer', () => {

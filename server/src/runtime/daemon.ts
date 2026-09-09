@@ -1,6 +1,8 @@
 import type { Server } from 'node:http';
 import type { Bot } from 'grammy';
 import { createContext, type AppContext } from './context.js';
+import { acquireLock } from './lock.js';
+import { lockPath } from './paths.js';
 import { readConfig, type RuntimeConfig } from './config.js';
 import { WatchEngine } from '../watch/engine.js';
 import { startServer } from '../api/server.js';
@@ -9,6 +11,7 @@ import { flushEvents } from '../tg/notifier.js';
 import { parseAllowedChats } from '../api/auth.js';
 import { GateTrippedError } from '../net/client.js';
 import { maintainAtlas } from '../atlas/maintain.js';
+import { readHealth, throttleFactor } from '../watch/health.js';
 
 export interface Daemon {
   stop: () => Promise<void>;
@@ -18,7 +21,8 @@ export interface Daemon {
 
 export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise<Daemon> {
   const config = { ...readConfig(), ...overrides };
-  const context = await createContext({ headless: config.headless, quiet: true });
+  const lock = acquireLock(lockPath());
+  const context = await createContext({ headless: config.headless, quiet: true, perHour: config.perHour });
 
   const engine = new WatchEngine({
     db: context.db,
@@ -59,6 +63,13 @@ export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise
   const loop = async (): Promise<void> => {
     while (!stopped) {
       try {
+        const health = readHealth(context.db, Date.now() - 15 * 60_000);
+        const factor = throttleFactor(health);
+        const cap = Math.max(1, Math.round(config.maxProbesPerCycle * factor));
+        if (cap !== engine.probeCap) {
+          engine.setProbeCap(cap);
+          console.log(`throttle: factor ${factor}, probes per cycle ${cap}, errors ${JSON.stringify(health)}`);
+        }
         const atlas = await maintainAtlas({ db: context.db, client: context.client });
         if (atlas.pairs > 0) console.log(`atlas: ${JSON.stringify(atlas.results)}`);
         const report = await engine.runCycle();
@@ -95,6 +106,7 @@ export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise
       server.close();
       if (bot) await bot.stop();
       await context.close();
+      lock.release();
     },
   };
 }

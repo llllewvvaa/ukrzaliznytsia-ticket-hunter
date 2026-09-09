@@ -28,8 +28,8 @@ export function recordSnapshots(
   samples: AvailabilitySample[],
 ): void {
   const insert = db.prepare(
-    `insert into snapshot (taken_at, from_id, to_id, date, trip_id, train_number, class_id, free_seats, price_kop, source)
-     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `insert into snapshot (taken_at, from_id, to_id, date, trip_id, train_number, class_id, free_seats, price_kop, source, depart_at)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   for (const sample of samples) {
     insert.run(
@@ -43,6 +43,7 @@ export function recordSnapshots(
       sample.freeSeats,
       sample.priceKop,
       key.source,
+      sample.departAt,
     );
   }
 }

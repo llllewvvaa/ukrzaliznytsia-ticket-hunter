@@ -10,9 +10,10 @@ const since = Date.now() - hours * 3_600_000;
 
 const ctx = await createContext({ withBrowser: false, quiet: true });
 try {
-  const report = budgetReport(ctx.db, since);
+  const report = budgetReport(ctx.db, since, Date.now());
   const probes = allProbes(ctx.db);
   const windowHours = Math.max(report.windowMs / 3_600_000, 1 / 60);
+  const perHourCeiling = Number(process.env.UZ_PER_HOUR ?? 300);
   const bruteForce = Math.round((probes.length * windowHours * 3_600_000) / MIN_INTERVAL_MS);
   const savings = report.network > 0 ? bruteForce / report.network : 0;
   const intervals = probes.map((p) => Math.round(p.intervalMs / 60_000));
@@ -24,7 +25,7 @@ try {
 
   console.log(`вікно: ${windowHours.toFixed(2)} год`);
   console.log(`запитів: ${report.total} (мережа ${report.network}, кеш ${report.cached})`);
-  console.log(`частота: ${Math.round(report.perHour)}/год`);
+  console.log(`частота: ${Math.round(report.perHour)}/год (стеля ${perHourCeiling})`);
   console.log(`трафік: ${(report.bytes / 1_048_576).toFixed(1)} МБ`);
   console.log(`статуси: ${JSON.stringify(report.byStatus)}`);
   console.log(`одиниць перебору: ${probes.length}`);

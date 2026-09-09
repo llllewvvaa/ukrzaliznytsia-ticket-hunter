@@ -1,7 +1,17 @@
 import { runDaemon } from '../runtime/daemon.js';
+import { LockHeldError } from '../runtime/lock.js';
 import { parseArgs } from './args.js';
 
 const args = parseArgs(process.argv.slice(2));
+
+process.on('uncaughtException', (error) => {
+  if (error instanceof LockHeldError) {
+    console.error(error.message);
+    process.exit(3);
+  }
+  throw error;
+});
+
 const daemon = await runDaemon({
   ...(args.port ? { port: Number(args.port) } : {}),
   ...(args.cycle ? { cycleMs: Number(args.cycle) * 1_000 } : {}),

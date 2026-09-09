@@ -30,7 +30,7 @@ export interface BudgetReport {
   byStatus: Record<string, number>;
 }
 
-export function budgetReport(db: Db, sinceTs = 0): BudgetReport {
+export function budgetReport(db: Db, sinceTs = 0, now: number = Date.now()): BudgetReport {
   const rows = db
     .prepare(
       'select ts, status, cache_hit as cacheHit, bytes from request_log where ts >= ? order by ts',
@@ -46,9 +46,8 @@ export function budgetReport(db: Db, sinceTs = 0): BudgetReport {
     const key = String(row.status);
     byStatus[key] = (byStatus[key] ?? 0) + 1;
   }
-  const first = rows[0]?.ts ?? 0;
-  const last = rows[rows.length - 1]?.ts ?? 0;
-  const windowMs = Math.max(1, last - first);
+  const first = rows[0]?.ts ?? now;
+  const windowMs = Math.max(1, now - Math.max(sinceTs, first));
   const network = rows.length - cached;
   return {
     total: rows.length,

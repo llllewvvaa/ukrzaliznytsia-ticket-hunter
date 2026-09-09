@@ -72,6 +72,7 @@ export function probeKeyOf(candidate: Candidate): string {
 
 export class WatchEngine {
   private readonly config: EngineConfig;
+
   private readonly now: () => number;
   private readonly random: () => number;
   private budget: BudgetState;
@@ -81,6 +82,14 @@ export class WatchEngine {
     this.now = deps.now ?? (() => Date.now());
     this.random = deps.random ?? Math.random;
     this.budget = createBudget(this.config.perHour, this.now());
+  }
+
+  setProbeCap(cap: number): void {
+    this.config.maxProbesPerCycle = Math.max(1, Math.round(cap));
+  }
+
+  get probeCap(): number {
+    return this.config.maxProbesPerCycle;
   }
 
   planForWatches(): Map<string, { candidate: Candidate; watches: Watch[] }> {

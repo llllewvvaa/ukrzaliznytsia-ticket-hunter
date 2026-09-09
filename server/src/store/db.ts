@@ -50,6 +50,10 @@ function migrate(db: Db): void {
     if (!probeColumns.has(name)) db.exec(`alter table probe add column ${name} ${definition}`);
   }
   if (probeKeyIsStale(db)) rebuildProbeTable(db);
+
+  if (!columns(db, 'snapshot').has('depart_at')) {
+    db.exec('alter table snapshot add column depart_at integer not null default 0');
+  }
 }
 
 export function schemaVersion(db: Db): number {

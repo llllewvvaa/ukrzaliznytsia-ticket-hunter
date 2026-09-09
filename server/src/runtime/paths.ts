@@ -12,3 +12,7 @@ export function dbPath(): string {
 export function profileDir(): string {
   return process.env.UZ_PROFILE_DIR ?? join(dataDir(), 'chrome-profile');
 }
+
+export function lockPath(): string {
+  return process.env.UZ_LOCK ?? join(dataDir(), 'daemon.lock');
+}

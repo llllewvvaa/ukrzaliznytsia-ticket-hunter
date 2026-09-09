@@ -26,14 +26,25 @@ describe('sqlite store', () => {
     expect(log.entries()[1]!.cacheHit).toBe(true);
   });
 
-  it('reports the budget with a per-hour rate', () => {
+  it('reports the budget with a per-hour rate over the asked window', () => {
     const log = createSqliteRequestLog(db);
     log.record({ ts: 0, path: '/a', status: 200, ms: 5, cacheHit: false, bytes: 10 });
     log.record({ ts: 1_800_000, path: '/a', status: 200, ms: 5, cacheHit: false, bytes: 10 });
     log.record({ ts: 1_800_000, path: '/a', status: 200, ms: 0, cacheHit: true, bytes: 10 });
-    const report = budgetReport(db);
+    const report = budgetReport(db, 0, 3_600_000);
     expect(report).toMatchObject({ total: 3, network: 2, cached: 1 });
-    expect(Math.round(report.perHour)).toBe(4);
+    expect(Math.round(report.perHour)).toBe(2);
+  });
+
+  it('does not inflate the rate when the window has an idle tail', () => {
+    const log = createSqliteRequestLog(db);
+    for (let i = 0; i < 10; i += 1) {
+      log.record({ ts: i * 1_000, path: '/a', status: 200, ms: 1, cacheHit: false, bytes: 1 });
+    }
+    const burstOnly = budgetReport(db, 0, 10_000);
+    const withIdleTail = budgetReport(db, 0, 3_600_000);
+    expect(burstOnly.perHour).toBeGreaterThan(withIdleTail.perHour);
+    expect(Math.round(withIdleTail.perHour)).toBe(10);
   });
 
   it('serves cached bodies until the ttl runs out', () => {

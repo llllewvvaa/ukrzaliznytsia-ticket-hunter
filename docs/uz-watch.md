@@ -69,7 +69,11 @@ pnpm atlas:build -- --from 2200001 --to 2218000 --days 3
 pnpm ways -- --from 2200001 --to 2218000 --date +7 --slack 1
 pnpm watch:demo -- --minutes 20 --cycle 60
 pnpm stats:budget -- --hours 24
+pnpm forecast             # список потягів, за якими вже є історія
+pnpm forecast -- --train 017О --class К --horizon last_day
 pnpm serve                # демон: цикли + HTTP + бот
+pnpm dev:serve            # те саме без Telegram-авторизації (локальна розробка)
+pnpm dev:force-event      # звести подію на реальних даних, щоб перевірити ланцюг
 ```
 
 Mini App:
@@ -80,6 +84,19 @@ pnpm install
 pnpm dev       # http://localhost:5188, проксі на :8848
 pnpm build     # dist/, який роздає сервер
 ```
+
+## Телеграм
+
+1. У BotFather створити бота, узяти токен.
+2. `UZ_BOT_TOKEN=<токен>`, `UZ_CHAT_ID=<твій chat id>`, за бажанням `UZ_ALLOWED_CHATS=<id через кому>`.
+3. У BotFather `/newapp` або `/setmenubutton` — вказати публічний HTTPS Mini App і покласти його ж у `UZ_MINIAPP_URL`.
+4. `pnpm serve`. Команди бота: `/start`, `/ways Київ Львів +7`, `/watch Київ Львів +7 3`, `/list`, `/fav 1`, `/pause 1`, `/resume 1`, `/cheapest`, `/stats`.
+
+Без токена сервер працює як є: стежить, пише події в базу, показує їх у Mini App і CLI.
+
+## Прогноз
+
+`forecast()` рахує з власної історії `snapshot`: скільки разів після порожньої перевірки місця зʼявлялися, окремо по горизонтах (`last_day`, `three_days`, `week`, `far`), плюс медіанну ціну. Поки порожніх спостережень менше за поріг (типово 20), функція повертає `null` і пише «недостатньо даних» — вигаданих чисел не показує. Ендпоінт: `GET /api/forecast?train=017О&class=К`.
 
 ## Налаштування
 

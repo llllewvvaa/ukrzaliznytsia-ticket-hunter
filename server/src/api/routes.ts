@@ -16,6 +16,7 @@ import {
   type WatchInput,
 } from '../store/watches.js';
 import { knownRoutes, priceHistory } from '../store/history.js';
+import { forecast, watchedTrains, type Horizon } from '../service/forecast.js';
 import type { SortMode } from '../brain/rank.js';
 
 export interface ApiDeps {
@@ -145,9 +146,23 @@ export async function handleApi(deps: ApiDeps, request: ApiRequest): Promise<Api
     }
   }
 
+  if (method === 'GET' && path === '/api/forecast') {
+    const train = request.query.get('train');
+    const classId = request.query.get('class');
+    if (!train || !classId) return ok({ trains: watchedTrains(deps.db) });
+    const horizon = request.query.get('horizon');
+    return ok({
+      forecast: forecast(deps.db, {
+        trainNumber: train,
+        classId,
+        ...(horizon ? { horizon: horizon as Horizon } : {}),
+      }),
+    });
+  }
+
   if (method === 'GET' && path === '/api/stats') {
     const hours = Number(request.query.get('hours') ?? 24);
-    const report = budgetReport(deps.db, now() - hours * 3_600_000);
+    const report = budgetReport(deps.db, now() - hours * 3_600_000, now());
     const probes = allProbes(deps.db);
     const windowHours = Math.max(report.windowMs / 3_600_000, 1 / 60);
     const bruteForce = Math.round((probes.length * windowHours * 3_600_000) / MIN_INTERVAL_MS);

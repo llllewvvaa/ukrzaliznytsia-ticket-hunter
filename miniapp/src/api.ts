@@ -1,4 +1,4 @@
-import type { Offer, Station, Stats, Watch, WatchEvent } from './types.js';
+import type { Forecast, Offer, Station, Stats, Watch, WatchEvent } from './types.js';
 
 interface TelegramWebApp {
   initData?: string;
@@ -71,6 +71,9 @@ export const api = {
   },
   stats(): Promise<Stats> {
     return call('/api/stats');
+  },
+  forecast(train: string, classId: string): Promise<{ forecast: Forecast }> {
+    return call(`/api/forecast?train=${encodeURIComponent(train)}&class=${encodeURIComponent(classId)}`);
   },
 };
 

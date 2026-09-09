@@ -59,3 +59,15 @@ export interface Stats {
   savings: number;
   atlas: { stations: number; trains: number; trips: number; pairs: number };
 }
+
+export interface Forecast {
+  trainNumber: string;
+  classId: string;
+  horizon: string;
+  observations: number;
+  emptyObservations: number;
+  appearances: number;
+  probability: number | null;
+  medianPriceKop: number | null;
+  note: string;
+}

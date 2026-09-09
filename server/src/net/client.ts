@@ -3,6 +3,7 @@ import { buildGuestHeaders } from '../uz/headers.js';
 import type { UzTransport } from './browser.js';
 import type { RequestLog } from './log.js';
 import type { ResponseCache } from './cache.js';
+import type { RateLimiter } from './limiter.js';
 import {
   classifyStatus,
   initialGateState,
@@ -21,6 +22,7 @@ export interface ClientDeps {
   now?: () => number;
   sleep?: (ms: number) => Promise<void>;
   newSessionId?: () => string;
+  limiter?: RateLimiter;
 }
 
 export interface FetchOptions {
@@ -73,7 +75,7 @@ export class UzClient {
 
   async get(path: string, options: FetchOptions = {}): Promise<UzResponse> {
     const ttlMs = options.ttlMs ?? 0;
-    const maxAttempts = options.maxAttempts ?? 3;
+    const maxAttempts = options.maxAttempts ?? 2;
 
     if (ttlMs > 0) {
       const hit = this.deps.cache.get(path, this.now());
@@ -97,6 +99,7 @@ export class UzClient {
     let attempt = 0;
     for (;;) {
       attempt += 1;
+      if (this.deps.limiter) await this.deps.limiter.acquire();
       const started = this.now();
       const raw = await this.deps.transport.fetchPath(path, buildGuestHeaders(this.sessionId));
       const kind = classifyStatus(raw.status);
@@ -110,6 +113,10 @@ export class UzClient {
       });
 
       this.gate = onResponse(this.gate, kind, this.now());
+      if (kind !== 'gated' && this.gate.tripped) {
+        await this.deps.transport.reload();
+        throw new GateTrippedError(this.gate.pausedUntil);
+      }
       if (kind === 'gated') {
         this.sessionId = this.newSessionId();
         await this.deps.transport.reload();

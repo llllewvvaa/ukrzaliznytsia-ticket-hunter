@@ -1,5 +1,6 @@
 import { BrowserSession, type UzTransport } from '../net/browser.js';
 import { UzClient } from '../net/client.js';
+import { createRateLimiter } from '../net/limiter.js';
 import { openDb, type Db } from '../store/db.js';
 import { createSqliteCache, pruneCache } from '../store/cache-sqlite.js';
 import { budgetReport, createSqliteRequestLog } from '../store/log-sqlite.js';
@@ -16,6 +17,7 @@ export interface ContextOptions {
   headless?: boolean;
   withBrowser?: boolean;
   quiet?: boolean;
+  perHour?: number;
 }
 
 export async function createContext(options: ContextOptions = {}): Promise<AppContext> {
@@ -29,10 +31,12 @@ export async function createContext(options: ContextOptions = {}): Promise<AppCo
         headless: options.headless ?? process.env.UZ_HEADLESS === '1',
       });
 
+  const perHour = options.perHour ?? Number(process.env.UZ_PER_HOUR ?? 300);
   const client = new UzClient({
     transport,
     log: createSqliteRequestLog(db),
     cache: createSqliteCache(db),
+    limiter: createRateLimiter({ perHour }),
   });
 
   return {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, hryvnia } from './api.js';
-import type { Stats, Watch, WatchEvent } from './types.js';
+import type { Forecast, Stats, Watch, WatchEvent } from './types.js';
 
 const KIND_TITLE: Record<string, string> = {
   appeared: 'зʼявилися місця',
@@ -13,6 +13,7 @@ export function HistoryTab({ watches, selected }: { watches: Watch[]; selected: 
   const [watchId, setWatchId] = useState(selected?.id ?? watches[0]?.id ?? '');
   const [events, setEvents] = useState<WatchEvent[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [forecast, setForecast] = useState<Forecast | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -27,7 +28,20 @@ export function HistoryTab({ watches, selected }: { watches: Watch[]; selected: 
     if (!watchId) return;
     api
       .events(watchId)
-      .then((res) => setEvents(res.events))
+      .then((res) => {
+        setEvents(res.events);
+        const latest = res.events[0];
+        const train = latest ? String(latest.payload.trainNumber ?? '') : '';
+        const classId = latest ? String(latest.payload.classId ?? '') : '';
+        if (train && classId && !classId.startsWith('MIX')) {
+          api
+            .forecast(train, classId)
+            .then((forecastRes) => setForecast(forecastRes.forecast))
+            .catch(() => setForecast(null));
+        } else {
+          setForecast(null);
+        }
+      })
       .catch((err) => setError(String(err)));
   }, [watchId]);
 
@@ -71,6 +85,22 @@ export function HistoryTab({ watches, selected }: { watches: Watch[]; selected: 
             <span>
               {stats.atlas.stations} станцій · {stats.atlas.trips} маршрутів · {stats.atlas.pairs} пар
             </span>
+          </div>
+        </div>
+      )}
+
+      {forecast && (
+        <div className="card">
+          <div className="head" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <strong>
+              Прогноз · {forecast.trainNumber} {forecast.classId}
+            </strong>
+            <span className="muted">{forecast.observations} спостережень</span>
+          </div>
+          <div className="muted" style={{ marginTop: 6 }}>
+            {forecast.probability == null
+              ? forecast.note
+              : `після порожньої перевірки місця зʼявлялися у ${Math.round(forecast.probability * 100)}% випадків`}
           </div>
         </div>
       )}
