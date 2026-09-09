@@ -76,6 +76,17 @@ describe('planCandidates', () => {
     expect(loose.filter((c) => c.kind === 'neighbor_date')).toHaveLength(2);
   });
 
+  it('never plans a journey from a station to itself', () => {
+    const plan = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], dateSlack: 2, maxNeighbors: 9 });
+    expect(plan.every((c) => c.fromId !== c.toId)).toBe(true);
+  });
+
+  it('does not treat the destination as a neighbour of the origin', () => {
+    const plan = planCandidates(db, { fromId: 20, toId: 30, dates: ['2026-09-10'], maxNeighbors: 9 });
+    const neighbourFrom = plan.filter((c) => c.kind === 'neighbor_from');
+    expect(neighbourFrom.every((c) => c.fromId !== 30)).toBe(true);
+  });
+
   it('never repeats the same pair-date-mode', () => {
     const plan = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10', '2026-09-11'] });
     expect(networkCost(plan)).toBe(plan.length);

@@ -74,6 +74,7 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
   const seen = new Set<string>();
 
   const push = (candidate: Candidate): void => {
+    if (candidate.fromId === candidate.toId) return;
     const key = `${candidate.fromId}:${candidate.toId}:${candidate.date}:${candidate.withTransfers ? 1 : 0}`;
     if (seen.has(key)) return;
     seen.add(key);
@@ -124,7 +125,8 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
     }
   }
 
-  for (const neighbor of neighborStations(db, fromId, 1).slice(0, maxNeighbors)) {
+  const originNeighbors = neighborStations(db, fromId, 1).filter((station) => station.id !== toId);
+  for (const neighbor of originNeighbors.slice(0, maxNeighbors)) {
     for (const date of dates) {
       push({
         fromId: neighbor.id,
@@ -138,7 +140,8 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
     }
   }
 
-  for (const neighbor of neighborStations(db, toId, 1).slice(0, maxNeighbors)) {
+  const destinationNeighbors = neighborStations(db, toId, 1).filter((station) => station.id !== fromId);
+  for (const neighbor of destinationNeighbors.slice(0, maxNeighbors)) {
     for (const date of dates) {
       push({
         fromId,

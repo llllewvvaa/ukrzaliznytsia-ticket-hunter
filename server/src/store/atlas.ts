@@ -183,6 +183,7 @@ export function segmentOptions(db: Db, fromId: number, toId: number): SegmentOpt
   }
 
   function push(option: SegmentOption): void {
+    if (option.fromId === option.toId) return;
     const key = `${option.trainId}:${option.fromId}:${option.toId}`;
     if (seen.has(key)) return;
     seen.add(key);
