@@ -1,6 +1,7 @@
 export interface RuntimeConfig {
   port: number;
   cycleMs: number;
+  watchdogMs: number;
   perHour: number;
   maxProbesPerCycle: number;
   dateSlack: number;
@@ -22,6 +23,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): RuntimeConfig 
   return {
     port: num(env.UZ_PORT, 8848),
     cycleMs: num(env.UZ_CYCLE_MS, 60_000),
+    watchdogMs: num(env.UZ_WATCHDOG_MS, 8 * 60_000),
     perHour: num(env.UZ_PER_HOUR, 180),
     maxProbesPerCycle: num(env.UZ_MAX_PROBES, 6),
     dateSlack: num(env.UZ_DATE_SLACK, 1),

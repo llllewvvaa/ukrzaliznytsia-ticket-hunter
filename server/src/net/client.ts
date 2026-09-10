@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { buildGuestHeaders } from '../uz/headers.js';
-import type { UzTransport } from './browser.js';
+import { TransportTimeoutError, type UzTransport } from './browser.js';
 import type { RequestLog } from './log.js';
 import type { ResponseCache } from './cache.js';
 import type { RateLimiter, RequestPriority } from './limiter.js';
@@ -102,7 +102,26 @@ export class UzClient {
       attempt += 1;
       if (this.deps.limiter) await this.deps.limiter.acquire(options.priority ?? 'background');
       const started = this.now();
-      const raw = await this.deps.transport.fetchPath(path, buildGuestHeaders(this.sessionId));
+      let raw: { status: number; body: string };
+      try {
+        raw = await this.deps.transport.fetchPath(path, buildGuestHeaders(this.sessionId));
+      } catch (error) {
+        if (!(error instanceof TransportTimeoutError)) throw error;
+        // A wedged page is worth one reload, then the normal retry policy applies.
+        this.deps.log.record({
+          ts: started,
+          path,
+          status: 504,
+          ms: this.now() - started,
+          cacheHit: false,
+          bytes: 0,
+        });
+        this.gate = onResponse(this.gate, 'server_error', this.now());
+        await this.deps.transport.reload();
+        if (attempt >= maxAttempts) throw error;
+        await this.sleep(retryDelayMs(attempt, 'server_error'));
+        continue;
+      }
       const kind = classifyStatus(raw.status);
       this.deps.log.record({
         ts: started,

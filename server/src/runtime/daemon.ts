@@ -60,6 +60,20 @@ export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise
   console.log(`http listening on :${config.port}`);
 
   let stopped = false;
+  let lastProgressAt = Date.now();
+
+  // The loop can only wedge on a call that never settles; if that outlives every
+  // internal deadline, leaving the process for systemd to restart is the honest
+  // way out — a silent watcher is worse than a restarting one.
+  const watchdog = setInterval(() => {
+    const idleMs = Date.now() - lastProgressAt;
+    if (idleMs > config.watchdogMs) {
+      console.error(`watchdog: no cycle for ${Math.round(idleMs / 1_000)}s, exiting for a restart`);
+      process.exit(1);
+    }
+  }, 30_000);
+  watchdog.unref();
+
   const loop = async (): Promise<void> => {
     while (!stopped) {
       try {
@@ -96,6 +110,7 @@ export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise
           console.error('cycle failed', error);
         }
       }
+      lastProgressAt = Date.now();
       await new Promise((resolve) => setTimeout(resolve, config.cycleMs));
     }
   };
@@ -106,6 +121,7 @@ export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise
     context,
     stop: async () => {
       stopped = true;
+      clearInterval(watchdog);
       server.close();
       if (bot) await bot.stop();
       await context.close();

@@ -19,8 +19,38 @@ export interface BrowserSessionOptions {
   executablePath?: string;
 }
 
-const PAGE_FETCH = async (input: { url: string; headers: Record<string, string> }) => {
-  const res = await fetch(input.url, { headers: input.headers });
+export const PAGE_TIMEOUT_MS = 25_000;
+export const FETCH_TIMEOUT_MS = 20_000;
+
+export class TransportTimeoutError extends Error {
+  constructor(public readonly path: string) {
+    super(`transport_timeout ${path}`);
+    this.name = 'TransportTimeoutError';
+  }
+}
+
+// A page fetch that never settles would hang the whole watcher loop, so both
+// sides get a deadline: the page aborts its own request, and the caller stops
+// waiting on the page.
+export async function withDeadline<T>(work: Promise<T>, ms: number, path: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      work,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new TransportTimeoutError(path)), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+const PAGE_FETCH = async (input: { url: string; headers: Record<string, string>; timeoutMs: number }) => {
+  const res = await fetch(input.url, {
+    headers: input.headers,
+    signal: AbortSignal.timeout(input.timeoutMs),
+  });
   const body = await res.text();
   return { status: res.status, body };
 };
@@ -49,7 +79,15 @@ export class BrowserSession implements UzTransport {
   }
 
   async fetchPath(path: string, headers: Record<string, string>): Promise<PageFetchResult> {
-    return this.page.evaluate(PAGE_FETCH, { url: `${API_BASE}${path}`, headers });
+    return withDeadline(
+      this.page.evaluate(PAGE_FETCH, {
+        url: `${API_BASE}${path}`,
+        headers,
+        timeoutMs: FETCH_TIMEOUT_MS,
+      }),
+      PAGE_TIMEOUT_MS,
+      path,
+    );
   }
 
   async reload(): Promise<void> {
