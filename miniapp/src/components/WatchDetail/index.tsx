@@ -5,43 +5,55 @@ import { EmptyState } from '../EmptyState';
 import { SkeletonCards } from '../Skeleton';
 import { useWatchOptions } from '../../hooks/use-watch-options';
 import { clockTime, dateRange, hryvnia, relTime, shortDate } from '../../lib/format';
-import { className, type Watch, type WatchOption } from '../../types';
+import { routeEnds, pathText, sectionsFor, type TrainGroup } from '../../lib/path-text';
+import { className, type Watch } from '../../types';
 
 function weekday(iso: string): string {
   return new Date(`${iso}T12:00:00Z`).toLocaleDateString('uk-UA', { weekday: 'long', timeZone: 'Europe/Kyiv' });
 }
 
-function groupByDate(options: WatchOption[]): { date: string; items: WatchOption[] }[] {
-  const groups = new Map<string, WatchOption[]>();
-  for (const option of options) groups.set(option.date, [...(groups.get(option.date) ?? []), option]);
-  return [...groups.entries()].map(([date, items]) => ({ date, items }));
-}
+function TrainCard({ group, origin, destination }: { group: TrainGroup; origin: string; destination: string }) {
+  const { best } = group;
+  const alternatives = group.options.slice(1, 5);
+  const hidden = group.options.length - 1 - alternatives.length;
 
-function OptionRow({ option }: { option: WatchOption }) {
-  const detour = option.kind !== 'direct' && option.kind !== 'transfers';
   return (
     <div
-      className={`rounded-xl border bg-white p-3.5 shadow-sm ${option.isNew ? 'border-emerald-400 ring-1 ring-emerald-400/30' : 'border-gray-200'}`}
+      className={`rounded-xl border bg-white p-3.5 shadow-sm ${group.isNew ? 'border-emerald-400 ring-1 ring-emerald-400/30' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
           <TrainIcon className="h-4 w-4 text-gray-400" />
-          {option.trainNumber}
-          <span className="text-xs font-normal text-gray-500">
-            · {option.departAt ? clockTime(option.departAt) : ''} · {className(option.classId)}
-          </span>
+          {group.trainNumber}
+          {best.departAt ? <span className="text-xs font-normal text-gray-500">· {clockTime(best.departAt)}</span> : null}
         </div>
         <div className="flex items-center gap-1.5">
-          {option.isNew ? <Badge tone="bg-emerald-50 text-emerald-700">нове</Badge> : null}
-          <span className="text-sm font-semibold text-gray-900">{hryvnia(option.priceKop)}</span>
+          {group.isNew ? <Badge tone="bg-emerald-50 text-emerald-700">нове</Badge> : null}
+          <span className="text-sm font-semibold text-gray-900">від {hryvnia(best.priceKop)}</span>
         </div>
       </div>
-      <div className="mt-1 text-xs text-gray-500">
-        {option.fromName} → {option.toName} · вільних {option.freeSeats}
+
+      <div className="mt-1.5 text-xs text-gray-700">
+        {className(best.classId)} · вільних {best.freeSeats} · {pathText(best, origin, destination)}
       </div>
-      {detour || option.kind === 'transfers' ? (
-        <div className="mt-2 flex items-center gap-1.5 text-[11px] leading-snug text-amber-800">
-          <DetourIcon className="h-3.5 w-3.5 shrink-0 text-amber-600" /> {option.why}
+
+      {alternatives.length > 0 ? (
+        <div className="mt-2 space-y-1 border-t border-gray-100 pt-2">
+          {alternatives.map((option) => (
+            <div
+              key={`${option.classId}-${option.fromId}-${option.toId}`}
+              className="flex items-start justify-between gap-3 text-[11px] leading-snug text-gray-500"
+            >
+              <span className="flex items-start gap-1">
+                {option.kind !== 'direct' && option.kind !== 'neighbor_date' ? (
+                  <DetourIcon className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" />
+                ) : null}
+                {className(option.classId)} ×{option.freeSeats} · {pathText(option, origin, destination)}
+              </span>
+              <span className="shrink-0 text-gray-700">{hryvnia(option.priceKop)}</span>
+            </div>
+          ))}
+          {hidden > 0 ? <div className="text-[11px] text-gray-400">ще {hidden} варіант(и)</div> : null}
         </div>
       ) : null}
     </div>
@@ -50,8 +62,10 @@ function OptionRow({ option }: { option: WatchOption }) {
 
 export function WatchDetail({ watch, onBack }: { watch: Watch; onBack: () => void }) {
   const { data, live, loading, refreshing, error, refresh } = useWatchOptions(watch);
-  const groups = groupByDate(data?.options ?? []);
-  const newCount = (data?.options ?? []).filter((option) => option.isNew).length;
+  const sections = sectionsFor(data?.options ?? [], watch.dateFrom, watch.dateTo);
+  const { origin, destination } = routeEnds(watch.name);
+  const newCount = new Set((data?.options ?? []).filter((o) => o.isNew).map((o) => `${o.date}:${o.trainNumber}`)).size;
+  const firstOutside = sections.findIndex((section) => !section.inWindow);
 
   return (
     <div className="space-y-3">
@@ -104,7 +118,7 @@ export function WatchDetail({ watch, onBack }: { watch: Watch; onBack: () => voi
         </>
       ) : null}
 
-      {!loading && !live && groups.length === 0 ? (
+      {!loading && !live && sections.length === 0 ? (
         <EmptyState
           title="Поки що місць немає"
           description="Сторож перевіряє цей напрямок, сусідні станції й наскрізні сегменти. Щойно зʼявиться квиток — прийде одне сповіщення."
@@ -113,16 +127,20 @@ export function WatchDetail({ watch, onBack }: { watch: Watch; onBack: () => voi
       ) : null}
 
       {!live
-        ? groups.map((group) => (
-            <section key={group.date} className="space-y-2">
-              <h2 className="px-1 pt-1 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                {shortDate(group.date)} · {weekday(group.date)} · {group.items.length}
+        ? sections.map((section, index) => (
+            <section key={section.date} className="space-y-2">
+              {index === firstOutside ? (
+                <p className="px-1 pt-3 text-[11px] leading-snug text-gray-400">
+                  Поза твоїми датами, але поруч — на випадок, якщо можна зсунутись на день.
+                </p>
+              ) : null}
+              <h2
+                className={`px-1 pt-1 text-[11px] font-bold uppercase tracking-wider ${section.inWindow ? 'text-gray-500' : 'text-gray-300'}`}
+              >
+                {shortDate(section.date)} · {weekday(section.date)} · потягів {section.trains.length}
               </h2>
-              {group.items.map((option) => (
-                <OptionRow
-                  key={`${option.tripId}-${option.classId}-${option.fromId}-${option.toId}`}
-                  option={option}
-                />
+              {section.trains.map((group) => (
+                <TrainCard key={group.trainNumber} group={group} origin={origin} destination={destination} />
               ))}
             </section>
           ))
