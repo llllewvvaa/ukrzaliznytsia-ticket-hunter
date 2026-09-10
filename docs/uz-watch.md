@@ -127,7 +127,22 @@ pnpm build     # dist/, який роздає сервер
 
 ## Розгортання
 
-`deploy/uz-watch.service` (systemd + Xvfb для Dell), `deploy/com.uzwatch.server.plist` (launchd для Mac), `deploy/backup.sh` (бекап SQLite). Mini App потребує публічного HTTPS — тунель піднімається окремо.
+Робочий стенд — домашній сервер (Ubuntu 24.04, `/opt/uz-watch`), чотири юніти:
+
+| Юніт | Що робить |
+|---|---|
+| `uz-xvfb.service` | віртуальний дисплей `:98` (окремий від `:99`, який тримає gemini-шлюз) |
+| `uz-watch.service` | сам сторож: цикли, HTTP на `:8848`, Telegram-бот; браузер — системний `google-chrome` через `UZ_CHROME_PATH`, тому Playwright нічого не докачує |
+| `uz-tunnel.service` | `cloudflared tunnel --url http://localhost:8848` — публічний HTTPS без облікового запису |
+| `uz-backup.timer` | щоденний `deploy/backup.sh`, 14 останніх копій |
+
+Швидкий тунель отримує нове імʼя після кожного перезапуску, тому `deploy/tunnel-publish.sh` (запускається з `ExecStartPost`) виловлює адресу з журналу, кладе її в `UZ_MINIAPP_URL` і **сам** перевстановлює кнопку меню бота через `setChatMenuButton` та список команд через `setMyCommands`. Перевірено: після `systemctl restart uz-tunnel` адреса й кнопка оновилися без втручання.
+
+Постійний домен замість змінного — це `tailscale funnel --bg 8848`; вимагає одноразового вмикання Funnel в адмінці tailnet.
+
+Публічний контур закритий підписом: `/api/*` без валідного `x-telegram-init-data` віддає 401, `UZ_ALLOWED_CHATS` звужує доступ до конкретних chat_id, а кожен не-GET запит пишеться в журнал із користувачем та IP.
+
+Для Mac лишається `deploy/com.uzwatch.server.plist` (launchd).
 
 ## Уроки живого прогону
 

@@ -16,6 +16,7 @@ export interface BrowserSessionOptions {
   userDataDir: string;
   headless?: boolean;
   locale?: string;
+  executablePath?: string;
 }
 
 const PAGE_FETCH = async (input: { url: string; headers: Record<string, string> }) => {
@@ -31,11 +32,15 @@ export class BrowserSession implements UzTransport {
   ) {}
 
   static async start(options: BrowserSessionOptions): Promise<BrowserSession> {
+    // A server box usually has a system Chrome already; pointing at it avoids a
+    // second browser download and keeps the fingerprint that UZ answers.
+    const executablePath = options.executablePath ?? process.env.UZ_CHROME_PATH;
     const context = await chromium.launchPersistentContext(options.userDataDir, {
       headless: options.headless ?? false,
       locale: options.locale ?? 'uk-UA',
       viewport: { width: 1280, height: 900 },
       args: ['--no-first-run', '--no-default-browser-check'],
+      ...(executablePath ? { executablePath } : {}),
     });
     const page = context.pages()[0] ?? (await context.newPage());
     await page.goto(`${BOOKING_ORIGIN}/`, { waitUntil: 'domcontentloaded', timeout: 60_000 });

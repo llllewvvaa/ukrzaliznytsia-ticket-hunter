@@ -59,6 +59,11 @@ export function startServer(deps: ApiDeps, options: ServerOptions): Server {
             options.botToken ?? '',
           );
           if (!check.ok || !isAllowed(check.userId, allowed)) {
+            if (req.method && req.method !== 'GET') {
+              console.log(
+                `api ${req.method} ${path} -> 401 ${check.reason ?? 'forbidden'} ip=${req.socket.remoteAddress ?? '?'}`,
+              );
+            }
             sendJson(res, 401, { error: check.reason ?? 'forbidden' });
             return;
           }
@@ -74,6 +79,12 @@ export function startServer(deps: ApiDeps, options: ServerOptions): Server {
             body,
             userId,
           });
+          // A public endpoint needs a trail of who changed what; reads stay silent.
+          if (req.method && req.method !== 'GET') {
+            console.log(
+              `api ${req.method} ${path} -> ${result.status} user=${userId ?? 'dev'} ip=${req.socket.remoteAddress ?? '?'}`,
+            );
+          }
           sendJson(res, result.status, result.body);
         } catch (error) {
           sendJson(res, 500, { error: String(error) });
