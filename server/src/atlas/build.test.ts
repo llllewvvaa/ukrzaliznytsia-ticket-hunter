@@ -31,6 +31,11 @@ function transportFor(calls: string[]): UzTransport {
   };
 }
 
+function parseSearchTrainId(): number {
+  const parsed = JSON.parse(searchBody) as { direct: { train: { id: number } }[] };
+  return parsed.direct[0]!.train.id;
+}
+
 function makeDeps(db: Db, calls: string[]) {
   const client = new UzClient({
     transport: transportFor(calls),
@@ -77,6 +82,33 @@ describe('atlas build', () => {
     const secondDetailCalls = calls.filter((p) => /^\/v3\/trips\/\d+$/.test(p)).length;
     expect(firstDetailCalls).toBeGreaterThan(0);
     expect(secondDetailCalls).toBe(0);
+  });
+
+  it('keeps asking for a route whose fetch failed', async () => {
+    const failing: UzTransport = {
+      async fetchPath(path): Promise<PageFetchResult> {
+        calls.push(path);
+        if (path.startsWith('/v3/trips?')) return { status: 200, body: searchBody };
+        return { status: 503, body: '' };
+      },
+      async reload() {},
+      async close() {},
+    };
+    const client = new UzClient({
+      transport: failing,
+      log: createMemoryRequestLog(),
+      cache: createMemoryCache(),
+      now: () => 10_000,
+      sleep: async () => {},
+    });
+    const result = await buildAtlas({ db, client, now: () => 10_000, sleep: async () => {}, pacingMs: 0 }, {
+      fromId: 2200001,
+      toId: 2218000,
+      dates: ['2026-09-15'],
+    });
+    expect(result.interrupted).toBe(true);
+    const trainId = parseSearchTrainId();
+    expect(trainNeedsRoute(db, trainId, 10_000)).toBe(true);
   });
 
   it('refetches a route once it goes stale', async () => {

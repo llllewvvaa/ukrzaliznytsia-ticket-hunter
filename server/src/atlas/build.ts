@@ -1,5 +1,5 @@
 import type { Db } from '../store/db.js';
-import type { UzClient } from '../net/client.js';
+import { GateTrippedError, type UzClient } from '../net/client.js';
 import { parseSearch, parseTripDetail } from '../uz/parse.js';
 import { searchTripsPath, tripDetailPath } from '../uz/paths.js';
 import { buildPairIndex, saveTripRoute } from '../store/atlas.js';
@@ -30,6 +30,7 @@ export interface AtlasBuildResult {
   routesFetched: number;
   stopsStored: number;
   pairs: number;
+  interrupted: boolean;
 }
 
 export function trainNeedsRoute(db: Db, trainId: number, now: number): boolean {
@@ -69,10 +70,26 @@ export async function buildAtlas(
   let searched = 0;
   let routesFetched = 0;
   let stopsStored = 0;
+  let interrupted = false;
   const trips: Trip[] = [];
 
+  // The atlas is a background chore; when the gate trips it stops and keeps what
+  // it already has, instead of throwing and taking the watch cycle down with it.
+  const guarded = async <T>(work: () => Promise<T>): Promise<T | null> => {
+    try {
+      return await work();
+    } catch (error) {
+      if (error instanceof GateTrippedError) {
+        interrupted = true;
+        return null;
+      }
+      throw error;
+    }
+  };
+
   for (const date of request.dates) {
-    const res = await deps.client.get(
+    if (interrupted) break;
+    const res = await guarded(() => deps.client.get(
       searchTripsPath({
         fromId: request.fromId,
         toId: request.toId,
@@ -80,7 +97,8 @@ export async function buildAtlas(
         withTransfers: request.withTransfers ?? false,
       }),
       { ttlMs: SEARCH_TTL_MS },
-    );
+    ));
+    if (!res) break;
     searched += 1;
     if (res.kind !== 'ok') continue;
     const parsed = parseSearch(res.json());
@@ -96,9 +114,12 @@ export async function buildAtlas(
   }
 
   for (const trip of wanted.values()) {
-    const stored = await fetchAndStoreRoute(deps, trip.id);
-    markTrainChecked(deps.db, trip.trainId, trip.trainNumber, now());
+    if (interrupted) break;
+    const stored = (await guarded(() => fetchAndStoreRoute(deps, trip.id))) ?? 0;
+    // Only a stored route counts as checked; marking a failed fetch would hide
+    // the train for a week and silently drop every detour that depends on it.
     if (stored > 0) {
+      markTrainChecked(deps.db, trip.trainId, trip.trainNumber, now());
       routesFetched += 1;
       stopsStored += stored;
     }
@@ -106,5 +127,5 @@ export async function buildAtlas(
   }
 
   const pairs = buildPairIndex(deps.db, now());
-  return { searched, tripsSeen: trips.length, routesFetched, stopsStored, pairs };
+  return { searched, tripsSeen: trips.length, routesFetched, stopsStored, pairs, interrupted };
 }
