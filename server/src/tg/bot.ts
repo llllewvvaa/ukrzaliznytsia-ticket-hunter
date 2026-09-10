@@ -12,6 +12,8 @@ import {
   type Watch,
 } from '../store/watches.js';
 import { findWays, lookupStations } from '../service/search.js';
+import { forecast, watchedTrains } from '../service/forecast.js';
+import { rememberChat } from '../store/meta.js';
 import { describeOffer, hryvnia } from '../service/format.js';
 import { resolveDate } from '../scripts/args.js';
 
@@ -38,11 +40,17 @@ function watchLine(index: number, watch: Watch, routes: number): string {
 export function createBot(deps: BotDeps): Bot {
   const bot = new Bot(deps.token);
 
+  bot.use(async (ctx, next) => {
+    const chatId = ctx.chat?.id;
+    if (chatId != null && guard(deps, chatId)) rememberChat(deps.db, chatId);
+    await next();
+  });
+
   bot.command('start', async (ctx) => {
     if (!guard(deps, ctx.chat?.id)) return;
     const lines = [
       'Стежу за квитками УЗ і пишу, коли зʼявляється спосіб доїхати.',
-      'Команди: /ways, /list, /fav, /pause, /resume, /stats',
+      'Команди: /ways, /watch, /list, /fav, /pause, /resume, /cheapest, /forecast, /stats',
     ];
     if (deps.miniAppUrl) lines.push(`Інтерфейс: ${deps.miniAppUrl}`);
     await ctx.reply(lines.join('\n'));
@@ -152,6 +160,29 @@ export function createBot(deps: BotDeps): Bot {
     }
     setWatchState(deps.db, watch.id, 'active', Date.now());
     await ctx.reply(`${watch.name}: знову стежу`);
+  });
+
+  bot.command('forecast', async (ctx) => {
+    if (!guard(deps, ctx.chat?.id)) return;
+    const parts = (ctx.match ?? '').toString().trim().split(/\s+/).filter(Boolean);
+    if (parts.length < 1) {
+      const rows = watchedTrains(deps.db, 8);
+      if (rows.length === 0) {
+        await ctx.reply('Історії ще немає — стеження щойно почалось.');
+        return;
+      }
+      await ctx.reply(
+        ['Є історія по:', ...rows.map((r) => `· ${r.trainNumber} ${r.classId} — ${r.rows} записів`), 'Формат: /forecast 017О К'].join('\n'),
+      );
+      return;
+    }
+    const [train, classId] = parts;
+    const result = forecast(deps.db, { trainNumber: train!, classId: classId ?? 'К' });
+    await ctx.reply(
+      result.probability == null
+        ? `${result.trainNumber} ${result.classId}: ${result.note}`
+        : `${result.trainNumber} ${result.classId}: після порожньої перевірки місця зʼявлялися у ${Math.round(result.probability * 100)}% випадків (${result.observations} спостережень)`,
+    );
   });
 
   bot.command('stats', async (ctx) => {

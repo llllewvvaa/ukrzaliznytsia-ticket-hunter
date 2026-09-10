@@ -90,9 +90,12 @@ pnpm build     # dist/, який роздає сервер
 ## Телеграм
 
 1. У BotFather створити бота, узяти токен.
-2. `UZ_BOT_TOKEN=<токен>`, `UZ_CHAT_ID=<твій chat id>`, за бажанням `UZ_ALLOWED_CHATS=<id через кому>`.
-3. У BotFather `/newapp` або `/setmenubutton` — вказати публічний HTTPS Mini App і покласти його ж у `UZ_MINIAPP_URL`.
-4. `pnpm serve`. Команди бота: `/start`, `/ways Київ Львів +7`, `/watch Київ Львів +7 3`, `/list`, `/fav 1`, `/pause 1`, `/resume 1`, `/cheapest`, `/stats`.
+2. Покласти токен у `server/.env` (`UZ_BOT_TOKEN=...`) — файл у `.gitignore`, `pnpm serve` підхоплює його сам через `loadEnvFile`.
+3. Написати боту `/start` — він запамʼятає chat_id у таблиці `meta` (`last_chat_id`), і сповіщення поїдуть туди без жодних змінних. `UZ_CHAT_ID` і `UZ_ALLOWED_CHATS` лишаються як явне перевизначення й білий список.
+4. У BotFather `/newapp` або `/setmenubutton` — вказати публічний HTTPS Mini App і покласти його ж у `UZ_MINIAPP_URL`.
+5. `pnpm serve`. Команди: `/start`, `/ways Київ Львів +7`, `/watch Київ Львів +7 3`, `/list`, `/fav 1`, `/pause 1`, `/resume 1`, `/cheapest`, `/forecast 017О К`, `/stats`.
+
+Порядок доставки події: чат самого стеження → `UZ_CHAT_ID` → останній чат, що говорив з ботом.
 
 Без токена сервер працює як є: стежить, пише події в базу, показує їх у Mini App і CLI.
 

@@ -1,6 +1,12 @@
+import { existsSync } from 'node:fs';
+import { loadEnvFile } from 'node:process';
 import { runDaemon } from '../runtime/daemon.js';
 import { LockHeldError } from '../runtime/lock.js';
 import { parseArgs } from './args.js';
+
+if (existsSync(new URL('../../.env', import.meta.url))) {
+  loadEnvFile(new URL('../../.env', import.meta.url).pathname);
+}
 
 const args = parseArgs(process.argv.slice(2));
 

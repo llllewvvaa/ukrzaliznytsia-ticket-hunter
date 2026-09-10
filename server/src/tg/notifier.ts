@@ -1,6 +1,7 @@
 import type { Db } from '../store/db.js';
 import { markNotified, pendingEvents, type StoredEvent } from '../store/history.js';
 import { getWatch } from '../store/watches.js';
+import { lastChat } from '../store/meta.js';
 import { describeEvent } from '../service/format.js';
 
 export type SendFn = (chatId: number, text: string) => Promise<void>;
@@ -27,9 +28,10 @@ export async function flushEvents(
   const delivered: number[] = [];
   let skipped = 0;
 
+  const fallback = defaultChatId ?? lastChat(db);
   for (const event of events) {
     const watch = getWatch(db, event.watchId);
-    const chatId = watch?.chatId ?? defaultChatId;
+    const chatId = watch?.chatId ?? fallback;
     if (!chatId) {
       skipped += 1;
       continue;
