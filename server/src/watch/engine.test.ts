@@ -9,6 +9,7 @@ import { saveTripRoute } from '../store/atlas.js';
 import { createWatch } from '../store/watches.js';
 import { knownRoutes, pendingEvents } from '../store/history.js';
 import { WatchEngine, type EngineConfig } from './engine.js';
+import { TransportTimeoutError } from '../net/browser.js';
 import { diffSamples } from './diff.js';
 import { adjacentPairs, isLowerBerth, matchWagons } from './seat-rules.js';
 import { parseWagons } from '../uz/parse.js';
@@ -225,6 +226,37 @@ describe('watch engine', () => {
     const report = await stale.engine.runCycle();
     expect(report.checked).toBeGreaterThan(0);
     expect(stale.calls.every((path) => path.includes('2026-09-20'))).toBe(true);
+  });
+
+  it('keeps going when one probe times out', async () => {
+    const db = openDb(':memory:');
+    saveTripRoute(db, line(), 1_000);
+    let calls = 0;
+    const transport: UzTransport = {
+      async fetchPath(path): Promise<PageFetchResult> {
+        calls += 1;
+        if (calls === 1) throw new TransportTimeoutError(path);
+        return { status: 200, body: searchBody([{ id: 501, number: '001К', free: 1, price: 50_000 }]) };
+      },
+      async reload() {},
+      async close() {},
+    };
+    const client = new UzClient({
+      transport,
+      log: createMemoryRequestLog(),
+      cache: createMemoryCache(),
+      sleep: async () => {},
+    });
+    const engine = new WatchEngine({
+      db,
+      client,
+      now: () => 1_000_000,
+      random: () => 0.5,
+      config: { dateSlack: 0, maxNeighbors: 0, maxSegmentOptions: 0, maxProbesPerCycle: 4 },
+    });
+    createWatch(db, { fromId: 20, toId: 40, dateFrom: '2026-09-20' }, 1_000);
+    const report = await engine.runCycle();
+    expect(report.checked).toBeGreaterThan(0);
   });
 
   it('stops calling once the budget is spent', async () => {

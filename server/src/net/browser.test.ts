@@ -1,9 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { TransportTimeoutError, withDeadline } from './browser.js';
+import { TransportTimeoutError, isTransportFailure, withDeadline } from './browser.js';
 import { UzClient } from './client.js';
 import { createMemoryCache } from './cache.js';
 import { createMemoryRequestLog, summarize } from './log.js';
 import type { PageFetchResult, UzTransport } from './browser.js';
+
+describe('isTransportFailure', () => {
+  it('recognises the page aborting its own request', () => {
+    expect(isTransportFailure(new Error('page.evaluate: TimeoutError: signal timed out'))).toBe(true);
+  });
+
+  it('recognises plain network failures', () => {
+    expect(isTransportFailure(new Error('TypeError: Failed to fetch'))).toBe(true);
+    expect(isTransportFailure(new Error('net::ERR_CONNECTION_RESET'))).toBe(true);
+  });
+
+  it('leaves real bugs alone', () => {
+    expect(isTransportFailure(new Error('Cannot read properties of undefined'))).toBe(false);
+  });
+});
 
 describe('withDeadline', () => {
   it('passes a value that arrives in time', async () => {

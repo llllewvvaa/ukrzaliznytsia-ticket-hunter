@@ -1,6 +1,7 @@
 import type { Db } from '../store/db.js';
 import type { UzClient } from '../net/client.js';
 import { GateTrippedError } from '../net/client.js';
+import { TransportTimeoutError } from '../net/browser.js';
 import { parseSearch, parseWagons } from '../uz/parse.js';
 import { searchTripsPath, wagonsByClassPath } from '../uz/paths.js';
 import { planCandidates, type Candidate } from '../brain/candidates.js';
@@ -62,6 +63,7 @@ export interface CycleReport {
   events: number;
   baselined: number;
   seatChecks: number;
+  transportErrors: number;
   skippedGated: boolean;
   budgetLeft: number;
 }
@@ -140,6 +142,7 @@ export class WatchEngine {
       events: 0,
       baselined: 0,
       seatChecks: 0,
+      transportErrors: 0,
       skippedGated: false,
       budgetLeft: Math.floor(state.tokens),
     };
@@ -173,6 +176,10 @@ export class WatchEngine {
         if (error instanceof GateTrippedError) {
           report.skippedGated = true;
           break;
+        }
+        if (error instanceof TransportTimeoutError) {
+          report.transportErrors += 1;
+          continue;
         }
         throw error;
       }
@@ -302,6 +309,10 @@ export class WatchEngine {
     } catch (error) {
       if (error instanceof GateTrippedError) {
         report.skippedGated = true;
+        return [];
+      }
+      if (error instanceof TransportTimeoutError) {
+        report.transportErrors += 1;
         return [];
       }
       throw error;

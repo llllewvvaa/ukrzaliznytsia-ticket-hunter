@@ -46,6 +46,14 @@ export async function withDeadline<T>(work: Promise<T>, ms: number, path: string
   }
 }
 
+// The page's own abort and plain network failures surface as generic evaluate
+// errors; they mean the same thing as our deadline and must take the same path.
+export function isTransportFailure(error: unknown): boolean {
+  if (error instanceof TransportTimeoutError) return true;
+  const message = error instanceof Error ? error.message : String(error);
+  return /TimeoutError|signal timed out|AbortError|Failed to fetch|NetworkError|net::ERR_/i.test(message);
+}
+
 const PAGE_FETCH = async (input: { url: string; headers: Record<string, string>; timeoutMs: number }) => {
   const res = await fetch(input.url, {
     headers: input.headers,
@@ -79,15 +87,20 @@ export class BrowserSession implements UzTransport {
   }
 
   async fetchPath(path: string, headers: Record<string, string>): Promise<PageFetchResult> {
-    return withDeadline(
-      this.page.evaluate(PAGE_FETCH, {
-        url: `${API_BASE}${path}`,
-        headers,
-        timeoutMs: FETCH_TIMEOUT_MS,
-      }),
-      PAGE_TIMEOUT_MS,
-      path,
-    );
+    try {
+      return await withDeadline(
+        this.page.evaluate(PAGE_FETCH, {
+          url: `${API_BASE}${path}`,
+          headers,
+          timeoutMs: FETCH_TIMEOUT_MS,
+        }),
+        PAGE_TIMEOUT_MS,
+        path,
+      );
+    } catch (error) {
+      if (isTransportFailure(error)) throw new TransportTimeoutError(path);
+      throw error;
+    }
   }
 
   async reload(): Promise<void> {
