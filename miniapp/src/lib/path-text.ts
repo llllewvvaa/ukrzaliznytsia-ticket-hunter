@@ -13,7 +13,7 @@ export function pathText(option: WatchOption, origin: string, destination: strin
     case 'neighbor_date':
       return 'прямий квиток';
     case 'transfers':
-      return 'з пересадкою';
+      return option.classId.startsWith('MIX') ? 'з пересадкою' : 'прямий квиток';
     case 'ride_further':
       return `квиток до ${option.toName}, вихід у ${destination || 'пункті призначення'}`;
     case 'board_earlier':

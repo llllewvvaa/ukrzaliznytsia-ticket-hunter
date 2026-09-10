@@ -4,6 +4,7 @@ import { GateTrippedError } from '../net/client.js';
 import { parseSearch, parseStations } from '../uz/parse.js';
 import { searchTripsPath, stationsPath } from '../uz/paths.js';
 import { planCandidates, type Candidate } from '../brain/candidates.js';
+import { refineKind } from '../brain/refine.js';
 import { offersFromSearch, rankOffers, type Offer, type OfferFilter, type SortMode } from '../brain/rank.js';
 
 export interface FindWaysRequest {
@@ -50,7 +51,10 @@ export async function findWays(
       });
       requests += 1;
       if (res.kind !== 'ok') continue;
-      offers.push(...offersFromSearch(parseSearch(res.json()), candidate));
+      for (const offer of offersFromSearch(parseSearch(res.json()), candidate)) {
+        const refined = refineKind(deps.db, offer, request.fromId, request.toId);
+        offers.push({ ...offer, kind: refined.kind, why: refined.why || offer.why });
+      }
     } catch (error) {
       if (error instanceof GateTrippedError) {
         gated = true;

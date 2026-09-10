@@ -2,6 +2,7 @@ import type { Db } from './db.js';
 import { planCandidates } from '../brain/candidates.js';
 import { watchDates, type Watch } from './watches.js';
 import { getMeta, setMeta } from './meta.js';
+import { refineKind } from '../brain/refine.js';
 
 export const OPTIONS_FRESH_MS = 6 * 3_600_000;
 
@@ -101,8 +102,11 @@ export function watchOptions(db: Db, watch: Watch, now: number): WatchOptions {
     if (!transfer && watch.classes.length > 0 && !watch.classes.includes(row.classId)) continue;
     if (watch.maxPriceKop != null && row.priceKop > watch.maxPriceKop) continue;
     const announcedAt = announced.get(`${row.date}:${row.trainNumber}`);
+    const refined = refineKind(db, row, watch.fromId, watch.toId);
     options.push({
       ...row,
+      kind: refined.kind,
+      why: refined.why || row.why,
       fromName: nameOf(row.fromId),
       toName: nameOf(row.toId),
       isNew: announcedAt != null && (viewedBefore == null || announcedAt > viewedBefore),
