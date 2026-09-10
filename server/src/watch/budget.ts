@@ -21,7 +21,7 @@ export function refill(state: BudgetState, now: number): BudgetState {
 
 export function take(state: BudgetState, now: number, count = 1): { state: BudgetState; granted: number } {
   const filled = refill(state, now);
-  const granted = Math.min(count, Math.floor(filled.tokens));
+  const granted = Math.max(0, Math.min(count, Math.floor(filled.tokens)));
   return { state: { ...filled, tokens: filled.tokens - granted }, granted };
 }
 

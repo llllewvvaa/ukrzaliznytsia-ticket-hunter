@@ -70,6 +70,63 @@ describe('rate limiter', () => {
     expect(waits.length).toBeGreaterThan(0);
   });
 
+  it('lets an interactive call borrow while the background waits', async () => {
+    let clock = 0;
+    const waits: number[] = [];
+    const limiter = createRateLimiter({
+      perHour: 60,
+      burst: 1,
+      overdraft: 2,
+      now: () => clock,
+      sleep: async (ms) => {
+        waits.push(ms);
+        clock += ms;
+      },
+    });
+    await limiter.acquire('background');
+    await limiter.acquire('interactive');
+    await limiter.acquire('interactive');
+    expect(waits).toEqual([]);
+    expect(limiter.tokens()).toBeLessThan(0);
+  });
+
+  it('makes the background wait until the overdraft is repaid', async () => {
+    let clock = 0;
+    const waits: number[] = [];
+    const limiter = createRateLimiter({
+      perHour: 3_600,
+      burst: 1,
+      overdraft: 1,
+      now: () => clock,
+      sleep: async (ms) => {
+        waits.push(ms);
+        clock += ms;
+      },
+    });
+    await limiter.acquire('background');
+    await limiter.acquire('interactive');
+    await limiter.acquire('background');
+    expect(waits.length).toBeGreaterThan(0);
+  });
+
+  it('stops borrowing once the overdraft is used up', async () => {
+    let clock = 0;
+    const waits: number[] = [];
+    const limiter = createRateLimiter({
+      perHour: 3_600,
+      burst: 0,
+      overdraft: 1,
+      now: () => clock,
+      sleep: async (ms) => {
+        waits.push(ms);
+        clock += ms;
+      },
+    });
+    await limiter.acquire('interactive');
+    await limiter.acquire('interactive');
+    expect(waits.length).toBeGreaterThan(0);
+  });
+
   it('never charges a cache hit', async () => {
     let clock = 0;
     const waits: number[] = [];

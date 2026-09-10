@@ -44,7 +44,10 @@ export async function findWays(
   for (const candidate of ordered) {
     if (requests >= budget) break;
     try {
-      const res = await deps.client.get(pathFor(candidate), { ttlMs: request.ttlMs ?? 60_000 });
+      const res = await deps.client.get(pathFor(candidate), {
+        ttlMs: request.ttlMs ?? 60_000,
+        priority: 'interactive',
+      });
       requests += 1;
       if (res.kind !== 'ok') continue;
       offers.push(...offersFromSearch(parseSearch(res.json()), candidate));
@@ -87,7 +90,10 @@ function dedupe(offers: Offer[]): Offer[] {
 }
 
 export async function lookupStations(client: UzClient, query: string) {
-  const res = await client.get(stationsPath(query), { ttlMs: 24 * 60 * 60 * 1_000 });
+  const res = await client.get(stationsPath(query), {
+    ttlMs: 24 * 60 * 60 * 1_000,
+    priority: 'interactive',
+  });
   if (res.kind !== 'ok') return [];
   return parseStations(res.json());
 }

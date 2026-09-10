@@ -3,6 +3,15 @@ export interface Station {
   name: string;
 }
 
+export type CandidateKind =
+  | 'direct'
+  | 'transfers'
+  | 'ride_further'
+  | 'board_earlier'
+  | 'neighbor_from'
+  | 'neighbor_to'
+  | 'neighbor_date';
+
 export interface Offer {
   tripId: number;
   trainNumber: string;
@@ -17,7 +26,7 @@ export interface Offer {
   arriveAt: number;
   durationMin: number;
   legs: number;
-  kind: string;
+  kind: CandidateKind;
   why: string;
   distanceKm: number | null;
 }
@@ -28,6 +37,13 @@ export interface KnownRoute {
   route: Record<string, unknown>;
 }
 
+export interface SeatPrefs {
+  berth?: 'lower' | 'upper';
+  minSeats?: number;
+  adjacent?: boolean;
+  airConditioned?: boolean;
+}
+
 export interface Watch {
   id: string;
   name: string;
@@ -36,23 +52,33 @@ export interface Watch {
   dateFrom: string;
   dateTo: string;
   classes: string[];
+  seatPrefs: SeatPrefs;
   maxPriceKop: number | null;
   favorite: boolean;
   state: 'active' | 'paused' | 'done';
+  createdAt: number;
+  updatedAt: number;
   dates: string[];
   routes: KnownRoute[];
 }
 
 export interface WatchEvent {
   id: number;
-  kind: string;
+  kind: 'appeared' | 'price_drop' | 'more_seats' | 'gone' | string;
   payload: Record<string, unknown>;
   createdAt: number;
   notifiedAt: number | null;
 }
 
 export interface Stats {
-  report: { total: number; network: number; cached: number; perHour: number; bytes: number };
+  report: {
+    total: number;
+    network: number;
+    cached: number;
+    perHour: number;
+    bytes: number;
+    byStatus: Record<string, number>;
+  };
   probes: number;
   favorites: number;
   bruteForce: number;
@@ -71,3 +97,11 @@ export interface Forecast {
   medianPriceKop: number | null;
   note: string;
 }
+
+export const CLASS_OPTIONS: { id: string; title: string }[] = [
+  { id: 'Л', title: 'Люкс' },
+  { id: 'К', title: 'Купе' },
+  { id: 'П', title: 'Плацкарт' },
+  { id: 'С1', title: 'Сидячий 1' },
+  { id: 'С2', title: 'Сидячий 2' },
+];

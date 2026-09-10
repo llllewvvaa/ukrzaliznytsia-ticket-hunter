@@ -3,7 +3,7 @@ import { buildGuestHeaders } from '../uz/headers.js';
 import type { UzTransport } from './browser.js';
 import type { RequestLog } from './log.js';
 import type { ResponseCache } from './cache.js';
-import type { RateLimiter } from './limiter.js';
+import type { RateLimiter, RequestPriority } from './limiter.js';
 import {
   classifyStatus,
   initialGateState,
@@ -28,6 +28,7 @@ export interface ClientDeps {
 export interface FetchOptions {
   ttlMs?: number;
   maxAttempts?: number;
+  priority?: RequestPriority;
 }
 
 export interface UzResponse {
@@ -99,7 +100,7 @@ export class UzClient {
     let attempt = 0;
     for (;;) {
       attempt += 1;
-      if (this.deps.limiter) await this.deps.limiter.acquire();
+      if (this.deps.limiter) await this.deps.limiter.acquire(options.priority ?? 'background');
       const started = this.now();
       const raw = await this.deps.transport.fetchPath(path, buildGuestHeaders(this.sessionId));
       const kind = classifyStatus(raw.status);

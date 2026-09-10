@@ -1,10 +1,12 @@
-import type { Forecast, Offer, Station, Stats, Watch, WatchEvent } from './types.js';
+import type { Forecast, Offer, Station, Stats, Watch, WatchEvent } from '../types';
 
 interface TelegramWebApp {
   initData?: string;
   ready?: () => void;
   expand?: () => void;
-  colorScheme?: string;
+  setHeaderColor?: (color: string) => void;
+  setBackgroundColor?: (color: string) => void;
+  HapticFeedback?: { impactOccurred?: (style: string) => void };
 }
 
 function webApp(): TelegramWebApp | undefined {
@@ -19,9 +21,31 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(path, { ...init, headers: { ...headers, ...(init.headers ?? {}) } });
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`${response.status}: ${detail.slice(0, 200)}`);
+    throw new Error(`${response.status}: ${detail.slice(0, 160)}`);
   }
   return (await response.json()) as T;
+}
+
+export interface WaysRequest {
+  fromId: number;
+  toId: number;
+  dates: string[];
+  slack?: number;
+  sort?: 'cheapest' | 'balanced';
+  classes?: string[];
+  maxPriceKop?: number;
+}
+
+export interface WatchRequest {
+  fromId: number;
+  toId: number;
+  dateFrom: string;
+  dateTo?: string;
+  name?: string;
+  classes?: string[];
+  maxPriceKop?: number | null;
+  favorite?: boolean;
+  seatPrefs?: Record<string, unknown>;
 }
 
 export const api = {
@@ -29,35 +53,22 @@ export const api = {
     const app = webApp();
     app?.ready?.();
     app?.expand?.();
+    app?.setHeaderColor?.('#eef2ff');
+    app?.setBackgroundColor?.('#eef2ff');
+  },
+  tap(): void {
+    webApp()?.HapticFeedback?.impactOccurred?.('light');
   },
   stations(query: string): Promise<{ stations: Station[] }> {
     return call(`/api/stations?q=${encodeURIComponent(query)}`);
   },
-  ways(body: {
-    fromId: number;
-    toId: number;
-    dates: string[];
-    slack?: number;
-    sort?: 'cheapest' | 'balanced';
-    maxPriceKop?: number;
-    classes?: string[];
-  }): Promise<{ offers: Offer[]; requests: number; candidates: number; gated: boolean }> {
+  ways(body: WaysRequest): Promise<{ offers: Offer[]; requests: number; candidates: number; gated: boolean }> {
     return call('/api/ways', { method: 'POST', body: JSON.stringify(body) });
   },
   watches(): Promise<{ watches: Watch[] }> {
     return call('/api/watches');
   },
-  createWatch(body: {
-    fromId: number;
-    toId: number;
-    dateFrom: string;
-    dateTo?: string;
-    name?: string;
-    classes?: string[];
-    maxPriceKop?: number | null;
-    favorite?: boolean;
-    seatPrefs?: Record<string, unknown>;
-  }): Promise<{ watch: Watch }> {
+  createWatch(body: WatchRequest): Promise<{ watch: Watch }> {
     return call('/api/watches', { method: 'POST', body: JSON.stringify(body) });
   },
   patchWatch(id: string, body: { favorite?: boolean; state?: 'active' | 'paused' }): Promise<{ watch: Watch }> {
@@ -76,23 +87,3 @@ export const api = {
     return call(`/api/forecast?train=${encodeURIComponent(train)}&class=${encodeURIComponent(classId)}`);
   },
 };
-
-export function hryvnia(kop: number): string {
-  return `${(kop / 100).toFixed(2)} грн`;
-}
-
-export function kyivTime(unixSeconds: number): string {
-  return new Date(unixSeconds * 1000).toLocaleString('uk-UA', {
-    timeZone: 'Europe/Kyiv',
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-export function isoDate(offsetDays = 0): string {
-  const date = new Date();
-  date.setDate(date.getDate() + offsetDays);
-  return date.toISOString().slice(0, 10);
-}

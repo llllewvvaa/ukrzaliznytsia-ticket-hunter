@@ -44,6 +44,13 @@ describe('budget', () => {
     expect(take(state, 0, 10).granted).toBe(2);
   });
 
+  it('never grants from a negative balance', () => {
+    const state = { ...createBudget(300, 0, 25), tokens: -3 };
+    const result = take(state, 0, 1);
+    expect(result.granted).toBe(0);
+    expect(result.state.tokens).toBe(-3);
+  });
+
   it('reports how long until the next token', () => {
     const state = { ...createBudget(360, 0, 30), tokens: 0 };
     expect(msUntilToken(state, 0)).toBe(10_000);
