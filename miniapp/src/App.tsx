@@ -9,18 +9,21 @@ import { SkeletonCards } from './components/Skeleton';
 import { StatsPanel } from './components/StatsPanel';
 import { WatchCard } from './components/WatchCard';
 import { WaysView } from './components/WaysView';
+import { WatchDetail } from './components/WatchDetail';
+import { LockedScreen } from './components/LockedScreen';
 import { AddIcon, HistoryIcon, WatchIcon } from './components/icons';
 import { Button } from './components/ui';
 import { useEvents } from './hooks/use-events';
 import { useStats } from './hooks/use-stats';
 import { useWatches } from './hooks/use-watches';
-import { api } from './lib/api';
+import { api, hasTelegram } from './lib/api';
 import type { Offer, Station, Watch } from './types';
 
 export function App() {
   const [tab, setTab] = useState<Tab>('watches');
   const [wizard, setWizard] = useState<Partial<WizardState> | null>(null);
   const [selected, setSelected] = useState<Watch | null>(null);
+  const [opened, setOpened] = useState<Watch | null>(null);
   const [statsKey, setStatsKey] = useState(0);
   const watches = useWatches();
   const stats = useStats(statsKey);
@@ -60,12 +63,19 @@ export function App() {
 
   const openWizard = (): void => setWizard({});
 
+  const handleOpen = (watch: Watch): void => setOpened(watch);
+
+  const locked = (!hasTelegram() && !import.meta.env.DEV) || watches.locked;
+  if (locked) return <LockedScreen />;
+
   return (
     <AppShell tab={tab} onTabChange={setTab} online={stats != null}>
       {tab === 'ways' ? <WaysView onWatchOffer={handleWatchOffer} /> : null}
 
       {tab === 'watches' ? (
-        wizard ? (
+        opened ? (
+          <WatchDetail watch={opened} onBack={() => setOpened(null)} />
+        ) : wizard ? (
           <NewWatchWizard initial={wizard} onDone={handleWizardDone} onCancel={() => setWizard(null)} />
         ) : (
           <>
@@ -95,6 +105,7 @@ export function App() {
                 onTogglePause={(value) => void watches.togglePause(value)}
                 onRemove={(value) => void watches.remove(value)}
                 onHistory={handleHistory}
+                onOpen={handleOpen}
               />
             ))}
 
@@ -112,6 +123,7 @@ export function App() {
                 onTogglePause={(value) => void watches.togglePause(value)}
                 onRemove={(value) => void watches.remove(value)}
                 onHistory={handleHistory}
+                onOpen={handleOpen}
               />
             ))}
 

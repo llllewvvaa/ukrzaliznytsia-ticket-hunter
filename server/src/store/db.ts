@@ -51,8 +51,12 @@ function migrate(db: Db): void {
   }
   if (probeKeyIsStale(db)) rebuildProbeTable(db);
 
-  if (!columns(db, 'snapshot').has('depart_at')) {
+  const snapshotColumns = columns(db, 'snapshot');
+  if (!snapshotColumns.has('depart_at')) {
     db.exec('alter table snapshot add column depart_at integer not null default 0');
+  }
+  if (!snapshotColumns.has('why')) {
+    db.exec("alter table snapshot add column why text not null default ''");
   }
 }
 

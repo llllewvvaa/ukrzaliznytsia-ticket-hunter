@@ -64,3 +64,32 @@ describe('chat whitelist', () => {
     expect(isAllowed(undefined, [10])).toBe(false);
   });
 });
+
+describe('failure throttle', () => {
+  it('blocks an address after the limit inside the window', async () => {
+    const { FAILURE_LIMIT, isBlocked, recordFailure } = await import('./auth.js');
+    const windows = new Map();
+    for (let i = 0; i < FAILURE_LIMIT; i += 1) recordFailure(windows, '1.2.3.4', 1_000);
+    expect(isBlocked(windows, '1.2.3.4', 2_000)).toBe(true);
+    expect(isBlocked(windows, '5.6.7.8', 2_000)).toBe(false);
+  });
+
+  it('forgets an address once the window passes', async () => {
+    const { FAILURE_LIMIT, FAILURE_WINDOW_MS, isBlocked, recordFailure } = await import('./auth.js');
+    const windows = new Map();
+    for (let i = 0; i < FAILURE_LIMIT; i += 1) recordFailure(windows, '1.2.3.4', 1_000);
+    expect(isBlocked(windows, '1.2.3.4', 1_000 + FAILURE_WINDOW_MS + 1)).toBe(false);
+  });
+
+  it('expires init data after twelve hours by default', async () => {
+    const { verifyInitData } = await import('./auth.js');
+    const { createHmac } = await import('node:crypto');
+    const payload = { auth_date: '1800000000' };
+    const dcs = 'auth_date=1800000000';
+    const secret = createHmac('sha256', 'WebAppData').update(TOKEN).digest();
+    const hash = createHmac('sha256', secret).update(dcs).digest('hex');
+    const initData = new URLSearchParams({ ...payload, hash }).toString();
+    expect(verifyInitData(initData, TOKEN, 1_800_000_000_000 + 11 * 3_600_000).ok).toBe(true);
+    expect(verifyInitData(initData, TOKEN, 1_800_000_000_000 + 13 * 3_600_000).ok).toBe(false);
+  });
+});

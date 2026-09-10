@@ -1,10 +1,16 @@
 import type { Db } from '../store/db.js';
 import { markNotified, pendingEvents, type StoredEvent } from '../store/history.js';
 import { getWatch } from '../store/watches.js';
-import { lastChat } from '../store/meta.js';
-import { describeEvent } from '../service/format.js';
-import { digestText, eventKey, mayTellNow, selectForDigest, type DigestGate } from './digest.js';
-import { getMeta, setMeta } from '../store/meta.js';
+import { getMeta, lastChat, setMeta } from '../store/meta.js';
+import {
+  ANNOUNCE_GAP_MS,
+  alreadyAnnounced,
+  announcementText,
+  clearVanished,
+  groupByDate,
+  markAnnounced,
+  newTrainsFrom,
+} from './announce.js';
 
 export type SendFn = (chatId: number, text: string) => Promise<void>;
 
@@ -18,48 +24,9 @@ export interface FlushResult {
 
 export const STALE_EVENT_MS = 30 * 60_000;
 
-export function eventText(db: Db, event: StoredEvent): string {
-  const watch = getWatch(db, event.watchId);
-  const head = watch ? `[${watch.name}]` : '[стеження]';
-  return `${head}\n${describeEvent(event)}`;
-}
-
-export function readDigestGate(db: Db, watchId: string): DigestGate {
-  const raw = getMeta(db, `digest:${watchId}`);
-  if (!raw) return { lastSentAt: null, lastBestPriceKop: null };
-  try {
-    return JSON.parse(raw) as DigestGate;
-  } catch {
-    return { lastSentAt: null, lastBestPriceKop: null };
-  }
-}
-
-export function writeDigestGate(db: Db, watchId: string, gate: DigestGate): void {
-  setMeta(db, `digest:${watchId}`, JSON.stringify(gate));
-}
-
-export function lastToldMap(db: Db, watchId: string): Map<string, number> {
-  const rows = db
-    .prepare(
-      `select kind, payload_json as payload, notified_at as notifiedAt
-       from event where watch_id = ? and notified_at is not null order by notified_at desc limit 400`,
-    )
-    .all(watchId) as unknown as { kind: string; payload: string; notifiedAt: number }[];
-
-  const out = new Map<string, number>();
-  for (const row of rows) {
-    const event: StoredEvent = {
-      id: 0,
-      watchId,
-      kind: row.kind,
-      payload: JSON.parse(row.payload) as Record<string, unknown>,
-      createdAt: row.notifiedAt,
-      notifiedAt: row.notifiedAt,
-    };
-    const key = eventKey(event);
-    if (!out.has(key)) out.set(key, row.notifiedAt);
-  }
-  return out;
+function lastAnnouncedAt(db: Db, watchId: string): number | null {
+  const raw = getMeta(db, `announce:${watchId}`);
+  return raw ? Number(raw) : null;
 }
 
 export async function flushEvents(
@@ -67,13 +34,14 @@ export async function flushEvents(
   send: SendFn,
   defaultChatId: number | null,
   now: number = Date.now(),
-  limit = 40,
+  limit = 200,
   maxAgeMs = STALE_EVENT_MS,
 ): Promise<FlushResult> {
+  clearVanished(db, now);
+
   const events = pendingEvents(db, limit);
   const fresh: StoredEvent[] = [];
   const buried: number[] = [];
-
   for (const event of events) {
     // An availability that turned up an hour ago is no longer news; burying it
     // keeps a backlog (a bot that was offline, a chat that only just said hello)
@@ -101,21 +69,25 @@ export async function flushEvents(
       continue;
     }
 
-    const entries = selectForDigest(watchEvents, lastToldMap(db, watchId), now);
-    const best = entries[0]?.priceKop ?? null;
-    const gate = readDigestGate(db, watchId);
-
-    if (entries.length > 0 && best != null && mayTellNow(gate, best, now)) {
-      const hidden = watchEvents.length - entries.length;
-      await send(chatId, digestText(watch, entries, hidden));
-      writeDigestGate(db, watchId, { lastSentAt: now, lastBestPriceKop: best });
-      messages += 1;
+    const news = newTrainsFrom(watchEvents).filter(
+      (train) => !alreadyAnnounced(db, watchId, train.date, train.trainNumber),
+    );
+    if (news.length === 0) {
       delivered.push(...watchEvents.map((event) => event.id));
-    } else if (entries.length === 0) {
-      delivered.push(...watchEvents.map((event) => event.id));
-    } else {
-      held += watchEvents.length;
+      continue;
     }
+
+    const last = lastAnnouncedAt(db, watchId);
+    if (last != null && now - last < ANNOUNCE_GAP_MS) {
+      held += watchEvents.length;
+      continue;
+    }
+
+    await send(chatId, announcementText(watch, groupByDate(news)));
+    markAnnounced(db, watchId, news, now);
+    setMeta(db, `announce:${watchId}`, String(now));
+    messages += 1;
+    delivered.push(...watchEvents.map((event) => event.id));
   }
 
   const closed = [...delivered, ...buried];

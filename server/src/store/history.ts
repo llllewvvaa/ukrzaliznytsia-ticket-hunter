@@ -24,12 +24,12 @@ export interface StoredEvent {
 export function recordSnapshots(
   db: Db,
   takenAt: number,
-  key: { fromId: number; toId: number; date: string; source: string },
+  key: { fromId: number; toId: number; date: string; source: string; why?: string },
   samples: AvailabilitySample[],
 ): void {
   const insert = db.prepare(
-    `insert into snapshot (taken_at, from_id, to_id, date, trip_id, train_number, class_id, free_seats, price_kop, source, depart_at)
-     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `insert into snapshot (taken_at, from_id, to_id, date, trip_id, train_number, class_id, free_seats, price_kop, source, depart_at, why)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   for (const sample of samples) {
     insert.run(
@@ -44,6 +44,7 @@ export function recordSnapshots(
       sample.priceKop,
       key.source,
       sample.departAt,
+      key.why ?? '',
     );
   }
 }

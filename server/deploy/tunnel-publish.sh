@@ -23,15 +23,23 @@ fi
 
 echo "tunnel url: $url"
 
+# The app is served only under a secret path; the bare tunnel root answers 404,
+# so the address alone is not enough to reach even the empty shell.
+secret=$(grep '^UZ_APP_SECRET=' "$ENV_FILE" | cut -d= -f2- || true)
+app_url="$url/"
+if [ -n "$secret" ]; then
+  app_url="$url/$secret/"
+fi
+
 tmp=$(mktemp)
 grep -v '^UZ_MINIAPP_URL=' "$ENV_FILE" > "$tmp" || true
-echo "UZ_MINIAPP_URL=$url" >> "$tmp"
+echo "UZ_MINIAPP_URL=$app_url" >> "$tmp"
 install -m 600 "$tmp" "$ENV_FILE"
 rm -f "$tmp"
 
 token=$(grep '^UZ_BOT_TOKEN=' "$ENV_FILE" | cut -d= -f2-)
 if [ -n "$token" ]; then
-  payload=$(printf '{"menu_button":{"type":"web_app","text":"Сторож квитків","web_app":{"url":"%s"}}}' "$url")
+  payload=$(printf '{"menu_button":{"type":"web_app","text":"Сторож квитків","web_app":{"url":"%s"}}}' "$app_url")
   curl -s -m 15 -X POST "https://api.telegram.org/bot$token/setChatMenuButton" \
     -H 'content-type: application/json' -d "$payload" | head -c 200
   echo

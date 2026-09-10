@@ -1,4 +1,4 @@
-import type { Forecast, Offer, Station, Stats, Watch, WatchEvent } from '../types';
+import type { Forecast, Offer, Station, Stats, Watch, WatchEvent, WatchOptions } from '../types';
 
 interface TelegramWebApp {
   initData?: string;
@@ -13,12 +13,24 @@ function webApp(): TelegramWebApp | undefined {
   return (window as unknown as { Telegram?: { WebApp?: TelegramWebApp } }).Telegram?.WebApp;
 }
 
+export class LockedError extends Error {
+  constructor() {
+    super('locked');
+    this.name = 'LockedError';
+  }
+}
+
+export function hasTelegram(): boolean {
+  return Boolean(webApp()?.initData);
+}
+
 async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   const initData = webApp()?.initData;
   if (initData) headers['x-telegram-init-data'] = initData;
 
   const response = await fetch(path, { ...init, headers: { ...headers, ...(init.headers ?? {}) } });
+  if (response.status === 401 || response.status === 429) throw new LockedError();
   if (!response.ok) {
     const detail = await response.text();
     throw new Error(`${response.status}: ${detail.slice(0, 160)}`);
@@ -76,6 +88,9 @@ export const api = {
   },
   deleteWatch(id: string): Promise<{ deleted: string }> {
     return call(`/api/watches/${id}`, { method: 'DELETE' });
+  },
+  options(id: string, markViewed: boolean): Promise<WatchOptions> {
+    return call(`/api/watches/${id}/options${markViewed ? '?markViewed=1' : ''}`);
   },
   events(id: string): Promise<{ events: WatchEvent[] }> {
     return call(`/api/watches/${id}/events`);

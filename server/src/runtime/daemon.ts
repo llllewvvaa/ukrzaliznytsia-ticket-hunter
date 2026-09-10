@@ -51,13 +51,15 @@ export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise
     { db: context.db, client: context.client },
     {
       port: config.port,
+      host: config.host,
+      appSecret: config.appSecret,
       staticDir: config.staticDir,
       botToken: config.botToken,
       allowedChats: config.allowedChats,
       devNoAuth: config.devNoAuth,
     },
   );
-  console.log(`http listening on :${config.port}`);
+  console.log(`http listening on ${config.host}:${config.port}${config.appSecret ? ' (app under secret path)' : ''}`);
 
   let stopped = false;
   let lastProgressAt = Date.now();

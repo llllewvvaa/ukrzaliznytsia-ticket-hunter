@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 export const PROBE_COLUMNS = [
   'from_id',
@@ -109,7 +109,8 @@ create table if not exists snapshot (
   free_seats integer not null,
   price_kop integer not null,
   source text not null,
-  depart_at integer not null default 0
+  depart_at integer not null default 0,
+  why text not null default ''
 );
 create index if not exists snapshot_key on snapshot (trip_id, class_id, taken_at);
 create index if not exists snapshot_pair on snapshot (from_id, to_id, date, taken_at);
@@ -146,6 +147,15 @@ create table if not exists route_memory (
   last_hit_at integer not null,
   hits integer not null default 1,
   primary key (watch_id, route_key)
+);
+
+create table if not exists announced (
+  watch_id text not null,
+  date text not null,
+  train_number text not null,
+  announced_at integer not null,
+  cleared_at integer,
+  primary key (watch_id, date, train_number)
 );
 
 create table if not exists path_memory (

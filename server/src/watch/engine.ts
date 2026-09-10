@@ -197,7 +197,7 @@ export class WatchEngine {
       recordSnapshots(
         this.deps.db,
         takenAt,
-        { fromId: key.fromId, toId: key.toId, date: key.date, source: plan.candidate.kind },
+        { fromId: key.fromId, toId: key.toId, date: key.date, source: plan.candidate.kind, why: plan.candidate.why },
         samples,
       );
 

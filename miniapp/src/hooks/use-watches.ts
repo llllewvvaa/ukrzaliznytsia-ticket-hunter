@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api } from '../lib/api';
+import { api, LockedError } from '../lib/api';
 import type { Watch } from '../types';
 
 export function useWatches() {
   const [watches, setWatches] = useState<Watch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [locked, setLocked] = useState(false);
 
   const reload = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -14,7 +15,8 @@ export function useWatches() {
       setWatches(res.watches);
       setError('');
     } catch (err) {
-      setError(String(err));
+      if (err instanceof LockedError) setLocked(true);
+      else setError(String(err));
     } finally {
       setLoading(false);
     }
@@ -48,5 +50,5 @@ export function useWatches() {
     [reload],
   );
 
-  return { watches, loading, error, reload, toggleFavorite, togglePause, remove };
+  return { watches, loading, error, locked, reload, toggleFavorite, togglePause, remove };
 }

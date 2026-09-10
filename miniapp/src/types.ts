@@ -105,3 +105,42 @@ export const CLASS_OPTIONS: { id: string; title: string }[] = [
   { id: 'С1', title: 'Сидячий 1' },
   { id: 'С2', title: 'Сидячий 2' },
 ];
+
+export interface WatchOption {
+  tripId: number;
+  trainNumber: string;
+  date: string;
+  classId: string;
+  freeSeats: number;
+  priceKop: number;
+  departAt: number;
+  fromId: number;
+  toId: number;
+  fromName: string;
+  toName: string;
+  kind: CandidateKind;
+  why: string;
+  takenAt: number;
+  isNew: boolean;
+}
+
+export interface WatchOptions {
+  options: WatchOption[];
+  checkedAt: number | null;
+  viewedBefore: number | null;
+}
+
+export const CLASS_NAME: Record<string, string> = {
+  Л: 'Люкс',
+  К: 'Купе',
+  КД: 'Дитяче купе',
+  КЖ: 'Жіноче купе',
+  П: 'Плацкарт',
+  С1: '1 клас',
+  С2: '2 клас',
+};
+
+export function className(classId: string): string {
+  if (classId.startsWith('MIX')) return 'з пересадкою';
+  return CLASS_NAME[classId] ?? classId;
+}

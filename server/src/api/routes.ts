@@ -17,6 +17,7 @@ import {
 } from '../store/watches.js';
 import { knownRoutes, priceHistory } from '../store/history.js';
 import { forecast, watchedTrains, type Horizon } from '../service/forecast.js';
+import { markViewed, watchOptions } from '../store/options.js';
 import type { SortMode } from '../brain/rank.js';
 
 export interface ApiDeps {
@@ -136,6 +137,12 @@ export async function handleApi(deps: ApiDeps, request: ApiRequest): Promise<Api
         )
         .all(id) as unknown as { id: number; kind: string; payload: string; createdAt: number; notifiedAt: number | null }[];
       return ok({ events: rows.map((row) => ({ ...row, payload: JSON.parse(row.payload) })) });
+    }
+
+    if (method === 'GET' && sub === '/options') {
+      const result = watchOptions(deps.db, watch, now());
+      if (request.query.get('markViewed') === '1') markViewed(deps.db, id, now());
+      return ok(result);
     }
 
     if (method === 'GET' && sub === '/history') {

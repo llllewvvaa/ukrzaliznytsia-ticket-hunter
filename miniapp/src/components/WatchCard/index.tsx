@@ -1,5 +1,14 @@
 import { Badge, Button } from '../ui';
-import { DeleteIcon, DetourIcon, HistoryIcon, PauseIcon, PlayIcon, StarIcon, StarOutlineIcon } from '../icons';
+import {
+  DeleteIcon,
+  DetourIcon,
+  HistoryIcon,
+  PauseIcon,
+  PlayIcon,
+  StarIcon,
+  StarOutlineIcon,
+  TrainIcon,
+} from '../icons';
 import { dateRange, hryvnia, relTime } from '../../lib/format';
 import { CLASS_OPTIONS, type Watch } from '../../types';
 
@@ -26,9 +35,11 @@ export function WatchCard({
   onTogglePause,
   onRemove,
   onHistory,
+  onOpen,
 }: {
   watch: Watch;
   busy: boolean;
+  onOpen: (watch: Watch) => void;
   onToggleFavorite: (watch: Watch) => void;
   onTogglePause: (watch: Watch) => void;
   onRemove: (watch: Watch) => void;
@@ -40,12 +51,12 @@ export function WatchCard({
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <button type="button" onClick={() => onOpen(watch)} className="min-w-0 flex-1 text-left">
           <div className="truncate text-sm font-semibold text-gray-900">{watch.name}</div>
           <div className="mt-0.5 text-xs text-gray-500">
             {dateRange(watch.dateFrom, watch.dateTo)} · {classesLabel(watch)}
           </div>
-        </div>
+        </button>
         <Badge tone={paused ? 'bg-gray-100 text-gray-600' : 'bg-blue-50 text-blue-700'}>
           {paused ? 'пауза' : 'стежу'}
         </Badge>
@@ -71,6 +82,9 @@ export function WatchCard({
       ) : null}
 
       <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" variant="primary" disabled={busy} onClick={() => onOpen(watch)}>
+          <TrainIcon className="h-4 w-4" /> Потяги
+        </Button>
         <Button size="sm" disabled={busy} onClick={() => onToggleFavorite(watch)}>
           {watch.favorite ? (
             <StarIcon className="h-4 w-4 text-amber-500" />

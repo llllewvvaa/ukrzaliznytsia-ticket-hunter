@@ -1,5 +1,7 @@
 export interface RuntimeConfig {
   port: number;
+  host: string;
+  appSecret: string;
   cycleMs: number;
   watchdogMs: number;
   perHour: number;
@@ -22,6 +24,8 @@ function num(value: string | undefined, fallback: number): number {
 export function readConfig(env: NodeJS.ProcessEnv = process.env): RuntimeConfig {
   return {
     port: num(env.UZ_PORT, 8848),
+    host: env.UZ_HOST ?? '127.0.0.1',
+    appSecret: env.UZ_APP_SECRET ?? '',
     cycleMs: num(env.UZ_CYCLE_MS, 60_000),
     watchdogMs: num(env.UZ_WATCHDOG_MS, 8 * 60_000),
     perHour: num(env.UZ_PER_HOUR, 180),
