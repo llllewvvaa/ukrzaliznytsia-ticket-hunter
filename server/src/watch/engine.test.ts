@@ -212,6 +212,21 @@ describe('watch engine', () => {
     expect(h.calls.length).toBe(first);
   });
 
+  it('is not starved by probes left over from an old date window', async () => {
+    const stale = harness({ maxProbesPerCycle: 2, dateSlack: 0, maxNeighbors: 0, maxSegmentOptions: 0 });
+    for (let i = 0; i < 10; i += 1) {
+      stale.db
+        .prepare(
+          'insert into probe (from_id, to_id, date, with_transfers, next_due_at, weight, favorite) values (?, ?, ?, 0, 0, 1, 1)',
+        )
+        .run(20, 40, `2026-08-${String(10 + i).padStart(2, '0')}`);
+    }
+    createWatch(stale.db, { fromId: 20, toId: 40, dateFrom: '2026-09-20' }, 1_000);
+    const report = await stale.engine.runCycle();
+    expect(report.checked).toBeGreaterThan(0);
+    expect(stale.calls.every((path) => path.includes('2026-09-20'))).toBe(true);
+  });
+
   it('stops calling once the budget is spent', async () => {
     const tight = harness({ perHour: 1, maxProbesPerCycle: 5 });
     createWatch(tight.db, { fromId: 20, toId: 40, dateFrom: '2026-09-20' }, 1_000);

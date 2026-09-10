@@ -12,7 +12,7 @@ import {
   nextInterval,
   withJitter,
 } from './interval.js';
-import { dueProbes, getProbe, recordProbe, scoreProbe, upsertProbe } from './probe-store.js';
+import { dueProbes, getProbe, probeKey, pruneOrphanProbes, recordProbe, scoreProbe, upsertProbe } from './probe-store.js';
 import type { Candidate } from '../brain/candidates.js';
 
 const candidate = (over: Partial<Candidate> = {}): Candidate => ({
@@ -151,6 +151,22 @@ describe('probe store', () => {
     upsertProbe(db, candidate({ toId: 2, weight: 1 }), 1_000);
     upsertProbe(db, candidate({ toId: 4, weight: 0.4, kind: 'neighbor_date' }), 1_000);
     expect(dueProbes(db, 1_000, 1)[0]!.toId).toBe(2);
+  });
+
+  it('selects only probes that belong to the current plan', () => {
+    upsertProbe(db, candidate({ date: '2026-09-20' }), 1_000, true);
+    upsertProbe(db, candidate({ date: '2026-09-21' }), 1_000, false);
+    const planned = new Set([probeKey(candidate({ date: '2026-09-21' }))]);
+    const rows = dueProbes(db, 1_000, 5, planned);
+    expect(rows.map((r) => r.date)).toEqual(['2026-09-21']);
+  });
+
+  it('prunes orphans whose date has already passed', () => {
+    upsertProbe(db, candidate({ date: '2026-08-01' }), 1_000);
+    upsertProbe(db, candidate({ date: '2026-09-30' }), 1_000);
+    const removed = pruneOrphanProbes(db, new Set(), '2026-09-10');
+    expect(removed).toBe(1);
+    expect(getProbe(db, candidate({ date: '2026-09-30' }))).toBeDefined();
   });
 
   it('keeps transfer mode as a separate probe', () => {

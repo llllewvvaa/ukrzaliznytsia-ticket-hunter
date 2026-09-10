@@ -101,11 +101,36 @@ export function scoreProbe(row: ProbeRow, now: number): number {
   );
 }
 
-export function dueProbes(db: Db, now: number, limit: number): ProbeRow[] {
+export function probeKey(row: ProbeKey): string {
+  return `${row.fromId}:${row.toId}:${row.date}:${row.withTransfers ? 1 : 0}`;
+}
+
+// Probes left over from a deleted watch or a moved date window are never checked
+// again, so they stay overdue forever and their overdue bonus keeps growing. If
+// selection ignored the plan they would outrank every live probe and starve the
+// whole watcher, which is exactly how it once went quiet for hours.
+export function dueProbes(db: Db, now: number, limit: number, planned?: ReadonlySet<string>): ProbeRow[] {
   const rows = (
-    db.prepare(`${SELECT} where next_due_at <= ? order by next_due_at asc limit ?`).all(now, limit * 4) as unknown as RawProbeRow[]
-  ).map(hydrate);
+    db.prepare(`${SELECT} where next_due_at <= ? order by next_due_at asc`).all(now) as unknown as RawProbeRow[]
+  )
+    .map(hydrate)
+    .filter((row) => !planned || planned.has(probeKey(row)));
   return rows.sort((a, b) => scoreProbe(b, now) - scoreProbe(a, now)).slice(0, limit);
+}
+
+export function pruneOrphanProbes(db: Db, planned: ReadonlySet<string>, today: string): number {
+  const rows = (db.prepare(SELECT).all() as unknown as RawProbeRow[]).map(hydrate);
+  const remove = db.prepare(
+    'delete from probe where from_id = ? and to_id = ? and date = ? and with_transfers = ?',
+  );
+  let removed = 0;
+  for (const row of rows) {
+    if (planned.has(probeKey(row))) continue;
+    if (row.date >= today) continue;
+    remove.run(row.fromId, row.toId, row.date, row.withTransfers ? 1 : 0);
+    removed += 1;
+  }
+  return removed;
 }
 
 export interface ProbeOutcome {

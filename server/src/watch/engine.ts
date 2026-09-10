@@ -14,7 +14,7 @@ import {
   samplesFromOffers,
 } from '../store/history.js';
 import { listWatches, watchDates, type Watch } from '../store/watches.js';
-import { dueProbes, getProbe, recordProbe, upsertProbe, type ProbeKey } from './probe-store.js';
+import { dueProbes, getProbe, pruneOrphanProbes, recordProbe, upsertProbe, type ProbeKey } from './probe-store.js';
 import { createBudget, take, type BudgetState } from './budget.js';
 import { diffSamples, type Change } from './diff.js';
 import { matchWagons, type SeatMatch } from './seat-rules.js';
@@ -126,8 +126,10 @@ export class WatchEngine {
   async runCycle(): Promise<CycleReport> {
     const plans = this.planForWatches();
     this.refreshProbes(plans);
+    const plannedKeys = new Set(plans.keys());
 
     const now = this.now();
+    pruneOrphanProbes(this.deps.db, plannedKeys, new Date(now).toISOString().slice(0, 10));
     const { state, granted } = take(this.budget, now, this.config.maxProbesPerCycle);
     this.budget = state;
 
@@ -143,7 +145,7 @@ export class WatchEngine {
     };
     if (granted === 0) return report;
 
-    for (const probe of dueProbes(this.deps.db, now, granted)) {
+    for (const probe of dueProbes(this.deps.db, now, granted, plannedKeys)) {
       const key: ProbeKey = {
         fromId: probe.fromId,
         toId: probe.toId,
