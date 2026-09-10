@@ -78,13 +78,16 @@ export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise
         }
         if (bot) {
           const api = bot.api;
-          await flushEvents(
+          const flush = await flushEvents(
             context.db,
             async (chatId, text) => {
               await api.sendMessage(chatId, text);
             },
             config.chatId,
           );
+          if (flush.messages > 0 || flush.held > 0) {
+            console.log(`notify ${JSON.stringify(flush)}`);
+          }
         }
       } catch (error) {
         if (error instanceof GateTrippedError) {

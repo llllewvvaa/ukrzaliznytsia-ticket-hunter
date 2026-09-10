@@ -5,6 +5,19 @@ export function hryvnia(kop: number): string {
   return `${(kop / 100).toFixed(2)} грн`;
 }
 
+export function kyivClock(unixSeconds: number): string {
+  return new Date(unixSeconds * 1_000).toLocaleTimeString('uk-UA', {
+    timeZone: 'Europe/Kyiv',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export function shortDate(iso: string): string {
+  const [, month, day] = iso.split('-');
+  return month && day ? `${day}.${month}` : iso;
+}
+
 export function kyivTime(unixSeconds: number): string {
   return new Date(unixSeconds * 1_000).toLocaleString('uk-UA', {
     timeZone: 'Europe/Kyiv',

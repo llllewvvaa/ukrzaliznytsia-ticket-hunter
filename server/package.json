@@ -18,7 +18,8 @@
     "serve": "tsx src/scripts/serve.ts",
     "dev:serve": "UZ_DEV_NO_AUTH=1 tsx src/scripts/serve.ts",
     "dev:force-event": "tsx src/scripts/force-event.ts",
-    "forecast": "tsx src/scripts/forecast.ts"
+    "forecast": "tsx src/scripts/forecast.ts",
+    "dev:show-digest": "tsx src/scripts/show-digest.ts"
   },
   "dependencies": {
     "grammy": "^1.46.0",

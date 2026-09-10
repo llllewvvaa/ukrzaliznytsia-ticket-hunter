@@ -34,12 +34,49 @@ describe('notifier', () => {
     expect(sent[0]!.chatId).toBe(777);
   });
 
+  it('buries a backlog instead of flooding the chat', async () => {
+    const watch = createWatch(db, { fromId: 1, toId: 2, dateFrom: '2026-09-20', chatId: 1 }, 1_000);
+    insertEvent(db, watch.id, 'appeared', { trainNumber: 'old' }, 1_000);
+    insertEvent(db, watch.id, 'appeared', { trainNumber: 'fresh' }, 3_600_000);
+    const result = await flushEvents(db, send, null, 3_600_000 + 1_000);
+    expect(result).toMatchObject({ sent: 1, stale: 1 });
+    expect(sent).toHaveLength(1);
+    expect(sent[0]!.text).toContain('fresh');
+    expect(pendingEvents(db)).toHaveLength(0);
+  });
+
   it('skips events with nowhere to go', async () => {
     const watch = createWatch(db, { fromId: 1, toId: 2, dateFrom: '2026-09-20' }, 1_000);
     insertEvent(db, watch.id, 'appeared', {}, 2_000);
     const result = await flushEvents(db, send, null, 3_000);
-    expect(result).toEqual({ sent: 0, skipped: 1 });
+    expect(result).toMatchObject({ sent: 0, skipped: 1, stale: 0 });
     expect(pendingEvents(db)).toHaveLength(1);
+  });
+
+  it('sends one digest per watch, not one message per change', async () => {
+    const watch = createWatch(db, { fromId: 1, toId: 2, dateFrom: '2026-09-20', chatId: 7, name: 'Дом' }, 1_000);
+    for (let i = 0; i < 6; i += 1) {
+      insertEvent(
+        db,
+        watch.id,
+        'appeared',
+        { tripId: i, classId: 'К', className: 'Купе', trainNumber: `00${i}К`, priceKop: 40_000 + i, freeSeats: 2 },
+        2_000,
+      );
+    }
+    const result = await flushEvents(db, send, null, 3_000);
+    expect(result.messages).toBe(1);
+    expect(sent).toHaveLength(1);
+    expect(result.sent).toBe(6);
+  });
+
+  it('stays quiet about seats that vanished', async () => {
+    const watch = createWatch(db, { fromId: 1, toId: 2, dateFrom: '2026-09-20', chatId: 7 }, 1_000);
+    insertEvent(db, watch.id, 'gone', { tripId: 1, classId: 'К', trainNumber: '001К' }, 2_000);
+    const result = await flushEvents(db, send, null, 3_000);
+    expect(sent).toHaveLength(0);
+    expect(result.messages).toBe(0);
+    expect(pendingEvents(db)).toHaveLength(0);
   });
 
   it('never sends the same event twice', async () => {
@@ -56,7 +93,7 @@ describe('notifier', () => {
       db,
       watch.id,
       'price_drop',
-      { trainNumber: '004К', classId: 'К', className: 'Купе', freeSeats: 3, priceKop: 40_000, previousPriceKop: 60_000 },
+      { tripId: 4, trainNumber: '004К', classId: 'К', className: 'Купе', freeSeats: 3, priceKop: 40_000, previousPriceKop: 60_000 },
       2_000,
     );
     await flushEvents(db, send, null, 3_000);
