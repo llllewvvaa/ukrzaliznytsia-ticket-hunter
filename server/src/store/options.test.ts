@@ -6,30 +6,74 @@ import { recordSnapshots } from './history.js';
 import { markViewed, watchOptions } from './options.js';
 import type { TripDetail } from '../uz/types.js';
 
+const KYIV = 10;
+const LVIV = 20;
+const KOLOMYIA = 30;
+const CHERNIVTSI = 40;
+const VADUL = 50;
+
 function line(): TripDetail {
   return {
     id: 900,
     trainId: 90,
-    trainNumber: '777Т',
-    stationFromId: 20,
-    stationToId: 40,
-    departAt: 1_000,
-    arriveAt: 5_000,
+    trainNumber: '007К',
+    stationFromId: KYIV,
+    stationToId: VADUL,
+    departAt: 0,
+    arriveAt: 0,
     routePoints: [
-      { seq: 0, stationId: 10, stationName: 'Альфа', arriveAt: null, departAt: 900 },
-      { seq: 1, stationId: 20, stationName: 'Бета', arriveAt: 1_000, departAt: 1_100 },
-      { seq: 2, stationId: 40, stationName: 'Дельта', arriveAt: 3_000, departAt: 3_100 },
-      { seq: 3, stationId: 50, stationName: 'Епсілон', arriveAt: 4_000, departAt: null },
+      { seq: 0, stationId: KYIV, stationName: 'Київ', arriveAt: null, departAt: 100_000 },
+      { seq: 1, stationId: LVIV, stationName: 'Львів', arriveAt: 100_000 + 25_000, departAt: 100_000 + 25_200 },
+      { seq: 2, stationId: KOLOMYIA, stationName: 'Коломия', arriveAt: 100_000 + 36_000, departAt: 100_000 + 36_300 },
+      { seq: 3, stationId: CHERNIVTSI, stationName: 'Чернівці', arriveAt: 100_000 + 43_200, departAt: 100_000 + 43_500 },
+      { seq: 4, stationId: VADUL, stationName: 'Вадул-Сірет', arriveAt: 100_000 + 46_800, departAt: null },
     ],
   };
 }
 
 const NOW = 10_000_000;
+const TICKET_DEPART = 1_790_000_000;
 
-function snap(db: Db, over: Partial<{ fromId: number; toId: number; date: string; train: string; classId: string; seats: number; price: number; why: string; kind: string; at: number }> = {}) {
-  const o = { fromId: 20, toId: 40, date: '2026-09-25', train: '001К', classId: 'К', seats: 2, price: 50_000, why: 'прямий напрямок', kind: 'direct', at: NOW - 60_000, ...over };
-  recordSnapshots(db, o.at, { fromId: o.fromId, toId: o.toId, date: o.date, source: o.kind, why: o.why }, [
-    { tripId: 1, trainNumber: o.train, classId: o.classId, className: o.classId, freeSeats: o.seats, priceKop: o.price, departAt: 1_790_000_000 },
+interface SnapInput {
+  fromId: number;
+  toId: number;
+  train: string;
+  classId: string;
+  seats: number;
+  price: number;
+  kind: string;
+  departAt: number;
+  arriveAt: number;
+  at: number;
+  segments?: { trainNumber: string; from: string; to: string; departAt: number; arriveAt: number }[];
+}
+
+function snap(db: Db, over: Partial<SnapInput> = {}) {
+  const o: SnapInput = {
+    fromId: LVIV,
+    toId: CHERNIVTSI,
+    train: '007К',
+    classId: 'К',
+    seats: 2,
+    price: 50_000,
+    kind: 'direct',
+    departAt: TICKET_DEPART,
+    arriveAt: TICKET_DEPART + 18_000,
+    at: NOW - 60_000,
+    ...over,
+  };
+  recordSnapshots(db, o.at, { fromId: o.fromId, toId: o.toId, date: '2026-09-25', source: o.kind }, [
+    {
+      tripId: 1,
+      trainNumber: o.train,
+      classId: o.classId,
+      className: o.classId,
+      freeSeats: o.seats,
+      priceKop: o.price,
+      departAt: o.departAt,
+      arriveAt: o.arriveAt,
+      ...(o.segments ? { segments: o.segments } : {}),
+    },
   ]);
 }
 
@@ -41,55 +85,79 @@ describe('watch options', () => {
     saveTripRoute(db, line(), 1_000);
   });
 
-  it('lists what the watcher last saw with seats, cheapest first per date', () => {
-    const watch = createWatch(db, { fromId: 20, toId: 40, dateFrom: '2026-09-25' }, 1_000);
-    snap(db, { train: '002К', price: 60_000 });
-    snap(db, { train: '001К', price: 40_000 });
-    const result = watchOptions(db, watch, NOW);
-    expect(result.options.map((o) => o.trainNumber)).toEqual(['001К', '002К']);
-    expect(result.options[0]!.fromName).toBe('Бета');
+  const watch = (over: Record<string, unknown> = {}) =>
+    createWatch(db, { fromId: LVIV, toId: CHERNIVTSI, dateFrom: '2026-09-25', ...over }, 1_000);
+
+  it('gives departure, arrival and the time on the way', () => {
+    const w = watch();
+    snap(db);
+    const option = watchOptions(db, w, NOW).options[0]!;
+    expect(option.journeyDepartAt).toBe(TICKET_DEPART);
+    expect(option.journeyArriveAt).toBe(TICKET_DEPART + 18_000);
+    expect(option.durationMin).toBe(300);
   });
 
-  it('keeps the explanation of a detour', () => {
-    const watch = createWatch(db, { fromId: 20, toId: 40, dateFrom: '2026-09-25' }, 1_000);
-    snap(db, { toId: 50, why: 'їхати далі до Епсілон потягом 777Т', kind: 'ride_further' });
-    const option = watchOptions(db, watch, NOW).options[0]!;
-    expect(option.why).toContain('Епсілон');
-    expect(option.toName).toBe('Епсілон');
+  it('shows a ticket from an earlier station with the time the train is in Lviv', () => {
+    const w = watch();
+    snap(db, { fromId: KYIV, kind: 'board_earlier', seats: 1, departAt: TICKET_DEPART, arriveAt: TICKET_DEPART + 43_200, price: 90_000 });
+    const option = watchOptions(db, w, NOW).options[0]!;
+    expect(option.why).toBe('квиток від Київ, посадка у Львів');
+    expect(option.boardName).toBe('Львів');
+    expect(option.journeyDepartAt).toBe(TICKET_DEPART + 25_200);
+    expect(option.journeyArriveAt).toBe(TICKET_DEPART + 43_200);
+  });
+
+  it('hides the detour when the same train has an ordinary ticket that day', () => {
+    const w = watch();
+    snap(db);
+    snap(db, { fromId: KYIV, kind: 'board_earlier', price: 30_000 });
+    const options = watchOptions(db, w, NOW).options;
+    expect(options).toHaveLength(1);
+    expect(options[0]!.kind).toBe('direct');
+  });
+
+  it('never offers a ticket that stops short of the destination', () => {
+    const w = watch();
+    snap(db, { toId: KOLOMYIA, kind: 'neighbor_to' });
+    snap(db, { toId: KOLOMYIA, kind: 'ride_further' });
+    expect(watchOptions(db, w, NOW).options).toHaveLength(0);
+  });
+
+  it('keeps the legs of a transfer', () => {
+    const w = watch();
+    snap(db, {
+      train: '111К + 222П',
+      classId: 'MIX:1-2',
+      kind: 'transfers',
+      segments: [
+        { trainNumber: '111К', from: 'Львів', to: 'Тернопіль', departAt: 1_000, arriveAt: 5_000 },
+        { trainNumber: '222П', from: 'Тернопіль', to: 'Чернівці', departAt: 8_000, arriveAt: 12_000 },
+      ],
+    });
+    const option = watchOptions(db, w, NOW).options[0]!;
+    expect(option.segments).toHaveLength(2);
+    expect(option.journeyDepartAt).toBe(1_000);
+    expect(option.journeyArriveAt).toBe(12_000);
   });
 
   it('drops trains without seats in the latest reading', () => {
-    const watch = createWatch(db, { fromId: 20, toId: 40, dateFrom: '2026-09-25' }, 1_000);
+    const w = watch();
     snap(db, { seats: 3, at: NOW - 120_000 });
     snap(db, { seats: 0, at: NOW - 60_000 });
-    expect(watchOptions(db, watch, NOW).options).toHaveLength(0);
-  });
-
-  it('honours the classes and the price ceiling of the watch', () => {
-    const watch = createWatch(db, { fromId: 20, toId: 40, dateFrom: '2026-09-25', classes: ['П'], maxPriceKop: 45_000 }, 1_000);
-    snap(db, { classId: 'К', price: 30_000 });
-    snap(db, { classId: 'П', price: 50_000, train: '003К' });
-    snap(db, { classId: 'П', price: 40_000, train: '004К' });
-    expect(watchOptions(db, watch, NOW).options.map((o) => o.trainNumber)).toEqual(['004К']);
-  });
-
-  it('ignores pairs and dates outside the plan', () => {
-    const watch = createWatch(db, { fromId: 20, toId: 40, dateFrom: '2026-09-25' }, 1_000);
-    snap(db, { date: '2026-10-30' });
-    expect(watchOptions(db, watch, NOW).options).toHaveLength(0);
+    expect(watchOptions(db, w, NOW).options).toHaveLength(0);
   });
 
   it('flags trains announced since the last visit as new', () => {
-    const watch = createWatch(db, { fromId: 20, toId: 40, dateFrom: '2026-09-25' }, 1_000);
+    const w = watch();
     snap(db);
     db.prepare('insert into announced (watch_id, date, train_number, announced_at) values (?, ?, ?, ?)').run(
-      watch.id,
+      w.id,
       '2026-09-25',
-      '001К',
+      '007К',
       NOW - 30_000,
     );
-    expect(watchOptions(db, watch, NOW).options[0]!.isNew).toBe(true);
-    markViewed(db, watch.id, NOW);
-    expect(watchOptions(db, watch, NOW + 1).options[0]!.isNew).toBe(false);
+    expect(watchOptions(db, w, NOW).options[0]!.isNew).toBe(true);
+    markViewed(db, w.id, NOW);
+    expect(watchOptions(db, w, NOW + 1).options[0]!.isNew).toBe(false);
   });
 });

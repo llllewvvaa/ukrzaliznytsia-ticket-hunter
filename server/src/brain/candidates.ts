@@ -1,5 +1,5 @@
 import type { Db } from '../store/db.js';
-import { neighborStations, segmentOptions } from '../store/atlas.js';
+import { segmentOptions } from '../store/atlas.js';
 
 export type CandidateKind =
   | 'direct'
@@ -27,7 +27,6 @@ export interface CandidateRequest {
   dateSlack?: number;
   maxExtraStops?: number;
   maxSegmentOptions?: number;
-  maxNeighbors?: number;
   includeTransfers?: boolean;
 }
 
@@ -64,9 +63,8 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
     toId,
     dates,
     dateSlack = 0,
-    maxExtraStops = 2,
-    maxSegmentOptions = 6,
-    maxNeighbors = 3,
+    maxExtraStops = 4,
+    maxSegmentOptions = 8,
     includeTransfers = true,
   } = request;
 
@@ -121,36 +119,6 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
           segment.kind === 'ride_further'
             ? `їхати далі до ${segment.toName} потягом ${segment.trainNumber}`
             : `сісти раніше на ${segment.fromName} потягом ${segment.trainNumber}`,
-      });
-    }
-  }
-
-  const originNeighbors = neighborStations(db, fromId, 1).filter((station) => station.id !== toId);
-  for (const neighbor of originNeighbors.slice(0, maxNeighbors)) {
-    for (const date of dates) {
-      push({
-        fromId: neighbor.id,
-        toId,
-        date,
-        kind: 'neighbor_from',
-        withTransfers: false,
-        weight: KIND_WEIGHT.neighbor_from,
-        why: `виїзд із сусідньої станції ${neighbor.name}`,
-      });
-    }
-  }
-
-  const destinationNeighbors = neighborStations(db, toId, 1).filter((station) => station.id !== fromId);
-  for (const neighbor of destinationNeighbors.slice(0, maxNeighbors)) {
-    for (const date of dates) {
-      push({
-        fromId,
-        toId: neighbor.id,
-        date,
-        kind: 'neighbor_to',
-        withTransfers: false,
-        weight: KIND_WEIGHT.neighbor_to,
-        why: `прибуття на сусідню станцію ${neighbor.name}`,
       });
     }
   }

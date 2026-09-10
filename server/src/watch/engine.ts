@@ -6,6 +6,8 @@ import { parseSearch, parseWagons } from '../uz/parse.js';
 import { searchTripsPath, wagonsByClassPath } from '../uz/paths.js';
 import { planCandidates, type Candidate } from '../brain/candidates.js';
 import { isTransferClass, offersFromSearch, rankOffers, type Offer } from '../brain/rank.js';
+import { refineKind, type Refined } from '../brain/refine.js';
+import { journeyTimes } from '../brain/journey.js';
 import {
   insertEvent,
   lastSamples,
@@ -26,7 +28,6 @@ export interface EngineConfig {
   searchTtlMs: number;
   seatCheckIntervalMs: number;
   dateSlack: number;
-  maxNeighbors: number;
   maxSegmentOptions: number;
   priceDropMinKop: number;
   seatStep: boolean;
@@ -40,8 +41,7 @@ export const DEFAULT_CONFIG: EngineConfig = {
   searchTtlMs: 45_000,
   seatCheckIntervalMs: 120_000,
   dateSlack: 1,
-  maxNeighbors: 3,
-  maxSegmentOptions: 6,
+  maxSegmentOptions: 8,
   priceDropMinKop: 1_000,
   seatStep: true,
   maxSeatChecksPerCycle: 3,
@@ -102,7 +102,6 @@ export class WatchEngine {
         toId: watch.toId,
         dates: watchDates(watch),
         dateSlack: this.config.dateSlack,
-        maxNeighbors: this.config.maxNeighbors,
         maxSegmentOptions: this.config.maxSegmentOptions,
       });
       for (const candidate of candidates) {
@@ -191,7 +190,16 @@ export class WatchEngine {
       const outcome = recordProbe(this.deps.db, key, hash, takenAt, this.random);
       if (outcome.changed) report.changed += 1;
 
-      const offers = offersFromSearch(parseSearch(JSON.parse(body)), plan.candidate);
+      const origin = plan.watches[0]!.fromId;
+      const destination = plan.watches[0]!.toId;
+      const refinedByKey = new Map<string, Refined>();
+      const offers: Offer[] = [];
+      for (const raw of offersFromSearch(parseSearch(JSON.parse(body)), plan.candidate)) {
+        const refined = refineKind(this.deps.db, raw, origin, destination);
+        if (!refined) continue;
+        refinedByKey.set(`${raw.tripId}:${raw.classId}`, refined);
+        offers.push({ ...raw, kind: refined.kind, why: refined.why || raw.why });
+      }
       const samples = samplesFromOffers(offers);
       const previous = lastSamples(this.deps.db, key, takenAt);
       recordSnapshots(
@@ -215,6 +223,13 @@ export class WatchEngine {
           this.config.maxEventsPerWatchPerCycle,
         );
         for (const change of relevant) {
+          const refined = refinedByKey.get(`${change.tripId}:${change.classId}`);
+          const journey = journeyTimes(
+            this.deps.db,
+            { trainNumber: change.trainNumber, fromId: key.fromId, departAt: change.departAt, arriveAt: change.arriveAt },
+            refined?.boardId ?? key.fromId,
+            refined?.alightId ?? key.toId,
+          );
           const canCheckSeats =
             this.config.seatStep && report.seatChecks < this.config.maxSeatChecksPerCycle;
           const seats = canCheckSeats ? await this.seatDetails(watch, change, takenAt, report) : [];
@@ -224,8 +239,11 @@ export class WatchEngine {
             change.kind,
             {
               ...change,
-              why: plan.candidate.why,
-              candidateKind: plan.candidate.kind,
+              why: refined?.why || plan.candidate.why,
+              candidateKind: refined?.kind ?? plan.candidate.kind,
+              journeyDepartAt: journey.departAt,
+              journeyArriveAt: journey.arriveAt,
+              durationMin: journey.durationMin,
               fromId: key.fromId,
               toId: key.toId,
               date: key.date,

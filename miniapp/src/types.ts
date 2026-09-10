@@ -29,6 +29,15 @@ export interface Offer {
   kind: CandidateKind;
   why: string;
   distanceKm: number | null;
+  segments?: Segment[];
+}
+
+export interface Segment {
+  trainNumber: string;
+  from: string;
+  to: string;
+  departAt: number;
+  arriveAt: number;
 }
 
 export interface KnownRoute {
@@ -114,12 +123,19 @@ export interface WatchOption {
   freeSeats: number;
   priceKop: number;
   departAt: number;
+  arriveAt: number;
+  journeyDepartAt: number;
+  journeyArriveAt: number;
+  durationMin: number;
   fromId: number;
   toId: number;
   fromName: string;
   toName: string;
+  boardName: string;
+  alightName: string;
   kind: CandidateKind;
   why: string;
+  segments: Segment[] | null;
   takenAt: number;
   isNew: boolean;
 }

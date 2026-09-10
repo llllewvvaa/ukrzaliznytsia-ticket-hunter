@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 export const PROBE_COLUMNS = [
   'from_id',
@@ -110,7 +110,9 @@ create table if not exists snapshot (
   price_kop integer not null,
   source text not null,
   depart_at integer not null default 0,
-  why text not null default ''
+  why text not null default '',
+  arrive_at integer not null default 0,
+  legs_json text not null default ''
 );
 create index if not exists snapshot_key on snapshot (trip_id, class_id, taken_at);
 create index if not exists snapshot_pair on snapshot (from_id, to_id, date, taken_at);

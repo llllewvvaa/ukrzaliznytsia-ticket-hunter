@@ -4,7 +4,8 @@ import { OfferCard } from '../OfferCard';
 import { EmptyState } from '../EmptyState';
 import { SkeletonCards } from '../Skeleton';
 import { useWatchOptions } from '../../hooks/use-watch-options';
-import { clockTime, dateRange, hryvnia, relTime, shortDate } from '../../lib/format';
+import { clockTime, dateRange, duration, hryvnia, nextDayMark, relTime, shortDate } from '../../lib/format';
+import { Segments } from '../Segments';
 import { routeEnds, pathText, sectionsFor, type TrainGroup } from '../../lib/path-text';
 import { className, type Watch } from '../../types';
 
@@ -16,6 +17,8 @@ function TrainCard({ group, origin, destination }: { group: TrainGroup; origin: 
   const { best } = group;
   const alternatives = group.options.slice(1, 5);
   const hidden = group.options.length - 1 - alternatives.length;
+  const transfer = best.segments != null && best.segments.length > 1;
+  const nextDay = nextDayMark(best.journeyDepartAt, best.journeyArriveAt);
 
   return (
     <div
@@ -25,17 +28,37 @@ function TrainCard({ group, origin, destination }: { group: TrainGroup; origin: 
         <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
           <TrainIcon className="h-4 w-4 text-gray-400" />
           {group.trainNumber}
-          {best.departAt ? <span className="text-xs font-normal text-gray-500">· {clockTime(best.departAt)}</span> : null}
         </div>
         <div className="flex items-center gap-1.5">
           {group.isNew ? <Badge tone="bg-emerald-50 text-emerald-700">нове</Badge> : null}
+          {transfer ? <Badge tone="bg-violet-50 text-violet-700">з пересадкою</Badge> : null}
           <span className="text-sm font-semibold text-gray-900">від {hryvnia(best.priceKop)}</span>
         </div>
       </div>
 
-      <div className="mt-1.5 text-xs text-gray-700">
-        {className(best.classId)} · вільних {best.freeSeats} · {pathText(best, origin, destination)}
+      {best.journeyDepartAt ? (
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="text-lg font-bold tracking-tight text-gray-900">{clockTime(best.journeyDepartAt)}</span>
+          <span className="text-gray-300">→</span>
+          <span className="text-lg font-bold tracking-tight text-gray-900">{clockTime(best.journeyArriveAt)}</span>
+          {nextDay ? <span className="text-xs font-semibold text-gray-500">{nextDay}</span> : null}
+          {best.durationMin > 0 ? (
+            <span className="ml-auto text-xs font-medium text-gray-600">{duration(best.durationMin)} у дорозі</span>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="mt-1 text-xs text-gray-600">
+        {best.boardName} → {best.alightName} · {className(best.classId)} · вільних {best.freeSeats}
       </div>
+
+      {transfer ? <Segments segments={best.segments!} /> : null}
+
+      {best.kind === 'board_earlier' || best.kind === 'ride_further' ? (
+        <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-50/70 px-2.5 py-1.5 text-[11px] leading-snug text-amber-800">
+          <DetourIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" /> {pathText(best, origin, destination)}
+        </div>
+      ) : null}
 
       {alternatives.length > 0 ? (
         <div className="mt-2 space-y-1 border-t border-gray-100 pt-2">
@@ -44,11 +67,9 @@ function TrainCard({ group, origin, destination }: { group: TrainGroup; origin: 
               key={`${option.classId}-${option.fromId}-${option.toId}`}
               className="flex items-start justify-between gap-3 text-[11px] leading-snug text-gray-500"
             >
-              <span className="flex items-start gap-1">
-                {option.kind !== 'direct' && option.kind !== 'neighbor_date' ? (
-                  <DetourIcon className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" />
-                ) : null}
-                {className(option.classId)} ×{option.freeSeats} · {pathText(option, origin, destination)}
+              <span>
+                {className(option.classId)} ×{option.freeSeats}
+                {option.kind === 'board_earlier' || option.kind === 'ride_further' ? ` · ${pathText(option, origin, destination)}` : ''}
               </span>
               <span className="shrink-0 text-gray-700">{hryvnia(option.priceKop)}</span>
             </div>

@@ -5,6 +5,7 @@ import { parseSearch, parseStations } from '../uz/parse.js';
 import { searchTripsPath, stationsPath } from '../uz/paths.js';
 import { planCandidates, type Candidate } from '../brain/candidates.js';
 import { refineKind } from '../brain/refine.js';
+import { journeyTimes } from '../brain/journey.js';
 import { offersFromSearch, rankOffers, type Offer, type OfferFilter, type SortMode } from '../brain/rank.js';
 
 export interface FindWaysRequest {
@@ -53,7 +54,18 @@ export async function findWays(
       if (res.kind !== 'ok') continue;
       for (const offer of offersFromSearch(parseSearch(res.json()), candidate)) {
         const refined = refineKind(deps.db, offer, request.fromId, request.toId);
-        offers.push({ ...offer, kind: refined.kind, why: refined.why || offer.why });
+        if (!refined) continue;
+        const journey = offer.segments
+          ? { departAt: offer.departAt, arriveAt: offer.arriveAt, durationMin: offer.durationMin }
+          : journeyTimes(deps.db, offer, refined.boardId, refined.alightId);
+        offers.push({
+          ...offer,
+          kind: refined.kind,
+          why: refined.why || offer.why,
+          departAt: journey.departAt,
+          arriveAt: journey.arriveAt,
+          durationMin: journey.durationMin,
+        });
       }
     } catch (error) {
       if (error instanceof GateTrippedError) {

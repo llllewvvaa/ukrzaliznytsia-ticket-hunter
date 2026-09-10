@@ -1,8 +1,10 @@
 import type { Db } from './db.js';
 import { planCandidates } from '../brain/candidates.js';
+import { refineKind } from '../brain/refine.js';
+import { journeyTimes } from '../brain/journey.js';
+import type { Leg } from '../brain/rank.js';
 import { watchDates, type Watch } from './watches.js';
 import { getMeta, setMeta } from './meta.js';
-import { refineKind } from '../brain/refine.js';
 
 export const OPTIONS_FRESH_MS = 6 * 3_600_000;
 
@@ -14,12 +16,19 @@ export interface WatchOption {
   freeSeats: number;
   priceKop: number;
   departAt: number;
+  arriveAt: number;
+  journeyDepartAt: number;
+  journeyArriveAt: number;
+  durationMin: number;
   fromId: number;
   toId: number;
   fromName: string;
   toName: string;
+  boardName: string;
+  alightName: string;
   kind: string;
   why: string;
+  segments: Leg[] | null;
   takenAt: number;
   isNew: boolean;
 }
@@ -38,15 +47,29 @@ interface SnapshotRow {
   freeSeats: number;
   priceKop: number;
   departAt: number;
+  arriveAt: number;
   fromId: number;
   toId: number;
   kind: string;
   why: string;
+  legsJson: string;
   takenAt: number;
+}
+
+function parseSegments(raw: string): Leg[] | null {
+  if (!raw) return null;
+  try {
+    const value = JSON.parse(raw) as Leg[];
+    return Array.isArray(value) && value.length > 0 ? value : null;
+  } catch {
+    return null;
+  }
 }
 
 // Everything here comes from what the watcher already recorded, so opening a
 // watch costs no request to UZ; the numbers are as fresh as the last check.
+// A detour is shown only for a train that has no ordinary ticket that day —
+// otherwise the plain ticket is the answer and the detour is noise.
 export function watchOptions(db: Db, watch: Watch, now: number): WatchOptions {
   const plan = planCandidates(db, {
     fromId: watch.fromId,
@@ -59,8 +82,9 @@ export function watchOptions(db: Db, watch: Watch, now: number): WatchOptions {
   const rows = db
     .prepare(
       `select s.trip_id as tripId, s.train_number as trainNumber, s.date, s.class_id as classId,
-              s.free_seats as freeSeats, s.price_kop as priceKop, s.depart_at as departAt,
-              s.from_id as fromId, s.to_id as toId, s.source as kind, s.why, s.taken_at as takenAt
+              s.free_seats as freeSeats, s.price_kop as priceKop, s.depart_at as departAt, s.arrive_at as arriveAt,
+              s.from_id as fromId, s.to_id as toId, s.source as kind, s.why, s.legs_json as legsJson,
+              s.taken_at as takenAt
        from snapshot s
        join (
          select trip_id, class_id, from_id, to_id, date, max(taken_at) as latest
@@ -95,23 +119,58 @@ export function watchOptions(db: Db, watch: Watch, now: number): WatchOptions {
   const viewedRaw = getMeta(db, `viewed:${watch.id}`);
   const viewedBefore = viewedRaw ? Number(viewedRaw) : null;
 
-  const options: WatchOption[] = [];
+  const collected: WatchOption[] = [];
   for (const row of rows) {
     if (!planned.has(`${row.fromId}:${row.toId}:${row.date}`)) continue;
     const transfer = row.classId.startsWith('MIX');
     if (!transfer && watch.classes.length > 0 && !watch.classes.includes(row.classId)) continue;
     if (watch.maxPriceKop != null && row.priceKop > watch.maxPriceKop) continue;
-    const announcedAt = announced.get(`${row.date}:${row.trainNumber}`);
+
     const refined = refineKind(db, row, watch.fromId, watch.toId);
-    options.push({
-      ...row,
+    if (!refined) continue;
+
+    const segments = parseSegments(row.legsJson);
+    const journey = segments
+      ? {
+          departAt: segments[0]!.departAt,
+          arriveAt: segments[segments.length - 1]!.arriveAt,
+          durationMin: Math.round((segments[segments.length - 1]!.arriveAt - segments[0]!.departAt) / 60),
+        }
+      : journeyTimes(
+          db,
+          { trainNumber: row.trainNumber, fromId: row.fromId, departAt: row.departAt, arriveAt: row.arriveAt },
+          refined.boardId,
+          refined.alightId,
+        );
+
+    const announcedAt = announced.get(`${row.date}:${row.trainNumber}`);
+    const { legsJson: _legs, ...rest } = row;
+    collected.push({
+      ...rest,
       kind: refined.kind,
-      why: refined.why || row.why,
+      why: refined.why,
+      journeyDepartAt: journey.departAt,
+      journeyArriveAt: journey.arriveAt,
+      durationMin: journey.durationMin,
       fromName: nameOf(row.fromId),
       toName: nameOf(row.toId),
+      boardName: nameOf(refined.boardId),
+      alightName: nameOf(refined.alightId),
+      segments,
       isNew: announcedAt != null && (viewedBefore == null || announcedAt > viewedBefore),
     });
   }
+
+  const hasPlainTicket = new Set(
+    collected.filter((option) => option.kind === 'direct' || option.kind === 'neighbor_date').map((option) => `${option.date}:${option.trainNumber}`),
+  );
+  const options = collected.filter(
+    (option) =>
+      option.kind === 'direct' ||
+      option.kind === 'neighbor_date' ||
+      option.kind === 'transfers' ||
+      !hasPlainTicket.has(`${option.date}:${option.trainNumber}`),
+  );
   options.sort((a, b) => a.date.localeCompare(b.date) || a.priceKop - b.priceKop);
 
   const probeRows = db

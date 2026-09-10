@@ -58,6 +58,12 @@ function migrate(db: Db): void {
   if (!snapshotColumns.has('why')) {
     db.exec("alter table snapshot add column why text not null default ''");
   }
+  if (!snapshotColumns.has('arrive_at')) {
+    db.exec('alter table snapshot add column arrive_at integer not null default 0');
+  }
+  if (!snapshotColumns.has('legs_json')) {
+    db.exec("alter table snapshot add column legs_json text not null default ''");
+  }
 }
 
 export function schemaVersion(db: Db): number {

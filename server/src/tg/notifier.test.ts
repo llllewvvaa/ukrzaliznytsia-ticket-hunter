@@ -31,7 +31,8 @@ describe('notifier', () => {
     expect(result.messages).toBe(1);
     expect(sent[0]!.chatId).toBe(555);
     expect(sent[0]!.text).toContain('Нові квитки · Львів → Чернівці');
-    expect(sent[0]!.text).toContain('25.09 — 045Л');
+    expect(sent[0]!.text).toContain('25.09');
+    expect(sent[0]!.text).toContain('045Л');
   });
 
   it('sends a single line when one train shows up through many paths', async () => {

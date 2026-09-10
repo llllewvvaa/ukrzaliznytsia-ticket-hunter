@@ -1,5 +1,5 @@
 import type { Db } from './db.js';
-import type { Offer } from '../brain/rank.js';
+import type { Leg, Offer } from '../brain/rank.js';
 import type { Wagon } from '../uz/types.js';
 
 export interface AvailabilitySample {
@@ -10,6 +10,8 @@ export interface AvailabilitySample {
   freeSeats: number;
   priceKop: number;
   departAt: number;
+  arriveAt?: number;
+  segments?: Leg[];
 }
 
 export interface StoredEvent {
@@ -28,8 +30,8 @@ export function recordSnapshots(
   samples: AvailabilitySample[],
 ): void {
   const insert = db.prepare(
-    `insert into snapshot (taken_at, from_id, to_id, date, trip_id, train_number, class_id, free_seats, price_kop, source, depart_at, why)
-     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `insert into snapshot (taken_at, from_id, to_id, date, trip_id, train_number, class_id, free_seats, price_kop, source, depart_at, why, arrive_at, legs_json)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   for (const sample of samples) {
     insert.run(
@@ -45,6 +47,8 @@ export function recordSnapshots(
       key.source,
       sample.departAt,
       key.why ?? '',
+      sample.arriveAt ?? 0,
+      sample.segments && sample.segments.length > 0 ? JSON.stringify(sample.segments) : '',
     );
   }
 }
@@ -89,6 +93,8 @@ export function samplesFromOffers(offers: Offer[]): AvailabilitySample[] {
     freeSeats: offer.freeSeats,
     priceKop: offer.priceKop,
     departAt: offer.departAt,
+    arriveAt: offer.arriveAt,
+    ...(offer.segments ? { segments: offer.segments } : {}),
   }));
 }
 

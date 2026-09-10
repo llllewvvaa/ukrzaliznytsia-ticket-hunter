@@ -101,7 +101,7 @@ function harness(config: Partial<EngineConfig> = {}): Harness {
     client,
     now: () => clock,
     random: () => 0.5,
-    config: { dateSlack: 0, maxNeighbors: 0, maxSegmentOptions: 0, ...config },
+    config: { dateSlack: 0, maxSegmentOptions: 0, ...config },
   });
 
   return {
@@ -214,7 +214,7 @@ describe('watch engine', () => {
   });
 
   it('is not starved by probes left over from an old date window', async () => {
-    const stale = harness({ maxProbesPerCycle: 2, dateSlack: 0, maxNeighbors: 0, maxSegmentOptions: 0 });
+    const stale = harness({ maxProbesPerCycle: 2, dateSlack: 0, maxSegmentOptions: 0 });
     for (let i = 0; i < 10; i += 1) {
       stale.db
         .prepare(
@@ -252,7 +252,7 @@ describe('watch engine', () => {
       client,
       now: () => 1_000_000,
       random: () => 0.5,
-      config: { dateSlack: 0, maxNeighbors: 0, maxSegmentOptions: 0, maxProbesPerCycle: 4 },
+      config: { dateSlack: 0, maxSegmentOptions: 0, maxProbesPerCycle: 4 },
     });
     createWatch(db, { fromId: 20, toId: 40, dateFrom: '2026-09-20' }, 1_000);
     const report = await engine.runCycle();
@@ -267,11 +267,11 @@ describe('watch engine', () => {
   });
 
   it('remembers a detour route that produced a hit', async () => {
-    const detour = harness({ maxSegmentOptions: 4, maxNeighbors: 0, dateSlack: 0, maxProbesPerCycle: 20 });
+    const detour = harness({ maxSegmentOptions: 4, dateSlack: 0, maxProbesPerCycle: 20 });
     const watch = createWatch(detour.db, { fromId: 20, toId: 40, dateFrom: '2026-09-20' }, 1_000);
     await detour.engine.runCycle();
     detour.setClock(9_000_000);
-    detour.setSearch(searchBody([{ id: 777, number: '999Ш', free: 2, price: 30_000 }]));
+    detour.setSearch(searchBody([{ id: 777, number: '777Т', free: 2, price: 30_000 }]));
     await detour.engine.runCycle();
     expect(knownRoutes(detour.db, watch.id).length).toBeGreaterThan(0);
   });

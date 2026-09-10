@@ -1,6 +1,7 @@
 import { Badge } from '../ui';
 import { DetourIcon, TrainIcon } from '../icons';
-import { clockTime, duration, hryvnia, shortDate } from '../../lib/format';
+import { clockTime, duration, hryvnia, nextDayMark, shortDate } from '../../lib/format';
+import { Segments } from '../Segments';
 import type { Offer } from '../../types';
 
 const KIND_LABEL: Record<string, string> = {
@@ -8,8 +9,6 @@ const KIND_LABEL: Record<string, string> = {
   transfers: 'з пересадкою',
   ride_further: 'їхати далі',
   board_earlier: 'сісти раніше',
-  neighbor_from: 'сусідня станція',
-  neighbor_to: 'сусідня станція',
   neighbor_date: 'сусідня дата',
 };
 
@@ -43,13 +42,18 @@ export function OfferCard({
         <span className="text-xl font-bold tracking-tight text-gray-900">{clockTime(offer.departAt)}</span>
         <span className="text-gray-300">→</span>
         <span className="text-xl font-bold tracking-tight text-gray-900">{clockTime(offer.arriveAt)}</span>
+        {nextDayMark(offer.departAt, offer.arriveAt) ? (
+          <span className="text-xs font-semibold text-gray-500">{nextDayMark(offer.departAt, offer.arriveAt)}</span>
+        ) : null}
         <span className="ml-auto text-base font-semibold text-gray-900">{hryvnia(offer.priceKop)}</span>
       </div>
 
       <div className="mt-1 text-xs text-gray-500">
-        {duration(offer.durationMin)} · {offer.className} · вільних {offer.freeSeats}
+        {duration(offer.durationMin)} у дорозі · {offer.className} · вільних {offer.freeSeats}
         {offer.distanceKm ? ` · ${offer.distanceKm} км` : ''}
       </div>
+
+      {offer.segments && offer.segments.length > 1 ? <Segments segments={offer.segments} /> : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Badge tone={detour ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-600'}>

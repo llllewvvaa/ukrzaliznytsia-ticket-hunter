@@ -47,3 +47,16 @@ export function shiftIso(iso: string, days: number): string {
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 }
+
+export function kyivDay(unixSeconds: number): string {
+  return new Date(unixSeconds * 1_000).toLocaleDateString('uk-UA', { timeZone: 'Europe/Kyiv' });
+}
+
+export function nextDayMark(departAt: number, arriveAt: number): string {
+  return departAt && arriveAt && kyivDay(departAt) !== kyivDay(arriveAt) ? '+1' : '';
+}
+
+export function waitBetween(arriveAt: number, departAt: number): string {
+  const minutes = Math.max(0, Math.round((departAt - arriveAt) / 60));
+  return minutes >= 60 ? `${Math.floor(minutes / 60)} год ${minutes % 60} хв` : `${minutes} хв`;
+}

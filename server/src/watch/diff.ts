@@ -13,6 +13,7 @@ export interface Change {
   previousFreeSeats: number;
   previousPriceKop: number | null;
   departAt: number;
+  arriveAt: number;
 }
 
 export interface DiffOptions {
@@ -78,6 +79,7 @@ export function diffSamples(
       previousFreeSeats: before.freeSeats,
       previousPriceKop: before.priceKop,
       departAt: before.departAt,
+      arriveAt: before.arriveAt ?? 0,
     });
   }
 
@@ -100,5 +102,6 @@ function toChange(
     previousFreeSeats: before?.freeSeats ?? 0,
     previousPriceKop: before?.priceKop ?? null,
     departAt: sample.departAt,
+    arriveAt: sample.arriveAt ?? 0,
   };
 }

@@ -22,6 +22,7 @@ const TERNOPIL = 2;
 const CHERNIVTSI = 3;
 const KYIV = 4;
 const VADUL = 5;
+const KOLOMYIA = 6;
 
 describe('refineKind', () => {
   let db: Db;
@@ -29,7 +30,11 @@ describe('refineKind', () => {
   beforeEach(() => {
     db = openDb(':memory:');
     saveTripRoute(db, route('865Д', 865, 8650, [[LVIV, 'Львів'], [TERNOPIL, 'Тернопіль'], [CHERNIVTSI, 'Чернівці']]), 1_000);
-    saveTripRoute(db, route('007К', 7, 70, [[KYIV, 'Київ'], [LVIV, 'Львів'], [CHERNIVTSI, 'Чернівці'], [VADUL, 'Вадул-Сірет']]), 1_000);
+    saveTripRoute(
+      db,
+      route('007К', 7, 70, [[KYIV, 'Київ'], [LVIV, 'Львів'], [KOLOMYIA, 'Коломия'], [CHERNIVTSI, 'Чернівці'], [VADUL, 'Вадул-Сірет']]),
+      1_000,
+    );
   });
 
   it('reads the stop order of a train', () => {
@@ -37,32 +42,35 @@ describe('refineKind', () => {
     expect(trainStops(db, 'unknown')).toEqual([]);
   });
 
-  it('keeps "board earlier" when the train really passes the origin afterwards', () => {
+  it('keeps a ticket bought from a station before the origin', () => {
     const result = refineKind(db, { kind: 'board_earlier', classId: 'К', trainNumber: '007К', fromId: KYIV, toId: CHERNIVTSI }, LVIV, CHERNIVTSI);
-    expect(result.kind).toBe('board_earlier');
-    expect(result.why).toBe('квиток від Київ, посадка у Львів');
+    expect(result).toMatchObject({ kind: 'board_earlier', why: 'квиток від Київ, посадка у Львів', boardId: LVIV, alightId: CHERNIVTSI });
   });
 
-  it('downgrades "board earlier" for a train that reaches that station after the origin', () => {
-    const result = refineKind(db, { kind: 'board_earlier', classId: 'К', trainNumber: '865Д', fromId: TERNOPIL, toId: CHERNIVTSI }, LVIV, CHERNIVTSI);
-    expect(result.kind).toBe('neighbor_from');
-    expect(result.why).toContain('Тернопіль');
+  it('keeps a ticket to a station after the destination', () => {
+    const result = refineKind(db, { kind: 'ride_further', classId: 'К', trainNumber: '007К', fromId: LVIV, toId: VADUL }, LVIV, CHERNIVTSI);
+    expect(result).toMatchObject({ kind: 'ride_further', why: 'квиток до Вадул-Сірет, вихід у Чернівці' });
   });
 
-  it('keeps "ride further" only when the train passes the destination first', () => {
-    const good = refineKind(db, { kind: 'ride_further', classId: 'К', trainNumber: '007К', fromId: LVIV, toId: VADUL }, LVIV, CHERNIVTSI);
-    expect(good).toEqual({ kind: 'ride_further', why: 'квиток до Вадул-Сірет, вихід у Чернівці' });
-    const bad = refineKind(db, { kind: 'ride_further', classId: 'К', trainNumber: '865Д', fromId: LVIV, toId: TERNOPIL }, LVIV, CHERNIVTSI);
-    expect(bad.kind).toBe('neighbor_to');
+  it('drops a ticket from a station the train reaches after the origin', () => {
+    expect(refineKind(db, { kind: 'board_earlier', classId: 'К', trainNumber: '865Д', fromId: TERNOPIL, toId: CHERNIVTSI }, LVIV, CHERNIVTSI)).toBeNull();
   });
 
-  it('falls back to the neighbour label when the route is unknown', () => {
-    const result = refineKind(db, { kind: 'board_earlier', classId: 'К', trainNumber: '999Х', fromId: TERNOPIL, toId: CHERNIVTSI }, LVIV, CHERNIVTSI);
-    expect(result.kind).toBe('neighbor_from');
+  it('drops a ticket that ends before the destination', () => {
+    expect(refineKind(db, { kind: 'ride_further', classId: 'К', trainNumber: '007К', fromId: LVIV, toId: KOLOMYIA }, LVIV, CHERNIVTSI)).toBeNull();
+  });
+
+  it('drops the old neighbour-station kinds outright', () => {
+    expect(refineKind(db, { kind: 'neighbor_to', classId: 'К', trainNumber: '007К', fromId: LVIV, toId: KOLOMYIA }, LVIV, CHERNIVTSI)).toBeNull();
+    expect(refineKind(db, { kind: 'neighbor_from', classId: 'К', trainNumber: '865Д', fromId: TERNOPIL, toId: CHERNIVTSI }, LVIV, CHERNIVTSI)).toBeNull();
+  });
+
+  it('drops a detour when the route is unknown', () => {
+    expect(refineKind(db, { kind: 'board_earlier', classId: 'К', trainNumber: '999Х', fromId: KYIV, toId: CHERNIVTSI }, LVIV, CHERNIVTSI)).toBeNull();
   });
 
   it('calls a direct train direct even when it came from the transfer query', () => {
-    expect(refineKind(db, { kind: 'transfers', classId: 'К', trainNumber: '865Д', fromId: LVIV, toId: CHERNIVTSI }, LVIV, CHERNIVTSI).kind).toBe('direct');
-    expect(refineKind(db, { kind: 'transfers', classId: 'MIX:1-2', trainNumber: '865Д', fromId: LVIV, toId: CHERNIVTSI }, LVIV, CHERNIVTSI).kind).toBe('transfers');
+    expect(refineKind(db, { kind: 'transfers', classId: 'К', trainNumber: '865Д', fromId: LVIV, toId: CHERNIVTSI }, LVIV, CHERNIVTSI)?.kind).toBe('direct');
+    expect(refineKind(db, { kind: 'transfers', classId: 'MIX:1-2', trainNumber: 'x', fromId: LVIV, toId: CHERNIVTSI }, LVIV, CHERNIVTSI)?.kind).toBe('transfers');
   });
 });

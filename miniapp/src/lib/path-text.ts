@@ -15,13 +15,8 @@ export function pathText(option: WatchOption, origin: string, destination: strin
     case 'transfers':
       return option.classId.startsWith('MIX') ? 'з пересадкою' : 'прямий квиток';
     case 'ride_further':
-      return `квиток до ${option.toName}, вихід у ${destination || 'пункті призначення'}`;
     case 'board_earlier':
-      return `квиток від ${option.fromName}, посадка у ${origin || 'пункті відправлення'}`;
-    case 'neighbor_from':
-      return `від сусідньої станції ${option.fromName}`;
-    case 'neighbor_to':
-      return `до сусідньої станції ${option.toName}`;
+      return option.why || `квиток ${option.fromName} → ${option.toName}, їдеш ${origin} → ${destination}`;
     default:
       return option.why || option.kind;
   }

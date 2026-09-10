@@ -12,6 +12,8 @@ export interface RefineInput {
 export interface Refined {
   kind: CandidateKind;
   why: string;
+  boardId: number;
+  alightId: number;
 }
 
 export function trainStops(db: Db, trainNumber: string): number[] {
@@ -31,40 +33,46 @@ function stationName(db: Db, id: number): string {
   return row?.name ?? String(id);
 }
 
-// Path labels are planned per station pair, but one pair's search returns every
-// train on it, and "board earlier at X" is only true for trains that pass X
-// before the origin. Checking each train against its own stop order keeps the
-// advice honest; without a known route the weaker neighbour label is used.
-export function refineKind(db: Db, offer: RefineInput, origin: number, destination: number): Refined {
+// A detour ticket is only worth showing when it carries the owner the whole way:
+// bought from a station the train passes before the origin, or to one it
+// reaches after the destination. Anything that ends short of the destination or
+// starts after the origin would strand them, so it is dropped (null), and so is
+// any detour whose train route the atlas does not know yet.
+export function refineKind(db: Db, offer: RefineInput, origin: number, destination: number): Refined | null {
   const kind = offer.kind as CandidateKind;
 
-  if (kind === 'transfers' && !offer.classId.startsWith('MIX')) {
-    return { kind: 'direct', why: 'прямий напрямок' };
+  if (kind === 'direct' || kind === 'neighbor_date') {
+    return { kind, why: '', boardId: offer.fromId, alightId: offer.toId };
   }
 
-  if (kind === 'board_earlier') {
+  if (kind === 'transfers') {
+    return offer.classId.startsWith('MIX')
+      ? { kind, why: 'з пересадкою', boardId: offer.fromId, alightId: offer.toId }
+      : { kind: 'direct', why: '', boardId: offer.fromId, alightId: offer.toId };
+  }
+
+  if (kind === 'board_earlier' || kind === 'ride_further') {
     const stops = trainStops(db, offer.trainNumber);
     const at = (id: number): number => stops.indexOf(id);
-    const boardsFrom = at(offer.fromId);
-    const passesOrigin = at(origin);
-    const reaches = at(destination);
-    if (boardsFrom >= 0 && passesOrigin > boardsFrom && (reaches < 0 || reaches > passesOrigin)) {
-      return { kind, why: `квиток від ${stationName(db, offer.fromId)}, посадка у ${stationName(db, origin)}` };
-    }
-    return { kind: 'neighbor_from', why: `виїзд із сусідньої станції ${stationName(db, offer.fromId)}` };
+    const ticketFrom = at(offer.fromId);
+    const ticketTo = at(offer.toId);
+    const boards = at(origin);
+    const alights = at(destination);
+    const covers =
+      ticketFrom >= 0 && ticketTo >= 0 && boards >= 0 && alights >= 0 &&
+      ticketFrom <= boards && boards < alights && alights <= ticketTo;
+    if (!covers) return null;
+
+    const parts: string[] = [];
+    if (offer.fromId !== origin) parts.push(`квиток від ${stationName(db, offer.fromId)}, посадка у ${stationName(db, origin)}`);
+    if (offer.toId !== destination) parts.push(`квиток до ${stationName(db, offer.toId)}, вихід у ${stationName(db, destination)}`);
+    return {
+      kind: offer.fromId !== origin ? 'board_earlier' : 'ride_further',
+      why: parts.join('; '),
+      boardId: origin,
+      alightId: destination,
+    };
   }
 
-  if (kind === 'ride_further') {
-    const stops = trainStops(db, offer.trainNumber);
-    const at = (id: number): number => stops.indexOf(id);
-    const endsAt = at(offer.toId);
-    const passesDestination = at(destination);
-    const startsAt = at(origin);
-    if (endsAt >= 0 && passesDestination >= 0 && passesDestination < endsAt && (startsAt < 0 || startsAt < passesDestination)) {
-      return { kind, why: `квиток до ${stationName(db, offer.toId)}, вихід у ${stationName(db, destination)}` };
-    }
-    return { kind: 'neighbor_to', why: `прибуття на сусідню станцію ${stationName(db, offer.toId)}` };
-  }
-
-  return { kind, why: '' };
+  return null;
 }

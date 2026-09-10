@@ -1,6 +1,14 @@
 import type { SearchResult, Trip, WagonClassOffer } from '../uz/types.js';
 import type { Candidate, CandidateKind } from './candidates.js';
 
+export interface Leg {
+  trainNumber: string;
+  from: string;
+  to: string;
+  departAt: number;
+  arriveAt: number;
+}
+
 export interface Offer {
   tripId: number;
   trainNumber: string;
@@ -19,6 +27,7 @@ export interface Offer {
   why: string;
   distanceKm: number | null;
   score: number;
+  segments?: Leg[];
 }
 
 export interface RankWeights {
@@ -114,7 +123,18 @@ export function offersFromSearch(result: SearchResult, candidate: Candidate): Of
         },
       ],
     };
-    return offersFromTrip(synthetic, candidate, variant.length, total);
+    const segments: Leg[] = variant.map((leg) => ({
+      trainNumber: leg.trainNumber,
+      from: leg.stationFrom,
+      to: leg.stationTo,
+      departAt: leg.departAt,
+      arriveAt: leg.arriveAt,
+    }));
+    return offersFromTrip(synthetic, candidate, variant.length, total).map((offer) => ({
+      ...offer,
+      trainNumber: variant.map((leg) => leg.trainNumber).join(' + '),
+      segments,
+    }));
   });
   return [...direct, ...transfers];
 }

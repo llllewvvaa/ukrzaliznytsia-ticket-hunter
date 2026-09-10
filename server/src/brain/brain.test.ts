@@ -63,10 +63,9 @@ describe('planCandidates', () => {
     expect(earlier?.fromId).toBe(10);
   });
 
-  it('adds neighbour stations of both ends', () => {
+  it('never plans a ticket that would leave you short or unable to board', () => {
     const plan = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'] });
-    expect(plan.some((c) => c.kind === 'neighbor_from')).toBe(true);
-    expect(plan.some((c) => c.kind === 'neighbor_to')).toBe(true);
+    expect(plan.some((c) => c.kind === 'neighbor_from' || c.kind === 'neighbor_to')).toBe(false);
   });
 
   it('adds neighbouring dates only when slack is asked for', () => {
@@ -77,14 +76,8 @@ describe('planCandidates', () => {
   });
 
   it('never plans a journey from a station to itself', () => {
-    const plan = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], dateSlack: 2, maxNeighbors: 9 });
+    const plan = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], dateSlack: 2 });
     expect(plan.every((c) => c.fromId !== c.toId)).toBe(true);
-  });
-
-  it('does not treat the destination as a neighbour of the origin', () => {
-    const plan = planCandidates(db, { fromId: 20, toId: 30, dates: ['2026-09-10'], maxNeighbors: 9 });
-    const neighbourFrom = plan.filter((c) => c.kind === 'neighbor_from');
-    expect(neighbourFrom.every((c) => c.fromId !== 30)).toBe(true);
   });
 
   it('never repeats the same pair-date-mode', () => {
@@ -105,10 +98,8 @@ describe('planCandidates', () => {
       toId: 40,
       dates: ['2026-09-10'],
       maxSegmentOptions: 1,
-      maxNeighbors: 1,
     });
     expect(plan.filter((c) => c.kind === 'ride_further' || c.kind === 'board_earlier')).toHaveLength(1);
-    expect(plan.filter((c) => c.kind === 'neighbor_from')).toHaveLength(1);
   });
 });
 
@@ -125,6 +116,38 @@ describe('ranking real search data', () => {
     weight: 1,
     why: 'прямий напрямок',
   };
+
+  it('keeps the legs of a transfer variant with names and times', () => {
+    const variant = parseSearch({
+      direct: [],
+      with_transfer: [
+        [
+          {
+            id: 1,
+            depart_at: 1_000,
+            arrive_at: 5_000,
+            station_from: 'Львів',
+            station_to: 'Тернопіль',
+            train: { id: 1, number: '111К', wagon_classes: [{ id: 'К', name: 'Купе', free_seats: 3, price: 20_000 }] },
+          },
+          {
+            id: 2,
+            depart_at: 8_000,
+            arrive_at: 12_000,
+            station_from: 'Тернопіль',
+            station_to: 'Чернівці',
+            train: { id: 2, number: '222П', wagon_classes: [{ id: 'П', name: 'Плацкарт', free_seats: 5, price: 15_000 }] },
+          },
+        ],
+      ],
+    });
+    const offers = offersFromSearch(variant, { ...candidate, kind: 'transfers', withTransfers: true });
+    const transfer = offers.find((o) => o.segments)!;
+    expect(transfer.trainNumber).toBe('111К + 222П');
+    expect(transfer.priceKop).toBe(35_000);
+    expect(transfer.segments!.map((l) => `${l.from}-${l.to}`)).toEqual(['Львів-Тернопіль', 'Тернопіль-Чернівці']);
+    expect(transfer.arriveAt).toBe(12_000);
+  });
 
   it('ignores transfer variants unless the candidate asked for them', () => {
     const withTransfers = { ...candidate, withTransfers: true, kind: 'transfers' as const };
