@@ -8,25 +8,29 @@ ENV_FILE="${UZ_ENV_FILE:-/opt/uz-watch/server/.env}"
 UNIT="${UZ_TUNNEL_UNIT:-uz-tunnel}"
 TRIES="${UZ_TUNNEL_TRIES:-30}"
 
-# Search from the moment the tunnel unit last started, so a manual run hours
-# later still finds the hostname the running tunnel was given.
-since=$(systemctl show -p ActiveEnterTimestamp --value "$UNIT" 2>/dev/null || true)
-[ -z "$since" ] && since="-5 min"
+# A stable hostname on the owner's own domain wins: *.trycloudflare.com is
+# blocked by many network filters, so the quick tunnel is only a fallback.
+url=$(grep '^UZ_PUBLIC_BASE=' "$ENV_FILE" | cut -d= -f2- | sed 's:/*$::' || true)
 
-url=""
-for _ in $(seq 1 "$TRIES"); do
-  url=$(journalctl -u "$UNIT" --since "$since" --no-pager 2>/dev/null |
-    grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | tail -1 || true)
-  [ -n "$url" ] && break
-  sleep 2
-done
+if [ -z "$url" ]; then
+  # Search from the moment the tunnel unit last started, so a manual run hours
+  # later still finds the hostname the running tunnel was given.
+  since=$(systemctl show -p ActiveEnterTimestamp --value "$UNIT" 2>/dev/null || true)
+  [ -z "$since" ] && since="-5 min"
+  for _ in $(seq 1 "$TRIES"); do
+    url=$(journalctl -u "$UNIT" --since "$since" --no-pager 2>/dev/null |
+      grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | tail -1 || true)
+    [ -n "$url" ] && break
+    sleep 2
+  done
+fi
 
 if [ -z "$url" ]; then
   echo "tunnel url not found in journal of $UNIT" >&2
   exit 1
 fi
 
-echo "tunnel url: $url"
+echo "public url: $url"
 
 # The app is served only under a secret path; the bare tunnel root answers 404,
 # so the address alone is not enough to reach even the empty shell.
