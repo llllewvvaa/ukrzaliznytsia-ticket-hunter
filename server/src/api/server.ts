@@ -1,4 +1,10 @@
-import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import {
+  createServer,
+  type IncomingHttpHeaders,
+  type IncomingMessage,
+  type Server,
+  type ServerResponse,
+} from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { handleApi, type ApiDeps } from './routes.js';
@@ -83,6 +89,19 @@ export function staticRelative(path: string, secret: string): string | null {
   return normalized === '/' || normalized === '' ? 'index.html' : normalized.replace(/^\/+/, '');
 }
 
+const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+
+export function clientIp(headers: IncomingHttpHeaders, remoteAddress: string | undefined): string {
+  const socket = remoteAddress ?? '?';
+  if (!LOOPBACK.has(socket)) return socket;
+  const raw = headers['x-forwarded-for'];
+  const hops = (Array.isArray(raw) ? raw.join(',') : (raw ?? ''))
+    .split(',')
+    .map((hop) => hop.trim())
+    .filter(Boolean);
+  return hops.at(-1) ?? socket;
+}
+
 export function startServer(deps: ApiDeps, options: ServerOptions): Server {
   const allowed = parseAllowedChats(options.allowedChats);
   const failures = new Map<string, FailureWindow>();
@@ -91,11 +110,7 @@ export function startServer(deps: ApiDeps, options: ServerOptions): Server {
     void (async () => {
       const url = new URL(req.url ?? '/', 'http://localhost');
       const path = url.pathname;
-      const forwarded = req.headers['cf-connecting-ip'] ?? req.headers['x-forwarded-for'];
-      const ip =
-        (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim() ??
-        req.socket.remoteAddress ??
-        '?';
+      const ip = clientIp(req.headers, req.socket.remoteAddress);
 
       if (path.startsWith('/api/')) {
         let userId: number | undefined;
