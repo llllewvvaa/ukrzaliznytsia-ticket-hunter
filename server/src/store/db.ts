@@ -8,6 +8,9 @@ export type Db = DatabaseSync;
 export function openDb(file: string): Db {
   if (file !== ':memory:') mkdirSync(dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
+  // The daemon writes continuously; a CLI opened beside it must wait for the
+  // write lock instead of failing at once with "database is locked".
+  db.exec('pragma busy_timeout = 5000');
   db.exec('pragma journal_mode = wal');
   db.exec('pragma foreign_keys = on');
   db.exec(SCHEMA_SQL);

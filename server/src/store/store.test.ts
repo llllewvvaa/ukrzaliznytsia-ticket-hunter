@@ -97,6 +97,11 @@ describe('sqlite store', () => {
     rmSync(file, { force: true });
   });
 
+  it('waits for a busy database instead of failing', () => {
+    const value = db.prepare('pragma busy_timeout').get() as unknown as Record<string, number>;
+    expect(Object.values(value)[0]).toBe(5000);
+  });
+
   it('survives a reopen of the same file', () => {
     const file = `/tmp/uz-watch-test-${process.pid}.sqlite`;
     const first = openDb(file);
