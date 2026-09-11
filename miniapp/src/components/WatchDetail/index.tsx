@@ -54,7 +54,7 @@ function TrainCard({ group, origin, destination }: { group: TrainGroup; origin: 
 
       {transfer ? <Segments segments={best.segments!} /> : null}
 
-      {best.kind === 'board_earlier' || best.kind === 'ride_further' ? (
+      {best.kind === 'board_earlier' || best.kind === 'ride_further' || best.kind === 'alight_earlier' ? (
         <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-50/70 px-2.5 py-1.5 text-[11px] leading-snug text-amber-800">
           <DetourIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" /> {pathText(best, origin, destination)}
         </div>
@@ -69,7 +69,9 @@ function TrainCard({ group, origin, destination }: { group: TrainGroup; origin: 
             >
               <span>
                 {className(option.classId)} ×{option.freeSeats}
-                {option.kind === 'board_earlier' || option.kind === 'ride_further' ? ` · ${pathText(option, origin, destination)}` : ''}
+                {option.kind === 'board_earlier' || option.kind === 'ride_further' || option.kind === 'alight_earlier'
+                  ? ` · ${pathText(option, origin, destination)}`
+                  : ''}
               </span>
               <span className="shrink-0 text-gray-700">{hryvnia(option.priceKop)}</span>
             </div>

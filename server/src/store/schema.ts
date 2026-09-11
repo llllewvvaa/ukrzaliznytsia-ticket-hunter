@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 export const PROBE_COLUMNS = [
   'from_id',
@@ -90,6 +90,7 @@ create table if not exists watch (
   max_price_kop integer,
   favorite integer not null default 0,
   priority integer not null default 0,
+  alight_earlier_min integer not null default 30,
   state text not null default 'active',
   created_at integer not null,
   updated_at integer not null

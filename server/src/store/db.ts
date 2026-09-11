@@ -51,6 +51,10 @@ function migrate(db: Db): void {
   }
   if (probeKeyIsStale(db)) rebuildProbeTable(db);
 
+  if (!columns(db, 'watch').has('alight_earlier_min')) {
+    db.exec('alter table watch add column alight_earlier_min integer not null default 30');
+  }
+
   const snapshotColumns = columns(db, 'snapshot');
   if (!snapshotColumns.has('depart_at')) {
     db.exec('alter table snapshot add column depart_at integer not null default 0');

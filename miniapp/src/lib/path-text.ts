@@ -16,6 +16,7 @@ export function pathText(option: WatchOption, origin: string, destination: strin
       return option.classId.startsWith('MIX') ? 'з пересадкою' : 'прямий квиток';
     case 'ride_further':
     case 'board_earlier':
+    case 'alight_earlier':
       return option.why || `квиток ${option.fromName} → ${option.toName}, їдеш ${origin} → ${destination}`;
     default:
       return option.why || option.kind;

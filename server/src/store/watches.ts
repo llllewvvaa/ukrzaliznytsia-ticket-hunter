@@ -22,6 +22,7 @@ export interface Watch {
   maxPriceKop: number | null;
   favorite: boolean;
   priority: number;
+  alightEarlierMin: number;
   state: 'active' | 'paused' | 'done';
   createdAt: number;
   updatedAt: number;
@@ -39,6 +40,7 @@ export interface WatchInput {
   maxPriceKop?: number | null;
   favorite?: boolean;
   priority?: number;
+  alightEarlierMin?: number;
 }
 
 interface RawWatch {
@@ -54,6 +56,7 @@ interface RawWatch {
   maxPriceKop: number | null;
   favorite: number;
   priority: number;
+  alightEarlierMin: number;
   state: string;
   createdAt: number;
   updatedAt: number;
@@ -61,7 +64,7 @@ interface RawWatch {
 
 const SELECT = `select id, chat_id as chatId, name, from_id as fromId, to_id as toId,
   date_from as dateFrom, date_to as dateTo, classes, seat_prefs as seatPrefs,
-  max_price_kop as maxPriceKop, favorite, priority, state,
+  max_price_kop as maxPriceKop, favorite, priority, alight_earlier_min as alightEarlierMin, state,
   created_at as createdAt, updated_at as updatedAt from watch`;
 
 function hydrate(row: RawWatch): Watch {
@@ -78,6 +81,7 @@ function hydrate(row: RawWatch): Watch {
     maxPriceKop: row.maxPriceKop,
     favorite: row.favorite === 1,
     priority: row.priority,
+    alightEarlierMin: row.alightEarlierMin,
     state: row.state as Watch['state'],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -88,8 +92,8 @@ export function createWatch(db: Db, input: WatchInput, now: number): Watch {
   const id = randomUUID();
   db.prepare(
     `insert into watch (id, chat_id, name, from_id, to_id, date_from, date_to, classes, seat_prefs,
-      max_price_kop, favorite, priority, state, created_at, updated_at)
-     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`,
+      max_price_kop, favorite, priority, alight_earlier_min, state, created_at, updated_at)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`,
   ).run(
     id,
     input.chatId ?? null,
@@ -103,6 +107,7 @@ export function createWatch(db: Db, input: WatchInput, now: number): Watch {
     input.maxPriceKop ?? null,
     input.favorite ? 1 : 0,
     input.priority ?? 0,
+    Math.max(0, Math.min(120, Math.round(input.alightEarlierMin ?? 30))),
     now,
     now,
   );
@@ -127,6 +132,14 @@ export function setWatchState(db: Db, id: string, state: Watch['state'], now: nu
 
 export function setFavorite(db: Db, id: string, favorite: boolean, now: number): void {
   db.prepare('update watch set favorite = ?, updated_at = ? where id = ?').run(favorite ? 1 : 0, now, id);
+}
+
+export function setAlightEarlier(db: Db, id: string, minutes: number, now: number): void {
+  db.prepare('update watch set alight_earlier_min = ?, updated_at = ? where id = ?').run(
+    Math.max(0, Math.min(120, Math.round(minutes))),
+    now,
+    id,
+  );
 }
 
 export function deleteWatch(db: Db, id: string): void {

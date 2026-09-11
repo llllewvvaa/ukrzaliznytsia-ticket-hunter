@@ -19,7 +19,7 @@ function line(): TripDetail {
     routePoints: [
       { seq: 0, stationId: 10, stationName: 'Альфа', arriveAt: null, departAt: 900 },
       { seq: 1, stationId: 20, stationName: 'Бета', arriveAt: 1_000, departAt: 1_100 },
-      { seq: 2, stationId: 30, stationName: 'Гама', arriveAt: 2_000, departAt: 2_100 },
+      { seq: 2, stationId: 30, stationName: 'Гама', arriveAt: 2_100, departAt: 2_160 },
       { seq: 3, stationId: 40, stationName: 'Дельта', arriveAt: 3_000, departAt: 3_100 },
       { seq: 4, stationId: 50, stationName: 'Епсілон', arriveAt: 4_000, departAt: null },
     ],
@@ -78,6 +78,19 @@ describe('planCandidates', () => {
   it('never plans a journey from a station to itself', () => {
     const plan = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], dateSlack: 2 });
     expect(plan.every((c) => c.fromId !== c.toId)).toBe(true);
+  });
+
+  it('offers getting off a stop early only when the train is minutes from the destination', () => {
+    const near = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], alightEarlierMin: 20 });
+    const early = near.filter((c) => c.kind === 'alight_earlier');
+    expect(early).toHaveLength(1);
+    expect(early[0]!.toId).toBe(30);
+    expect(early[0]!.why).toContain('за 15 хв до мети');
+  });
+
+  it('skips getting off early when the gap is over the limit or the option is off', () => {
+    expect(planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], alightEarlierMin: 10 }).some((c) => c.kind === 'alight_earlier')).toBe(false);
+    expect(planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], alightEarlierMin: 0 }).some((c) => c.kind === 'alight_earlier')).toBe(false);
   });
 
   it('never repeats the same pair-date-mode', () => {

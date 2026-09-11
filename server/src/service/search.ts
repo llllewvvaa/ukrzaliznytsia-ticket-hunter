@@ -17,6 +17,7 @@ export interface FindWaysRequest {
   filter?: OfferFilter;
   ttlMs?: number;
   sort?: SortMode;
+  alightEarlierMin?: number;
 }
 
 export interface FindWaysResult {
@@ -35,6 +36,7 @@ export async function findWays(
     toId: request.toId,
     dates: request.dates,
     dateSlack: request.dateSlack ?? 0,
+    alightEarlierMin: request.alightEarlierMin ?? 30,
   });
 
   const ordered = [...candidates].sort((a, b) => b.weight - a.weight);
@@ -53,7 +55,9 @@ export async function findWays(
       requests += 1;
       if (res.kind !== 'ok') continue;
       for (const offer of offersFromSearch(parseSearch(res.json()), candidate)) {
-        const refined = refineKind(deps.db, offer, request.fromId, request.toId);
+        const refined = refineKind(deps.db, offer, request.fromId, request.toId, {
+          alightEarlierMin: request.alightEarlierMin ?? 30,
+        });
         if (!refined) continue;
         const journey = offer.segments
           ? { departAt: offer.departAt, arriveAt: offer.arriveAt, durationMin: offer.durationMin }

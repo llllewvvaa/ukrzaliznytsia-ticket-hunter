@@ -39,6 +39,10 @@ export function StepReview({
         <SummaryRow label="Класи" value={classes} />
         <SummaryRow label="Стеля ціни" value={state.maxPrice ? `${state.maxPrice} грн` : 'немає'} />
         <SummaryRow label="Місця" value={seats.length > 0 ? seats.join(' · ') : 'будь-які'} />
+        <SummaryRow
+          label="Вийти раніше"
+          value={state.alightEarlierMin > 0 ? `якщо до мети до ${state.alightEarlierMin} хв` : 'ні'}
+        />
       </div>
 
       <Chip active={state.favorite} onClick={() => patch({ favorite: !state.favorite })}>

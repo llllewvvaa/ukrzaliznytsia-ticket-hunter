@@ -76,6 +76,7 @@ export function watchOptions(db: Db, watch: Watch, now: number): WatchOptions {
     toId: watch.toId,
     dates: watchDates(watch),
     dateSlack: 1,
+    alightEarlierMin: watch.alightEarlierMin,
   });
   const planned = new Set(plan.map((candidate) => `${candidate.fromId}:${candidate.toId}:${candidate.date}`));
 
@@ -126,7 +127,7 @@ export function watchOptions(db: Db, watch: Watch, now: number): WatchOptions {
     if (!transfer && watch.classes.length > 0 && !watch.classes.includes(row.classId)) continue;
     if (watch.maxPriceKop != null && row.priceKop > watch.maxPriceKop) continue;
 
-    const refined = refineKind(db, row, watch.fromId, watch.toId);
+    const refined = refineKind(db, row, watch.fromId, watch.toId, { alightEarlierMin: watch.alightEarlierMin });
     if (!refined) continue;
 
     const segments = parseSegments(row.legsJson);

@@ -148,6 +148,7 @@ export function scoreOffer(offer: Offer, weights: RankWeights = DEFAULT_WEIGHTS)
     neighbor_from: 0.5,
     neighbor_to: 0.5,
     neighbor_date: 0.4,
+    alight_earlier: 0.65,
   };
   return (
     offer.priceKop * weights.pricePerKopiyka +

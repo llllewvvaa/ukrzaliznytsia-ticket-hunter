@@ -36,6 +36,7 @@ export function NewWatchWizard({
         classes: wizard.state.classes,
         maxPriceKop: wizard.state.maxPrice ? Math.round(Number(wizard.state.maxPrice) * 100) : null,
         favorite: wizard.state.favorite,
+        alightEarlierMin: wizard.state.alightEarlierMin,
         seatPrefs: {
           ...(wizard.state.berth ? { berth: wizard.state.berth } : {}),
           ...(wizard.state.minSeats > 1 ? { minSeats: wizard.state.minSeats } : {}),

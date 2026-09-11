@@ -58,6 +58,7 @@ export interface WatchRequest {
   maxPriceKop?: number | null;
   favorite?: boolean;
   seatPrefs?: Record<string, unknown>;
+  alightEarlierMin?: number;
 }
 
 export const api = {
@@ -83,7 +84,10 @@ export const api = {
   createWatch(body: WatchRequest): Promise<{ watch: Watch }> {
     return call('/api/watches', { method: 'POST', body: JSON.stringify(body) });
   },
-  patchWatch(id: string, body: { favorite?: boolean; state?: 'active' | 'paused' }): Promise<{ watch: Watch }> {
+  patchWatch(
+    id: string,
+    body: { favorite?: boolean; state?: 'active' | 'paused'; alightEarlierMin?: number },
+  ): Promise<{ watch: Watch }> {
     return call(`/api/watches/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
   },
   deleteWatch(id: string): Promise<{ deleted: string }> {

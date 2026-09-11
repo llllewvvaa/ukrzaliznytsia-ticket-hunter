@@ -123,6 +123,29 @@ describe('watch options', () => {
     expect(watchOptions(db, w, NOW).options).toHaveLength(0);
   });
 
+  it('offers getting off at Коломия when the train has no ticket to Чернівці and is close', () => {
+    const w = watch({ alightEarlierMin: 120 });
+    snap(db, { toId: KOLOMYIA, kind: 'alight_earlier', departAt: TICKET_DEPART, arriveAt: TICKET_DEPART + 10_800 });
+    const option = watchOptions(db, w, NOW).options[0]!;
+    expect(option.kind).toBe('alight_earlier');
+    expect(option.alightName).toBe('Коломия');
+    expect(option.why).toBe('квиток до Коломия, це за 120 хв до Чернівці');
+    expect(option.journeyArriveAt).toBe(TICKET_DEPART + 10_800);
+  });
+
+  it('hides getting off early when the train has an ordinary ticket that day', () => {
+    const w = watch({ alightEarlierMin: 120 });
+    snap(db);
+    snap(db, { toId: KOLOMYIA, kind: 'alight_earlier', price: 10_000 });
+    expect(watchOptions(db, w, NOW).options.map((o) => o.kind)).toEqual(['direct']);
+  });
+
+  it('respects the owner limit for getting off early', () => {
+    const w = watch({ alightEarlierMin: 30 });
+    snap(db, { toId: KOLOMYIA, kind: 'alight_earlier' });
+    expect(watchOptions(db, w, NOW).options).toHaveLength(0);
+  });
+
   it('keeps the legs of a transfer', () => {
     const w = watch();
     snap(db, {

@@ -10,6 +10,7 @@ const KIND_LABEL: Record<string, string> = {
   ride_further: 'їхати далі',
   board_earlier: 'сісти раніше',
   neighbor_date: 'сусідня дата',
+  alight_earlier: 'вийти раніше',
 };
 
 export function OfferCard({

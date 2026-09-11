@@ -103,6 +103,7 @@ export class WatchEngine {
         dates: watchDates(watch),
         dateSlack: this.config.dateSlack,
         maxSegmentOptions: this.config.maxSegmentOptions,
+        alightEarlierMin: watch.alightEarlierMin,
       });
       for (const candidate of candidates) {
         const key = probeKeyOf(candidate);
@@ -192,10 +193,11 @@ export class WatchEngine {
 
       const origin = plan.watches[0]!.fromId;
       const destination = plan.watches[0]!.toId;
+      const alightEarlierMin = Math.max(...plan.watches.map((watch) => watch.alightEarlierMin));
       const refinedByKey = new Map<string, Refined>();
       const offers: Offer[] = [];
       for (const raw of offersFromSearch(parseSearch(JSON.parse(body)), plan.candidate)) {
-        const refined = refineKind(this.deps.db, raw, origin, destination);
+        const refined = refineKind(this.deps.db, raw, origin, destination, { alightEarlierMin });
         if (!refined) continue;
         refinedByKey.set(`${raw.tripId}:${raw.classId}`, refined);
         offers.push({ ...raw, kind: refined.kind, why: refined.why || raw.why });

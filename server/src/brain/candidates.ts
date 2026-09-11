@@ -8,7 +8,8 @@ export type CandidateKind =
   | 'board_earlier'
   | 'neighbor_from'
   | 'neighbor_to'
-  | 'neighbor_date';
+  | 'neighbor_date'
+  | 'alight_earlier';
 
 export interface Candidate {
   fromId: number;
@@ -28,6 +29,7 @@ export interface CandidateRequest {
   maxExtraStops?: number;
   maxSegmentOptions?: number;
   includeTransfers?: boolean;
+  alightEarlierMin?: number;
 }
 
 export const KIND_WEIGHT: Record<CandidateKind, number> = {
@@ -38,6 +40,7 @@ export const KIND_WEIGHT: Record<CandidateKind, number> = {
   neighbor_from: 0.45,
   neighbor_to: 0.45,
   neighbor_date: 0.4,
+  alight_earlier: 0.55,
 };
 
 export function shiftDate(date: string, days: number): string {
@@ -66,6 +69,7 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
     maxExtraStops = 4,
     maxSegmentOptions = 8,
     includeTransfers = true,
+    alightEarlierMin = 30,
   } = request;
 
   const out: Candidate[] = [];
@@ -102,24 +106,23 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
     }
   }
 
-  const segments = segmentOptions(db, fromId, toId)
-    .filter((option) => option.kind !== 'direct' && option.extraStops <= maxExtraStops)
+  const all = segmentOptions(db, fromId, toId, alightEarlierMin);
+  const longer = all
+    .filter((option) => (option.kind === 'ride_further' || option.kind === 'board_earlier') && option.extraStops <= maxExtraStops)
     .slice(0, maxSegmentOptions);
+  const shorter = all.filter((option) => option.kind === 'alight_earlier').slice(0, maxSegmentOptions);
 
-  for (const segment of segments) {
+  for (const segment of [...longer, ...shorter]) {
+    const kind: CandidateKind =
+      segment.kind === 'ride_further' ? 'ride_further' : segment.kind === 'alight_earlier' ? 'alight_earlier' : 'board_earlier';
+    const why =
+      kind === 'ride_further'
+        ? `їхати далі до ${segment.toName} потягом ${segment.trainNumber}`
+        : kind === 'alight_earlier'
+          ? `вийти на ${segment.toName} за ${segment.gapMin ?? 0} хв до мети потягом ${segment.trainNumber}`
+          : `сісти раніше на ${segment.fromName} потягом ${segment.trainNumber}`;
     for (const date of dates) {
-      push({
-        fromId: segment.fromId,
-        toId: segment.toId,
-        date,
-        kind: segment.kind === 'ride_further' ? 'ride_further' : 'board_earlier',
-        withTransfers: false,
-        weight: KIND_WEIGHT[segment.kind === 'ride_further' ? 'ride_further' : 'board_earlier'],
-        why:
-          segment.kind === 'ride_further'
-            ? `їхати далі до ${segment.toName} потягом ${segment.trainNumber}`
-            : `сісти раніше на ${segment.fromName} потягом ${segment.trainNumber}`,
-      });
+      push({ fromId: segment.fromId, toId: segment.toId, date, kind, withTransfers: false, weight: KIND_WEIGHT[kind], why });
     }
   }
 

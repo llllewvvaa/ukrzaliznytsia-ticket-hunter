@@ -2,6 +2,13 @@ import { Chip, Field, Input } from '../../ui';
 import { CLASS_OPTIONS } from '../../../types';
 import type { WizardState } from '../types';
 
+const ALIGHT_OPTIONS: { minutes: number; title: string }[] = [
+  { minutes: 0, title: 'Ні' },
+  { minutes: 15, title: 'до 15 хв' },
+  { minutes: 30, title: 'до 30 хв' },
+  { minutes: 45, title: 'до 45 хв' },
+];
+
 export function StepSeats({
   state,
   patch,
@@ -59,6 +66,23 @@ export function StepSeats({
           value={state.minSeats}
           onChange={(event) => patch({ minSeats: Math.max(1, Math.min(4, Number(event.target.value))) })}
         />
+      </Field>
+
+      <Field
+        label="Можна вийти на зупинку раніше"
+        hint="Якщо до твоєї станції квитків нема, а на зупинку перед нею є — і потяг звідти їде до мети не довше за обране."
+      >
+        <div className="flex flex-wrap gap-2">
+          {ALIGHT_OPTIONS.map((option) => (
+            <Chip
+              key={option.minutes}
+              active={state.alightEarlierMin === option.minutes}
+              onClick={() => patch({ alightEarlierMin: option.minutes })}
+            >
+              {option.title}
+            </Chip>
+          ))}
+        </div>
       </Field>
 
       <Field label="Розташування">

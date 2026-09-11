@@ -19,8 +19,9 @@ export interface SegmentOption {
   fromName: string;
   toId: number;
   toName: string;
-  kind: 'ride_further' | 'board_earlier' | 'direct';
+  kind: 'ride_further' | 'board_earlier' | 'direct' | 'alight_earlier';
   extraStops: number;
+  gapMin?: number;
 }
 
 export function upsertStation(db: Db, id: number, name: string, now: number): void {
@@ -119,7 +120,11 @@ export function neighborStations(db: Db, stationId: number, hops = 1): { id: num
   return rows;
 }
 
-export function segmentOptions(db: Db, fromId: number, toId: number): SegmentOption[] {
+function stopTime(stop: RouteStop): number | null {
+  return stop.arriveAt ?? stop.departAt ?? null;
+}
+
+export function segmentOptions(db: Db, fromId: number, toId: number, alightEarlierMin = 0): SegmentOption[] {
   const rows = db
     .prepare(
       `select a.train_id as trainId, a.train_number as trainNumber, a.trip_id as tripId,
@@ -166,6 +171,30 @@ export function segmentOptions(db: Db, fromId: number, toId: number): SegmentOpt
         kind: 'ride_further',
         extraStops: j - row.toSeq,
       });
+    }
+
+    // Getting off one or two stops early is only worth it when the train would
+    // reach the real destination moments later, so the gap is measured on the
+    // train's own timetable and capped by the owner's limit.
+    const destinationTime = stopTime(toStop);
+    if (alightEarlierMin > 0 && destinationTime != null) {
+      for (let j = row.toSeq - 1; j > row.fromSeq; j -= 1) {
+        const stopAt = stopTime(stops[j]!);
+        if (stopAt == null) continue;
+        const gapMin = Math.round((destinationTime - stopAt) / 60);
+        if (gapMin < 0 || gapMin > alightEarlierMin) break;
+        push({
+          trainId: row.trainId,
+          trainNumber: row.trainNumber,
+          fromId: fromStop.stationId,
+          fromName: fromStop.stationName,
+          toId: stops[j]!.stationId,
+          toName: stops[j]!.stationName,
+          kind: 'alight_earlier',
+          extraStops: row.toSeq - j,
+          gapMin,
+        });
+      }
     }
 
     for (let i = row.fromSeq - 1; i >= 0; i -= 1) {

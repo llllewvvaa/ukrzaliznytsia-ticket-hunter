@@ -13,6 +13,7 @@ export interface WizardState {
   minSeats: number;
   adjacent: boolean;
   favorite: boolean;
+  alightEarlierMin: number;
 }
 
 export const WIZARD_STEPS: WizardStep[] = ['route', 'dates', 'seats', 'review'];

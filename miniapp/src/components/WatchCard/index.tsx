@@ -65,6 +65,7 @@ export function WatchCard({
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
         {watch.maxPriceKop ? <span>до {hryvnia(watch.maxPriceKop)}</span> : <span>без стелі ціни</span>}
         {seats ? <span>{seats}</span> : null}
+        <span>{watch.alightEarlierMin > 0 ? `вийти раніше: до ${watch.alightEarlierMin} хв` : 'вийти раніше: ні'}</span>
         <span>оновлено {relTime(watch.updatedAt)}</span>
       </div>
 

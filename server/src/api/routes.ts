@@ -10,6 +10,7 @@ import {
   deleteWatch,
   getWatch,
   listWatches,
+  setAlightEarlier,
   setFavorite,
   setWatchState,
   watchDates,
@@ -71,6 +72,7 @@ export async function handleApi(deps: ApiDeps, request: ApiRequest): Promise<Api
       maxPriceKop?: number;
       classes?: string[];
       budget?: number;
+      alightEarlierMin?: number;
     };
     if (!body.fromId || !body.toId || !body.dates?.length) return bad('fromId, toId, dates required');
     const result = await findWays(deps, {
@@ -81,6 +83,7 @@ export async function handleApi(deps: ApiDeps, request: ApiRequest): Promise<Api
       maxRequests: Math.min(body.budget ?? 10, 20),
       sort: body.sort ?? 'cheapest',
       filter: { classes: body.classes, maxPriceKop: body.maxPriceKop },
+      ...(typeof body.alightEarlierMin === 'number' ? { alightEarlierMin: body.alightEarlierMin } : {}),
     });
     return ok(result);
   }
@@ -124,8 +127,9 @@ export async function handleApi(deps: ApiDeps, request: ApiRequest): Promise<Api
     }
 
     if (method === 'PATCH' && !sub) {
-      const body = (request.body ?? {}) as { favorite?: boolean; state?: 'active' | 'paused' };
+      const body = (request.body ?? {}) as { favorite?: boolean; state?: 'active' | 'paused'; alightEarlierMin?: number };
       if (body.favorite != null) setFavorite(deps.db, id, body.favorite, now());
+      if (typeof body.alightEarlierMin === 'number') setAlightEarlier(deps.db, id, body.alightEarlierMin, now());
       if (body.state) setWatchState(deps.db, id, body.state, now());
       return ok({ watch: getWatch(deps.db, id) });
     }

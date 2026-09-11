@@ -122,6 +122,20 @@ describe('api routes', () => {
     expect((after.body as { watches: unknown[] }).watches).toHaveLength(0);
   });
 
+  it('stores and changes how early the owner may get off', async () => {
+    const created = await handleApi(
+      deps(db),
+      req({ method: 'POST', path: '/api/watches', body: { fromId: 20, toId: 40, dateFrom: '2026-09-20' } }),
+    );
+    const id = (created.body as { watch: { id: string; alightEarlierMin: number } }).watch.id;
+    expect((created.body as { watch: { alightEarlierMin: number } }).watch.alightEarlierMin).toBe(30);
+    const patched = await handleApi(
+      deps(db),
+      req({ method: 'PATCH', path: `/api/watches/${id}`, body: { alightEarlierMin: 15 } }),
+    );
+    expect((patched.body as { watch: { alightEarlierMin: number } }).watch.alightEarlierMin).toBe(15);
+  });
+
   it('lists events of a watch', async () => {
     const watch = createWatch(db, { fromId: 20, toId: 40, dateFrom: '2026-09-20' }, 1_000);
     insertEvent(db, watch.id, 'appeared', { trainNumber: '001К' }, 2_000);

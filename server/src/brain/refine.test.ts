@@ -23,6 +23,8 @@ const CHERNIVTSI = 3;
 const KYIV = 4;
 const VADUL = 5;
 const KOLOMYIA = 6;
+const PIDZAMCHE = 7;
+const KYIV_PAS = 8;
 
 describe('refineKind', () => {
   let db: Db;
@@ -35,6 +37,53 @@ describe('refineKind', () => {
       route('007К', 7, 70, [[KYIV, 'Київ'], [LVIV, 'Львів'], [KOLOMYIA, 'Коломия'], [CHERNIVTSI, 'Чернівці'], [VADUL, 'Вадул-Сірет']]),
       1_000,
     );
+  });
+
+  function timed(): void {
+    saveTripRoute(
+      db,
+      {
+        id: 7400,
+        trainId: 74,
+        trainNumber: '743К',
+        stationFromId: KYIV_PAS,
+        stationToId: LVIV,
+        departAt: 0,
+        arriveAt: 0,
+        routePoints: [
+          { seq: 0, stationId: KYIV_PAS, stationName: 'Київ-Пас', arriveAt: null, departAt: 10_000 },
+          { seq: 1, stationId: TERNOPIL, stationName: 'Тернопіль', arriveAt: 25_000, departAt: 25_300 },
+          { seq: 2, stationId: PIDZAMCHE, stationName: 'Львів-Підзамче', arriveAt: 30_000, departAt: 30_120 },
+          { seq: 3, stationId: LVIV, stationName: 'Львів', arriveAt: 30_720, departAt: null },
+        ],
+      },
+      1_000,
+    );
+  }
+
+  it('offers getting off at a stop the train leaves minutes before the destination', () => {
+    timed();
+    const result = refineKind(db, { kind: 'alight_earlier', classId: 'С2', trainNumber: '743К', fromId: KYIV_PAS, toId: PIDZAMCHE }, KYIV_PAS, LVIV);
+    expect(result).toMatchObject({ kind: 'alight_earlier', boardId: KYIV_PAS, alightId: PIDZAMCHE });
+    expect(result!.why).toBe('квиток до Львів-Підзамче, це за 12 хв до Львів');
+  });
+
+  it('refuses when the stop is farther from the destination than the limit', () => {
+    timed();
+    const offer = { kind: 'alight_earlier', classId: 'С2', trainNumber: '743К', fromId: KYIV_PAS, toId: TERNOPIL };
+    expect(refineKind(db, offer, KYIV_PAS, LVIV)).toBeNull();
+    expect(refineKind(db, offer, KYIV_PAS, LVIV, { alightEarlierMin: 120 })?.kind).toBe('alight_earlier');
+  });
+
+  it('refuses when the owner switched it off', () => {
+    timed();
+    const offer = { kind: 'alight_earlier', classId: 'С2', trainNumber: '743К', fromId: KYIV_PAS, toId: PIDZAMCHE };
+    expect(refineKind(db, offer, KYIV_PAS, LVIV, { alightEarlierMin: 0 })).toBeNull();
+  });
+
+  it('refuses a stop the train reaches after the destination', () => {
+    timed();
+    expect(refineKind(db, { kind: 'alight_earlier', classId: 'К', trainNumber: '007К', fromId: LVIV, toId: VADUL }, LVIV, CHERNIVTSI)).toBeNull();
   });
 
   it('reads the stop order of a train', () => {

@@ -15,6 +15,7 @@ export function useWizard(initial?: Partial<WizardState>) {
     minSeats: 1,
     adjacent: false,
     favorite: true,
+    alightEarlierMin: 30,
     ...initial,
   });
 

@@ -10,7 +10,8 @@ export type CandidateKind =
   | 'board_earlier'
   | 'neighbor_from'
   | 'neighbor_to'
-  | 'neighbor_date';
+  | 'neighbor_date'
+  | 'alight_earlier';
 
 export interface Offer {
   tripId: number;
@@ -64,6 +65,7 @@ export interface Watch {
   seatPrefs: SeatPrefs;
   maxPriceKop: number | null;
   favorite: boolean;
+  alightEarlierMin: number;
   state: 'active' | 'paused' | 'done';
   createdAt: number;
   updatedAt: number;
