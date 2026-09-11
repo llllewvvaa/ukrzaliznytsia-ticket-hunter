@@ -87,7 +87,7 @@ export function refineKind(
     if (gapMin < 0 || gapMin > limit) return null;
     return {
       kind,
-      why: `квиток до ${stationName(db, offer.toId)}, це за ${gapMin} хв до ${stationName(db, destination)}`,
+      why: `квиток до ${stationName(db, offer.toId)}, далі ${gapMin} хв у тамбурі до ${stationName(db, destination)}`,
       boardId: origin,
       alightId: offer.toId,
     };

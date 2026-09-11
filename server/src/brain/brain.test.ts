@@ -55,6 +55,14 @@ describe('planCandidates', () => {
     expect(plan.some((c) => c.kind === 'transfers' && c.withTransfers)).toBe(true);
   });
 
+  it('searches the day before for boarding earlier, not for the other kinds', () => {
+    const plan = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'] });
+    const earlierDates = plan.filter((c) => c.kind === 'board_earlier').map((c) => c.date).sort();
+    const furtherDates = plan.filter((c) => c.kind === 'ride_further').map((c) => c.date);
+    expect(earlierDates).toEqual(['2026-09-09', '2026-09-10']);
+    expect(furtherDates).toEqual(['2026-09-10']);
+  });
+
   it('offers riding further and boarding earlier from the atlas', () => {
     const plan = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'] });
     const further = plan.find((c) => c.kind === 'ride_further');

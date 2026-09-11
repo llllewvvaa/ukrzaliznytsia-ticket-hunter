@@ -65,7 +65,7 @@ describe('refineKind', () => {
     timed();
     const result = refineKind(db, { kind: 'alight_earlier', classId: 'С2', trainNumber: '743К', fromId: KYIV_PAS, toId: PIDZAMCHE }, KYIV_PAS, LVIV);
     expect(result).toMatchObject({ kind: 'alight_earlier', boardId: KYIV_PAS, alightId: PIDZAMCHE });
-    expect(result!.why).toBe('квиток до Львів-Підзамче, це за 12 хв до Львів');
+    expect(result!.why).toBe('квиток до Львів-Підзамче, далі 12 хв у тамбурі до Львів');
   });
 
   it('refuses when the stop is farther from the destination than the limit', () => {

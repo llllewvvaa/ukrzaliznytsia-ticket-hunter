@@ -6,6 +6,8 @@ import { searchTripsPath, stationsPath } from '../uz/paths.js';
 import { planCandidates, type Candidate } from '../brain/candidates.js';
 import { refineKind } from '../brain/refine.js';
 import { journeyTimes } from '../brain/journey.js';
+import { travelDate } from '../brain/travel-date.js';
+import { applyTiers } from '../brain/tiers.js';
 import { offersFromSearch, rankOffers, type Offer, type OfferFilter, type SortMode } from '../brain/rank.js';
 
 export interface FindWaysRequest {
@@ -40,6 +42,11 @@ export async function findWays(
   });
 
   const ordered = [...candidates].sort((a, b) => b.weight - a.weight);
+  const wanted = new Set(
+    (request.dateSlack ?? 0) > 0
+      ? candidates.map((candidate) => candidate.date).concat(request.dates)
+      : request.dates,
+  );
   const budget = request.maxRequests ?? 12;
   const offers: Offer[] = [];
   let requests = 0;
@@ -62,8 +69,11 @@ export async function findWays(
         const journey = offer.segments
           ? { departAt: offer.departAt, arriveAt: offer.arriveAt, durationMin: offer.durationMin }
           : journeyTimes(deps.db, offer, refined.boardId, refined.alightId);
+        const date = travelDate(offer.date, journey.departAt);
+        if (!wanted.has(date)) continue;
         offers.push({
           ...offer,
+          date,
           kind: refined.kind,
           why: refined.why || offer.why,
           departAt: journey.departAt,
@@ -81,7 +91,7 @@ export async function findWays(
   }
 
   return {
-    offers: dedupe(rankOffers(offers, request.filter ?? {}, undefined, request.sort ?? 'cheapest')),
+    offers: dedupe(rankOffers(applyTiers(offers), request.filter ?? {}, undefined, request.sort ?? 'cheapest')),
     requests,
     candidates: candidates.length,
     gated,

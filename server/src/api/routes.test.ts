@@ -15,8 +15,8 @@ const searchBody = JSON.stringify({
   direct: [
     {
       id: 1,
-      depart_at: 1_700_000_000,
-      arrive_at: 1_700_010_000,
+      depart_at: 1789880400,
+      arrive_at: 1789890400,
       station_from: 'Бета',
       station_to: 'Дельта',
       distance: 300,

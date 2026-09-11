@@ -3,6 +3,7 @@ import type { Db } from '../store/db.js';
 export interface JourneyInput {
   trainNumber: string;
   fromId: number;
+  toId?: number;
   departAt: number;
   arriveAt: number;
 }
@@ -43,6 +44,13 @@ export function journeyTimes(db: Db, input: JourneyInput, boardId: number, aligh
     exact: false,
   };
 
+  // Where the owner's station is the ticket's own end, the ticket already says
+  // exactly when; only a shifted end needs the atlas gap, and a timetable from
+  // another day must not overwrite a time the ticket states.
+  if (boardId === input.fromId && alightId === (input.toId ?? alightId) && input.toId != null) {
+    return fallback;
+  }
+
   const stops = stopTimes(db, input.trainNumber);
   const ticketStart = stops.find((stop) => stop.stationId === input.fromId);
   const board = stops.find((stop) => stop.stationId === boardId);
@@ -52,8 +60,9 @@ export function journeyTimes(db: Db, input: JourneyInput, boardId: number, aligh
   const alightAt = alight?.arriveAt ?? alight?.departAt ?? null;
   if (reference == null || boardAt == null || alightAt == null || !input.departAt) return fallback;
 
-  const departAt = input.departAt + (boardAt - reference);
-  const arriveAt = input.departAt + (alightAt - reference);
+  const departAt = boardId === input.fromId ? input.departAt : input.departAt + (boardAt - reference);
+  const arriveAt =
+    input.toId != null && alightId === input.toId && input.arriveAt ? input.arriveAt : input.departAt + (alightAt - reference);
   if (arriveAt <= departAt) return fallback;
   return { departAt, arriveAt, durationMin: Math.round((arriveAt - departAt) / 60), exact: true };
 }

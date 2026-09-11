@@ -60,6 +60,12 @@ export function expandDates(dates: string[], slack: number): string[] {
   return [...out].sort();
 }
 
+function expandBack(dates: string[]): string[] {
+  const out = new Set(dates);
+  for (const date of dates) out.add(shiftDate(date, -1));
+  return [...out].sort();
+}
+
 export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
   const {
     fromId,
@@ -121,7 +127,10 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
         : kind === 'alight_earlier'
           ? `вийти на ${segment.toName} за ${segment.gapMin ?? 0} хв до мети потягом ${segment.trainNumber}`
           : `сісти раніше на ${segment.fromName} потягом ${segment.trainNumber}`;
-    for (const date of dates) {
+    // A train that passes the owner's station after midnight left the earlier
+    // station the evening before, so boarding earlier also searches that day.
+    const searchDates = kind === 'board_earlier' ? expandBack(dates) : dates;
+    for (const date of searchDates) {
       push({ fromId: segment.fromId, toId: segment.toId, date, kind, withTransfers: false, weight: KIND_WEIGHT[kind], why });
     }
   }

@@ -8,6 +8,7 @@ import { planCandidates, type Candidate } from '../brain/candidates.js';
 import { isTransferClass, offersFromSearch, rankOffers, type Offer } from '../brain/rank.js';
 import { refineKind, type Refined } from '../brain/refine.js';
 import { journeyTimes } from '../brain/journey.js';
+import { travelDate } from '../brain/travel-date.js';
 import {
   insertEvent,
   lastSamples,
@@ -228,7 +229,7 @@ export class WatchEngine {
           const refined = refinedByKey.get(`${change.tripId}:${change.classId}`);
           const journey = journeyTimes(
             this.deps.db,
-            { trainNumber: change.trainNumber, fromId: key.fromId, departAt: change.departAt, arriveAt: change.arriveAt },
+            { trainNumber: change.trainNumber, fromId: key.fromId, toId: key.toId, departAt: change.departAt, arriveAt: change.arriveAt },
             refined?.boardId ?? key.fromId,
             refined?.alightId ?? key.toId,
           );
@@ -248,7 +249,8 @@ export class WatchEngine {
               durationMin: journey.durationMin,
               fromId: key.fromId,
               toId: key.toId,
-              date: key.date,
+              date: travelDate(key.date, journey.departAt),
+              searchDate: key.date,
               seats: seats.map((match) => ({
                 wagon: match.wagonNumber,
                 key: match.wagonKey,

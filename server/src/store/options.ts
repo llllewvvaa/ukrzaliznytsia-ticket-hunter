@@ -3,6 +3,9 @@ import { planCandidates } from '../brain/candidates.js';
 import { refineKind } from '../brain/refine.js';
 import { journeyTimes } from '../brain/journey.js';
 import type { Leg } from '../brain/rank.js';
+import { applyTiers } from '../brain/tiers.js';
+import { travelDate } from '../brain/travel-date.js';
+import { shiftDate } from '../brain/candidates.js';
 import { watchDates, type Watch } from './watches.js';
 import { getMeta, setMeta } from './meta.js';
 
@@ -12,6 +15,7 @@ export interface WatchOption {
   tripId: number;
   trainNumber: string;
   date: string;
+  searchDate: string;
   classId: string;
   freeSeats: number;
   priceKop: number;
@@ -97,6 +101,21 @@ export function watchOptions(db: Db, watch: Watch, now: number): WatchOptions {
     )
     .all(now - OPTIONS_FRESH_MS) as unknown as SnapshotRow[];
 
+  // The watcher writes only classes that still have seats, so a class that sold
+  // out leaves its last "has seats" row behind. A row counts only if it came from
+  // the most recent check of its own probe; anything older was not seen then.
+  const lastCheck = new Map<string, number>();
+  for (const probe of db
+    .prepare('select from_id as fromId, to_id as toId, date, with_transfers as wt, last_checked_at as at from probe')
+    .all() as unknown as { fromId: number; toId: number; date: string; wt: number; at: number }[]) {
+    lastCheck.set(`${probe.fromId}:${probe.toId}:${probe.date}:${probe.wt}`, probe.at);
+  }
+  const fromLatestCheck = (row: SnapshotRow): boolean => {
+    const wt = row.kind === 'transfers' ? 1 : 0;
+    const at = lastCheck.get(`${row.fromId}:${row.toId}:${row.date}:${wt}`);
+    return at == null || row.takenAt >= at;
+  };
+
   const stationName = db.prepare('select name from station where id = ?');
   const names = new Map<number, string>();
   const nameOf = (id: number): string => {
@@ -117,12 +136,16 @@ export function watchOptions(db: Db, watch: Watch, now: number): WatchOptions {
     announced.set(`${row.date}:${row.trainNumber}`, row.announcedAt);
   }
 
+  const windowFrom = shiftDate(watch.dateFrom, -1);
+  const windowTo = shiftDate(watch.dateTo, 1);
+
   const viewedRaw = getMeta(db, `viewed:${watch.id}`);
   const viewedBefore = viewedRaw ? Number(viewedRaw) : null;
 
   const collected: WatchOption[] = [];
   for (const row of rows) {
     if (!planned.has(`${row.fromId}:${row.toId}:${row.date}`)) continue;
+    if (!fromLatestCheck(row)) continue;
     const transfer = row.classId.startsWith('MIX');
     if (!transfer && watch.classes.length > 0 && !watch.classes.includes(row.classId)) continue;
     if (watch.maxPriceKop != null && row.priceKop > watch.maxPriceKop) continue;
@@ -139,15 +162,19 @@ export function watchOptions(db: Db, watch: Watch, now: number): WatchOptions {
         }
       : journeyTimes(
           db,
-          { trainNumber: row.trainNumber, fromId: row.fromId, departAt: row.departAt, arriveAt: row.arriveAt },
+          { trainNumber: row.trainNumber, fromId: row.fromId, toId: row.toId, departAt: row.departAt, arriveAt: row.arriveAt },
           refined.boardId,
           refined.alightId,
         );
 
-    const announcedAt = announced.get(`${row.date}:${row.trainNumber}`);
+    const date = travelDate(row.date, journey.departAt);
+    if (date < windowFrom || date > windowTo) continue;
+    const announcedAt = announced.get(`${date}:${row.trainNumber}`) ?? announced.get(`${row.date}:${row.trainNumber}`);
     const { legsJson: _legs, ...rest } = row;
     collected.push({
       ...rest,
+      date,
+      searchDate: row.date,
       kind: refined.kind,
       why: refined.why,
       journeyDepartAt: journey.departAt,
@@ -162,16 +189,7 @@ export function watchOptions(db: Db, watch: Watch, now: number): WatchOptions {
     });
   }
 
-  const hasPlainTicket = new Set(
-    collected.filter((option) => option.kind === 'direct' || option.kind === 'neighbor_date').map((option) => `${option.date}:${option.trainNumber}`),
-  );
-  const options = collected.filter(
-    (option) =>
-      option.kind === 'direct' ||
-      option.kind === 'neighbor_date' ||
-      option.kind === 'transfers' ||
-      !hasPlainTicket.has(`${option.date}:${option.trainNumber}`),
-  );
+  const options = applyTiers(collected);
   options.sort((a, b) => a.date.localeCompare(b.date) || a.priceKop - b.priceKop);
 
   const probeRows = db

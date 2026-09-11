@@ -32,7 +32,7 @@ function line(): TripDetail {
 }
 
 const NOW = 10_000_000;
-const TICKET_DEPART = 1_790_000_000;
+const TICKET_DEPART = Math.floor(Date.UTC(2026, 8, 25, 5, 0) / 1_000);
 
 interface SnapInput {
   fromId: number;
@@ -129,7 +129,7 @@ describe('watch options', () => {
     const option = watchOptions(db, w, NOW).options[0]!;
     expect(option.kind).toBe('alight_earlier');
     expect(option.alightName).toBe('Коломия');
-    expect(option.why).toBe('квиток до Коломия, це за 120 хв до Чернівці');
+    expect(option.why).toBe('квиток до Коломия, далі 120 хв у тамбурі до Чернівці');
     expect(option.journeyArriveAt).toBe(TICKET_DEPART + 10_800);
   });
 
@@ -146,6 +146,15 @@ describe('watch options', () => {
     expect(watchOptions(db, w, NOW).options).toHaveLength(0);
   });
 
+  it('files a night boarding under the day the train is actually in Lviv', () => {
+    const w = watch({ dateFrom: '2026-09-25', dateTo: '2026-09-25' });
+    const eveningInKyiv = Math.floor(Date.UTC(2026, 8, 25, 16, 0) / 1_000);
+    snap(db, { fromId: KYIV, kind: 'board_earlier', departAt: eveningInKyiv, arriveAt: eveningInKyiv + 43_200 });
+    const option = watchOptions(db, w, NOW).options[0]!;
+    expect(option.searchDate).toBe('2026-09-25');
+    expect(option.date).toBe('2026-09-26');
+  });
+
   it('keeps the legs of a transfer', () => {
     const w = watch();
     snap(db, {
@@ -153,14 +162,14 @@ describe('watch options', () => {
       classId: 'MIX:1-2',
       kind: 'transfers',
       segments: [
-        { trainNumber: '111К', from: 'Львів', to: 'Тернопіль', departAt: 1_000, arriveAt: 5_000 },
-        { trainNumber: '222П', from: 'Тернопіль', to: 'Чернівці', departAt: 8_000, arriveAt: 12_000 },
+        { trainNumber: '111К', from: 'Львів', to: 'Тернопіль', departAt: TICKET_DEPART, arriveAt: TICKET_DEPART + 4_000 },
+        { trainNumber: '222П', from: 'Тернопіль', to: 'Чернівці', departAt: TICKET_DEPART + 7_000, arriveAt: TICKET_DEPART + 11_000 },
       ],
     });
     const option = watchOptions(db, w, NOW).options[0]!;
     expect(option.segments).toHaveLength(2);
-    expect(option.journeyDepartAt).toBe(1_000);
-    expect(option.journeyArriveAt).toBe(12_000);
+    expect(option.journeyDepartAt).toBe(TICKET_DEPART);
+    expect(option.journeyArriveAt).toBe(TICKET_DEPART + 11_000);
   });
 
   it('drops trains without seats in the latest reading', () => {
