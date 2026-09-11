@@ -8,8 +8,14 @@ import type { PageFetchResult, UzTransport } from '../net/browser.js';
 import { buildAtlas, trainNeedsRoute, ROUTE_TTL_MS } from './build.js';
 import { atlasStats, trainsForPair } from '../store/atlas.js';
 
-const searchBody = readFileSync(new URL('../../fixtures/search-kyiv-lviv.json', import.meta.url), 'utf-8');
-const detailBody = readFileSync(new URL('../../fixtures/trip-detail.json', import.meta.url), 'utf-8');
+const searchBody = readFileSync(
+  new URL('../../fixtures/search-kyiv-lviv.json', import.meta.url),
+  'utf-8',
+);
+const detailBody = readFileSync(
+  new URL('../../fixtures/trip-detail.json', import.meta.url),
+  'utf-8',
+);
 
 function transportFor(calls: string[]): UzTransport {
   return {
@@ -68,17 +74,29 @@ describe('atlas build', () => {
   });
 
   it('builds the pair index so lookups need no network afterwards', async () => {
-    await buildAtlas(makeDeps(db, calls), { fromId: 2200001, toId: 2218000, dates: ['2026-09-15'] });
+    await buildAtlas(makeDeps(db, calls), {
+      fromId: 2200001,
+      toId: 2218000,
+      dates: ['2026-09-15'],
+    });
     const before = calls.length;
     expect(trainsForPair(db, 2200001, 2218000).length).toBeGreaterThan(0);
     expect(calls.length).toBe(before);
   });
 
   it('does not refetch a route it already has', async () => {
-    await buildAtlas(makeDeps(db, calls), { fromId: 2200001, toId: 2218000, dates: ['2026-09-15'] });
+    await buildAtlas(makeDeps(db, calls), {
+      fromId: 2200001,
+      toId: 2218000,
+      dates: ['2026-09-15'],
+    });
     const firstDetailCalls = calls.filter((p) => /^\/v3\/trips\/\d+$/.test(p)).length;
     calls.length = 0;
-    await buildAtlas(makeDeps(db, calls), { fromId: 2200001, toId: 2218000, dates: ['2026-09-15'] });
+    await buildAtlas(makeDeps(db, calls), {
+      fromId: 2200001,
+      toId: 2218000,
+      dates: ['2026-09-15'],
+    });
     const secondDetailCalls = calls.filter((p) => /^\/v3\/trips\/\d+$/.test(p)).length;
     expect(firstDetailCalls).toBeGreaterThan(0);
     expect(secondDetailCalls).toBe(0);
@@ -101,19 +119,27 @@ describe('atlas build', () => {
       now: () => 10_000,
       sleep: async () => {},
     });
-    const result = await buildAtlas({ db, client, now: () => 10_000, sleep: async () => {}, pacingMs: 0 }, {
-      fromId: 2200001,
-      toId: 2218000,
-      dates: ['2026-09-15'],
-    });
+    const result = await buildAtlas(
+      { db, client, now: () => 10_000, sleep: async () => {}, pacingMs: 0 },
+      {
+        fromId: 2200001,
+        toId: 2218000,
+        dates: ['2026-09-15'],
+      },
+    );
     expect(result.interrupted).toBe(true);
     const trainId = parseSearchTrainId();
     expect(trainNeedsRoute(db, trainId, 10_000)).toBe(true);
   });
 
   it('refetches a route once it goes stale', async () => {
-    await buildAtlas(makeDeps(db, calls), { fromId: 2200001, toId: 2218000, dates: ['2026-09-15'] });
-    const trainId = (db.prepare('select id from train limit 1').get() as unknown as { id: number }).id;
+    await buildAtlas(makeDeps(db, calls), {
+      fromId: 2200001,
+      toId: 2218000,
+      dates: ['2026-09-15'],
+    });
+    const trainId = (db.prepare('select id from train limit 1').get() as unknown as { id: number })
+      .id;
     expect(trainNeedsRoute(db, trainId, 10_000)).toBe(false);
     expect(trainNeedsRoute(db, trainId, 10_000 + ROUTE_TTL_MS + 1)).toBe(true);
   });

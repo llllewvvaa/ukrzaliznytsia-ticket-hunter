@@ -24,12 +24,13 @@ export async function createContext(options: ContextOptions = {}): Promise<AppCo
   const db = openDb(dbPath());
   pruneCache(db, Date.now());
 
-  const transport = options.withBrowser === false
-    ? offlineTransport()
-    : await BrowserSession.start({
-        userDataDir: profileDir(),
-        headless: options.headless ?? process.env.UZ_HEADLESS === '1',
-      });
+  const transport =
+    options.withBrowser === false
+      ? offlineTransport()
+      : await BrowserSession.start({
+          userDataDir: profileDir(),
+          headless: options.headless ?? process.env.UZ_HEADLESS === '1',
+        });
 
   const perHour = options.perHour ?? Number(process.env.UZ_PER_HOUR ?? 300);
   const client = new UzClient({

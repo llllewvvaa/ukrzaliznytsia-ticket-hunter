@@ -19,13 +19,19 @@ export function useWizard(initial?: Partial<WizardState>) {
     ...initial,
   });
 
-  const patch = (next: Partial<WizardState>): void => setState((current) => ({ ...current, ...next }));
+  const patch = (next: Partial<WizardState>): void =>
+    setState((current) => ({ ...current, ...next }));
 
-  const dateTo = useMemo(() => shiftIso(state.dateFrom, state.days - 1), [state.dateFrom, state.days]);
+  const dateTo = useMemo(
+    () => shiftIso(state.dateFrom, state.days - 1),
+    [state.dateFrom, state.days],
+  );
 
   const index = WIZARD_STEPS.indexOf(step);
   const canGoNext =
-    step === 'route' ? state.from != null && state.to != null && state.from.id !== state.to.id : true;
+    step === 'route'
+      ? state.from != null && state.to != null && state.from.id !== state.to.id
+      : true;
 
   const next = (): void => {
     const target = WIZARD_STEPS[Math.min(index + 1, WIZARD_STEPS.length - 1)]!;
@@ -44,5 +50,16 @@ export function useWizard(initial?: Partial<WizardState>) {
         : [...state.classes, id],
     });
 
-  return { step, index, state, patch, dateTo, canGoNext, next, back, toggleClass, isLast: step === 'review' };
+  return {
+    step,
+    index,
+    state,
+    patch,
+    dateTo,
+    canGoNext,
+    next,
+    back,
+    toggleClass,
+    isLast: step === 'review',
+  };
 }

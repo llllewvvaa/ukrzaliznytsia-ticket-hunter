@@ -13,7 +13,13 @@ describe('remembered chat', () => {
   });
 
   const seats = (watchId: string) =>
-    insertEvent(db, watchId, 'appeared', { trainNumber: '001К', date: '2026-09-20', priceKop: 1 }, 2_000);
+    insertEvent(
+      db,
+      watchId,
+      'appeared',
+      { trainNumber: '001К', date: '2026-09-20', priceKop: 1 },
+      2_000,
+    );
 
   it('stores and reads the last chat that talked to the bot', () => {
     expect(lastChat(db)).toBeNull();
@@ -26,20 +32,34 @@ describe('remembered chat', () => {
     const watch = createWatch(db, { fromId: 1, toId: 2, dateFrom: '2026-09-20' }, 1_000);
     seats(watch.id);
     const sent: number[] = [];
-    await flushEvents(db, async (chatId) => {
-      sent.push(chatId);
-    }, null, 3_000);
+    await flushEvents(
+      db,
+      async (chatId) => {
+        sent.push(chatId);
+      },
+      null,
+      3_000,
+    );
     expect(sent).toEqual([4242]);
   });
 
   it('still prefers the chat the watch belongs to', async () => {
     rememberChat(db, 4242);
-    const watch = createWatch(db, { fromId: 1, toId: 2, dateFrom: '2026-09-20', chatId: 999 }, 1_000);
+    const watch = createWatch(
+      db,
+      { fromId: 1, toId: 2, dateFrom: '2026-09-20', chatId: 999 },
+      1_000,
+    );
     seats(watch.id);
     const sent: number[] = [];
-    await flushEvents(db, async (chatId) => {
-      sent.push(chatId);
-    }, null, 3_000);
+    await flushEvents(
+      db,
+      async (chatId) => {
+        sent.push(chatId);
+      },
+      null,
+      3_000,
+    );
     expect(sent).toEqual([999]);
   });
 });

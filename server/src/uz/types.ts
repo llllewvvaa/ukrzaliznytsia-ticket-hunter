@@ -26,7 +26,7 @@ export interface Trip {
   classes: WagonClassOffer[];
 }
 
-export interface TransferLeg extends Trip {}
+export type TransferLeg = Trip;
 
 export interface SearchResult {
   direct: Trip[];

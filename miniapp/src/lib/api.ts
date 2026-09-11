@@ -75,7 +75,9 @@ export const api = {
   stations(query: string): Promise<{ stations: Station[] }> {
     return call(`/api/stations?q=${encodeURIComponent(query)}`);
   },
-  ways(body: WaysRequest): Promise<{ offers: Offer[]; requests: number; candidates: number; gated: boolean }> {
+  ways(
+    body: WaysRequest,
+  ): Promise<{ offers: Offer[]; requests: number; candidates: number; gated: boolean }> {
     return call('/api/ways', { method: 'POST', body: JSON.stringify(body) });
   },
   watches(): Promise<{ watches: Watch[] }> {
@@ -103,6 +105,8 @@ export const api = {
     return call('/api/stats');
   },
   forecast(train: string, classId: string): Promise<{ forecast: Forecast }> {
-    return call(`/api/forecast?train=${encodeURIComponent(train)}&class=${encodeURIComponent(classId)}`);
+    return call(
+      `/api/forecast?train=${encodeURIComponent(train)}&class=${encodeURIComponent(classId)}`,
+    );
   },
 };

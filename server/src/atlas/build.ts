@@ -47,10 +47,7 @@ export function markTrainChecked(db: Db, trainId: number, number: string, now: n
   ).run(trainId, number, now);
 }
 
-export async function fetchAndStoreRoute(
-  deps: AtlasDeps,
-  tripId: number,
-): Promise<number> {
+export async function fetchAndStoreRoute(deps: AtlasDeps, tripId: number): Promise<number> {
   const now = deps.now ?? (() => Date.now());
   const res = await deps.client.get(tripDetailPath(tripId), { ttlMs: DETAIL_TTL_MS });
   if (res.kind !== 'ok') return 0;
@@ -89,15 +86,17 @@ export async function buildAtlas(
 
   for (const date of request.dates) {
     if (interrupted) break;
-    const res = await guarded(() => deps.client.get(
-      searchTripsPath({
-        fromId: request.fromId,
-        toId: request.toId,
-        date,
-        withTransfers: request.withTransfers ?? false,
-      }),
-      { ttlMs: SEARCH_TTL_MS },
-    ));
+    const res = await guarded(() =>
+      deps.client.get(
+        searchTripsPath({
+          fromId: request.fromId,
+          toId: request.toId,
+          date,
+          withTransfers: request.withTransfers ?? false,
+        }),
+        { ttlMs: SEARCH_TTL_MS },
+      ),
+    );
     if (!res) break;
     searched += 1;
     if (res.kind !== 'ok') continue;

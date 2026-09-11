@@ -118,6 +118,11 @@ describe('UzClient', () => {
   it('logs every call with size and duration', async () => {
     const { client, log } = makeClient([{ status: 200, body: '12345' }]);
     await client.get('/stations?search=a');
-    expect(log.entries()[0]).toMatchObject({ path: '/stations?search=a', status: 200, bytes: 5, cacheHit: false });
+    expect(log.entries()[0]).toMatchObject({
+      path: '/stations?search=a',
+      status: 200,
+      bytes: 5,
+      cacheHit: false,
+    });
   });
 });

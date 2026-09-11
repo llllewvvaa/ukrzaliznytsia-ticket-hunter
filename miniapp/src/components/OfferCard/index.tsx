@@ -40,13 +40,21 @@ export function OfferCard({
       </div>
 
       <div className="mt-2 flex items-baseline gap-3">
-        <span className="text-xl font-bold tracking-tight text-gray-900">{clockTime(offer.departAt)}</span>
+        <span className="text-xl font-bold tracking-tight text-gray-900">
+          {clockTime(offer.departAt)}
+        </span>
         <span className="text-gray-300">→</span>
-        <span className="text-xl font-bold tracking-tight text-gray-900">{clockTime(offer.arriveAt)}</span>
+        <span className="text-xl font-bold tracking-tight text-gray-900">
+          {clockTime(offer.arriveAt)}
+        </span>
         {nextDayMark(offer.departAt, offer.arriveAt) ? (
-          <span className="text-xs font-semibold text-gray-500">{nextDayMark(offer.departAt, offer.arriveAt)}</span>
+          <span className="text-xs font-semibold text-gray-500">
+            {nextDayMark(offer.departAt, offer.arriveAt)}
+          </span>
         ) : null}
-        <span className="ml-auto text-base font-semibold text-gray-900">{hryvnia(offer.priceKop)}</span>
+        <span className="ml-auto text-base font-semibold text-gray-900">
+          {hryvnia(offer.priceKop)}
+        </span>
       </div>
 
       <div className="mt-1 text-xs text-gray-500">

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { departureDatesPath, searchTripsPath, stationsPath, tripDetailPath, wagonsByClassPath } from './paths.js';
+import {
+  departureDatesPath,
+  searchTripsPath,
+  stationsPath,
+  tripDetailPath,
+  wagonsByClassPath,
+} from './paths.js';
 import { buildGuestHeaders, isUuidV4 } from './headers.js';
 
 describe('paths', () => {
@@ -10,9 +16,9 @@ describe('paths', () => {
   });
 
   it('asks for transfers when requested', () => {
-    expect(searchTripsPath({ fromId: 1, toId: 2, date: '2026-01-01', withTransfers: true })).toContain(
-      'with_transfers=1',
-    );
+    expect(
+      searchTripsPath({ fromId: 1, toId: 2, date: '2026-01-01', withTransfers: true }),
+    ).toContain('with_transfers=1');
   });
 
   it('percent-encodes the cyrillic class id', () => {
@@ -22,7 +28,9 @@ describe('paths', () => {
   it('builds detail, stations and dates paths', () => {
     expect(tripDetailPath(13453982)).toBe('/v3/trips/13453982');
     expect(stationsPath('Київ')).toBe('/stations?search=%D0%9A%D0%B8%D1%97%D0%B2');
-    expect(departureDatesPath(1, 2)).toBe('/trips/departure-dates?station_from_id=1&station_to_id=2');
+    expect(departureDatesPath(1, 2)).toBe(
+      '/trips/departure-dates?station_from_id=1&station_to_id=2',
+    );
   });
 });
 

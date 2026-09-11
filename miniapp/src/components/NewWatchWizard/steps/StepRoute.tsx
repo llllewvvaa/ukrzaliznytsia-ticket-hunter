@@ -14,7 +14,12 @@ export function StepRoute({
 
   return (
     <div className="space-y-4">
-      <StationCombobox label="Звідки" placeholder="Київ-Пасажирський" value={state.from} onPick={handleFrom} />
+      <StationCombobox
+        label="Звідки"
+        placeholder="Київ-Пасажирський"
+        value={state.from}
+        onPick={handleFrom}
+      />
       <StationCombobox label="Куди" placeholder="Львів" value={state.to} onPick={handleTo} />
       {state.from && state.to && state.from.id === state.to.id ? (
         <p className="text-xs text-red-600">Станції збігаються — обери різні.</p>

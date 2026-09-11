@@ -24,8 +24,20 @@ describe('journeyTimes', () => {
         arriveAt: 0,
         routePoints: [
           { seq: 0, stationId: KYIV, stationName: 'Київ', arriveAt: null, departAt: 100_000 },
-          { seq: 1, stationId: LVIV, stationName: 'Львів', arriveAt: 100_000 + 7 * 3_600 - 600, departAt: 100_000 + 7 * 3_600 },
-          { seq: 2, stationId: CHERNIVTSI, stationName: 'Чернівці', arriveAt: 100_000 + 12 * 3_600, departAt: null },
+          {
+            seq: 1,
+            stationId: LVIV,
+            stationName: 'Львів',
+            arriveAt: 100_000 + 7 * 3_600 - 600,
+            departAt: 100_000 + 7 * 3_600,
+          },
+          {
+            seq: 2,
+            stationId: CHERNIVTSI,
+            stationName: 'Чернівці',
+            arriveAt: 100_000 + 12 * 3_600,
+            departAt: null,
+          },
         ],
       },
       1_000,
@@ -36,7 +48,12 @@ describe('journeyTimes', () => {
     const ticketDepart = 2_000_000;
     const journey = journeyTimes(
       db,
-      { trainNumber: '007К', fromId: KYIV, departAt: ticketDepart, arriveAt: ticketDepart + 12 * 3_600 },
+      {
+        trainNumber: '007К',
+        fromId: KYIV,
+        departAt: ticketDepart,
+        arriveAt: ticketDepart + 12 * 3_600,
+      },
       LVIV,
       CHERNIVTSI,
     );
@@ -47,13 +64,23 @@ describe('journeyTimes', () => {
   });
 
   it('matches the ticket for a plain direct ride', () => {
-    const journey = journeyTimes(db, { trainNumber: '007К', fromId: LVIV, departAt: 5_000_000, arriveAt: 5_000_000 + 5 * 3_600 }, LVIV, CHERNIVTSI);
+    const journey = journeyTimes(
+      db,
+      { trainNumber: '007К', fromId: LVIV, departAt: 5_000_000, arriveAt: 5_000_000 + 5 * 3_600 },
+      LVIV,
+      CHERNIVTSI,
+    );
     expect(journey.departAt).toBe(5_000_000);
     expect(journey.arriveAt).toBe(5_000_000 + 5 * 3_600);
   });
 
   it('falls back to the ticket times when the route is unknown', () => {
-    const journey = journeyTimes(db, { trainNumber: 'X', fromId: LVIV, departAt: 1_000, arriveAt: 4_600 }, LVIV, CHERNIVTSI);
+    const journey = journeyTimes(
+      db,
+      { trainNumber: 'X', fromId: LVIV, departAt: 1_000, arriveAt: 4_600 },
+      LVIV,
+      CHERNIVTSI,
+    );
     expect(journey).toEqual({ departAt: 1_000, arriveAt: 4_600, durationMin: 60, exact: false });
   });
 });

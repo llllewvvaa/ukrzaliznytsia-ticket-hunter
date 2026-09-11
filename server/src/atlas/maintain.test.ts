@@ -9,8 +9,14 @@ import { createWatch } from '../store/watches.js';
 import { trainsForPair } from '../store/atlas.js';
 import { maintainAtlas, watchesNeedingAtlas } from './maintain.js';
 
-const searchBody = readFileSync(new URL('../../fixtures/search-kyiv-lviv.json', import.meta.url), 'utf-8');
-const detailBody = readFileSync(new URL('../../fixtures/trip-detail.json', import.meta.url), 'utf-8');
+const searchBody = readFileSync(
+  new URL('../../fixtures/search-kyiv-lviv.json', import.meta.url),
+  'utf-8',
+);
+const detailBody = readFileSync(
+  new URL('../../fixtures/trip-detail.json', import.meta.url),
+  'utf-8',
+);
 
 function makeDeps(db: Db, clock = 10_000) {
   const transport: UzTransport = {
@@ -30,7 +36,12 @@ function makeDeps(db: Db, clock = 10_000) {
   };
   return {
     db,
-    client: new UzClient({ transport, log: createMemoryRequestLog(), cache: createMemoryCache(), now: () => clock }),
+    client: new UzClient({
+      transport,
+      log: createMemoryRequestLog(),
+      cache: createMemoryCache(),
+      now: () => clock,
+    }),
     now: () => clock,
     sleep: async () => {},
   };

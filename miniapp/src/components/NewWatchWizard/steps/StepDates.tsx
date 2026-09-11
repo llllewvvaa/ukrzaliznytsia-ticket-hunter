@@ -26,7 +26,9 @@ export function StepDates({
           min={1}
           max={14}
           value={state.days}
-          onChange={(event) => patch({ days: Math.max(1, Math.min(14, Number(event.target.value))) })}
+          onChange={(event) =>
+            patch({ days: Math.max(1, Math.min(14, Number(event.target.value))) })
+          }
         />
       </Field>
       <p className="rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800">

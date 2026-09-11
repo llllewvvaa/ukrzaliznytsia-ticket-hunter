@@ -117,7 +117,9 @@ export function offersFromSearch(result: SearchResult, candidate: Candidate): Of
         {
           id: transferClassId(variant),
           name: `${variant.length} сегменти`,
-          freeSeats: Math.min(...variant.map((leg) => Math.max(...leg.classes.map((c) => c.freeSeats)))),
+          freeSeats: Math.min(
+            ...variant.map((leg) => Math.max(...leg.classes.map((c) => c.freeSeats))),
+          ),
           priceKop: total,
           amenities: [],
         },
@@ -159,7 +161,8 @@ export function scoreOffer(offer: Offer, weights: RankWeights = DEFAULT_WEIGHTS)
 }
 
 export function passesFilter(offer: Offer, filter: OfferFilter): boolean {
-  if (filter.classes && filter.classes.length > 0 && !filter.classes.includes(offer.classId)) return false;
+  if (filter.classes && filter.classes.length > 0 && !filter.classes.includes(offer.classId))
+    return false;
   if (filter.maxPriceKop != null && offer.priceKop > filter.maxPriceKop) return false;
   if (filter.minFreeSeats != null && offer.freeSeats < filter.minFreeSeats) return false;
   if (filter.departAfter != null && offer.departAt < filter.departAfter) return false;

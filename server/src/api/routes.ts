@@ -74,7 +74,8 @@ export async function handleApi(deps: ApiDeps, request: ApiRequest): Promise<Api
       budget?: number;
       alightEarlierMin?: number;
     };
-    if (!body.fromId || !body.toId || !body.dates?.length) return bad('fromId, toId, dates required');
+    if (!body.fromId || !body.toId || !body.dates?.length)
+      return bad('fromId, toId, dates required');
     const result = await findWays(deps, {
       fromId: body.fromId,
       toId: body.toId,
@@ -83,7 +84,9 @@ export async function handleApi(deps: ApiDeps, request: ApiRequest): Promise<Api
       maxRequests: Math.min(body.budget ?? 10, 20),
       sort: body.sort ?? 'cheapest',
       filter: { classes: body.classes, maxPriceKop: body.maxPriceKop },
-      ...(typeof body.alightEarlierMin === 'number' ? { alightEarlierMin: body.alightEarlierMin } : {}),
+      ...(typeof body.alightEarlierMin === 'number'
+        ? { alightEarlierMin: body.alightEarlierMin }
+        : {}),
     });
     return ok(result);
   }
@@ -127,9 +130,14 @@ export async function handleApi(deps: ApiDeps, request: ApiRequest): Promise<Api
     }
 
     if (method === 'PATCH' && !sub) {
-      const body = (request.body ?? {}) as { favorite?: boolean; state?: 'active' | 'paused'; alightEarlierMin?: number };
+      const body = (request.body ?? {}) as {
+        favorite?: boolean;
+        state?: 'active' | 'paused';
+        alightEarlierMin?: number;
+      };
       if (body.favorite != null) setFavorite(deps.db, id, body.favorite, now());
-      if (typeof body.alightEarlierMin === 'number') setAlightEarlier(deps.db, id, body.alightEarlierMin, now());
+      if (typeof body.alightEarlierMin === 'number')
+        setAlightEarlier(deps.db, id, body.alightEarlierMin, now());
       if (body.state) setWatchState(deps.db, id, body.state, now());
       return ok({ watch: getWatch(deps.db, id) });
     }
@@ -139,7 +147,13 @@ export async function handleApi(deps: ApiDeps, request: ApiRequest): Promise<Api
         .prepare(
           'select id, kind, payload_json as payload, created_at as createdAt, notified_at as notifiedAt from event where watch_id = ? order by created_at desc limit 100',
         )
-        .all(id) as unknown as { id: number; kind: string; payload: string; createdAt: number; notifiedAt: number | null }[];
+        .all(id) as unknown as {
+        id: number;
+        kind: string;
+        payload: string;
+        createdAt: number;
+        notifiedAt: number | null;
+      }[];
       return ok({ events: rows.map((row) => ({ ...row, payload: JSON.parse(row.payload) })) });
     }
 

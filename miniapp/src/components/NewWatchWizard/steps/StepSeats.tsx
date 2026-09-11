@@ -64,7 +64,9 @@ export function StepSeats({
           min={1}
           max={4}
           value={state.minSeats}
-          onChange={(event) => patch({ minSeats: Math.max(1, Math.min(4, Number(event.target.value))) })}
+          onChange={(event) =>
+            patch({ minSeats: Math.max(1, Math.min(4, Number(event.target.value))) })
+          }
         />
       </Field>
 

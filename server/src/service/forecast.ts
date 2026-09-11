@@ -39,7 +39,9 @@ export function median(values: number[]): number | null {
   if (values.length === 0) return null;
   const sorted = [...values].sort((a, b) => a - b);
   const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 1 ? sorted[middle]! : Math.round((sorted[middle - 1]! + sorted[middle]!) / 2);
+  return sorted.length % 2 === 1
+    ? sorted[middle]!
+    : Math.round((sorted[middle - 1]! + sorted[middle]!) / 2);
 }
 
 export function forecast(db: Db, input: ForecastInput): ForecastResult {
@@ -93,7 +95,10 @@ export function forecast(db: Db, input: ForecastInput): ForecastResult {
   };
 }
 
-export function watchedTrains(db: Db, limit = 20): { trainNumber: string; classId: string; rows: number }[] {
+export function watchedTrains(
+  db: Db,
+  limit = 20,
+): { trainNumber: string; classId: string; rows: number }[] {
   return db
     .prepare(
       `select train_number as trainNumber, class_id as classId, count(*) as rows

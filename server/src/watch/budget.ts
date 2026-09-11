@@ -5,7 +5,11 @@ export interface BudgetState {
   burst: number;
 }
 
-export function createBudget(perHour: number, now: number, burst = Math.max(1, Math.round(perHour / 12))): BudgetState {
+export function createBudget(
+  perHour: number,
+  now: number,
+  burst = Math.max(1, Math.round(perHour / 12)),
+): BudgetState {
   return { tokens: burst, updatedAt: now, perHour, burst };
 }
 
@@ -19,7 +23,11 @@ export function refill(state: BudgetState, now: number): BudgetState {
   };
 }
 
-export function take(state: BudgetState, now: number, count = 1): { state: BudgetState; granted: number } {
+export function take(
+  state: BudgetState,
+  now: number,
+  count = 1,
+): { state: BudgetState; granted: number } {
   const filled = refill(state, now);
   const granted = Math.max(0, Math.min(count, Math.floor(filled.tokens)));
   return { state: { ...filled, tokens: filled.tokens - granted }, granted };

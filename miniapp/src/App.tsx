@@ -28,16 +28,24 @@ export function App() {
   const watches = useWatches();
   const stats = useStats(statsKey);
   const historyWatch = selected ?? watches.watches[0] ?? null;
-  const { events, forecast, loading: eventsLoading } = useEvents(
-    tab === 'history' ? (historyWatch?.id ?? null) : null,
-  );
+  const {
+    events,
+    forecast,
+    loading: eventsLoading,
+  } = useEvents(tab === 'history' ? (historyWatch?.id ?? null) : null);
 
   useEffect(() => {
     api.ready();
   }, []);
 
-  const favorites = useMemo(() => watches.watches.filter((watch) => watch.favorite), [watches.watches]);
-  const others = useMemo(() => watches.watches.filter((watch) => !watch.favorite), [watches.watches]);
+  const favorites = useMemo(
+    () => watches.watches.filter((watch) => watch.favorite),
+    [watches.watches],
+  );
+  const others = useMemo(
+    () => watches.watches.filter((watch) => !watch.favorite),
+    [watches.watches],
+  );
 
   const handleWatchOffer = (offer: Offer, from: Station, to: Station): void => {
     setWizard({
@@ -76,7 +84,11 @@ export function App() {
         opened ? (
           <WatchDetail watch={opened} onBack={() => setOpened(null)} />
         ) : wizard ? (
-          <NewWatchWizard initial={wizard} onDone={handleWizardDone} onCancel={() => setWizard(null)} />
+          <NewWatchWizard
+            initial={wizard}
+            onDone={handleWizardDone}
+            onCancel={() => setWizard(null)}
+          />
         ) : (
           <>
             {watches.loading ? <SkeletonCards /> : null}

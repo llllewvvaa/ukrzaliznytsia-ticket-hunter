@@ -9,12 +9,7 @@ export const SERVER_ERROR_TRIP_THRESHOLD = 5;
 export const SERVER_ERROR_PAUSE_MS = 5 * 60_000;
 
 export type ResponseKind =
-  | 'ok'
-  | 'rate_limited'
-  | 'gated'
-  | 'not_found'
-  | 'server_error'
-  | 'client_error';
+  'ok' | 'rate_limited' | 'gated' | 'not_found' | 'server_error' | 'client_error';
 
 export function classifyStatus(status: number): ResponseKind {
   if (status >= 200 && status < 300) return 'ok';

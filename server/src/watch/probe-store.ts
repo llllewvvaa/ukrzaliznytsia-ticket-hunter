@@ -1,6 +1,12 @@
 import type { Db } from '../store/db.js';
 import type { Candidate } from '../brain/candidates.js';
-import { BASE_INTERVAL_MS, applyNight, departureBoost, nextInterval, withJitter } from './interval.js';
+import {
+  BASE_INTERVAL_MS,
+  applyNight,
+  departureBoost,
+  nextInterval,
+  withJitter,
+} from './interval.js';
 
 export interface ProbeKey {
   fromId: number;
@@ -81,7 +87,8 @@ export function upsertProbe(db: Db, candidate: Candidate, now: number, favorite 
 export function getProbe(db: Db, key: ProbeKey): ProbeRow | undefined {
   const row = db
     .prepare(`${SELECT} where from_id = ? and to_id = ? and date = ? and with_transfers = ?`)
-    .get(key.fromId, key.toId, key.date, key.withTransfers ? 1 : 0) as unknown as RawProbeRow | undefined;
+    .get(key.fromId, key.toId, key.date, key.withTransfers ? 1 : 0) as unknown as
+    RawProbeRow | undefined;
   return row ? hydrate(row) : undefined;
 }
 
@@ -109,9 +116,16 @@ export function probeKey(row: ProbeKey): string {
 // again, so they stay overdue forever and their overdue bonus keeps growing. If
 // selection ignored the plan they would outrank every live probe and starve the
 // whole watcher, which is exactly how it once went quiet for hours.
-export function dueProbes(db: Db, now: number, limit: number, planned?: ReadonlySet<string>): ProbeRow[] {
+export function dueProbes(
+  db: Db,
+  now: number,
+  limit: number,
+  planned?: ReadonlySet<string>,
+): ProbeRow[] {
   const rows = (
-    db.prepare(`${SELECT} where next_due_at <= ? order by next_due_at asc`).all(now) as unknown as RawProbeRow[]
+    db
+      .prepare(`${SELECT} where next_due_at <= ? order by next_due_at asc`)
+      .all(now) as unknown as RawProbeRow[]
   )
     .map(hydrate)
     .filter((row) => !planned || planned.has(probeKey(row)));

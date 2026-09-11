@@ -9,9 +9,27 @@ function appeared(payload: Record<string, unknown>, kind = 'appeared'): StoredEv
 describe('newTrainsFrom', () => {
   it('counts one train once however many paths and classes it came through', () => {
     const trains = newTrainsFrom([
-      appeared({ date: '2026-09-25', trainNumber: '045Л', classId: 'К', priceKop: 60_000, why: 'прямий напрямок' }),
-      appeared({ date: '2026-09-25', trainNumber: '045Л', classId: 'П', priceKop: 41_000, why: 'їхати далі до Вадул-Сірет' }),
-      appeared({ date: '2026-09-25', trainNumber: '045Л', classId: 'MIX:1-2', priceKop: 70_000, why: 'пересадки від УЗ' }),
+      appeared({
+        date: '2026-09-25',
+        trainNumber: '045Л',
+        classId: 'К',
+        priceKop: 60_000,
+        why: 'прямий напрямок',
+      }),
+      appeared({
+        date: '2026-09-25',
+        trainNumber: '045Л',
+        classId: 'П',
+        priceKop: 41_000,
+        why: 'їхати далі до Вадул-Сірет',
+      }),
+      appeared({
+        date: '2026-09-25',
+        trainNumber: '045Л',
+        classId: 'MIX:1-2',
+        priceKop: 70_000,
+        why: 'пересадки від УЗ',
+      }),
     ]);
     expect(trains).toHaveLength(1);
     expect(trains[0]).toMatchObject({ date: '2026-09-25', trainNumber: '045Л', priceKop: 41_000 });
@@ -26,8 +44,12 @@ describe('newTrainsFrom', () => {
   });
 
   it('ignores price drops and vanished seats', () => {
-    expect(newTrainsFrom([appeared({ date: '2026-09-25', trainNumber: '045Л' }, 'price_drop')])).toEqual([]);
-    expect(newTrainsFrom([appeared({ date: '2026-09-25', trainNumber: '045Л' }, 'gone')])).toEqual([]);
+    expect(
+      newTrainsFrom([appeared({ date: '2026-09-25', trainNumber: '045Л' }, 'price_drop')]),
+    ).toEqual([]);
+    expect(newTrainsFrom([appeared({ date: '2026-09-25', trainNumber: '045Л' }, 'gone')])).toEqual(
+      [],
+    );
   });
 });
 
@@ -37,8 +59,24 @@ describe('announcement text', () => {
     const text = announcementText(
       { name: 'Львів → Чернівці' },
       groupByDate([
-        { date: '2026-09-25', trainNumber: '865Д', priceKop: 20_222, departAt: depart, arriveAt: depart + 5 * 3_600 + 32 * 60, durationMin: 332, why: '' },
-        { date: '2026-09-25', trainNumber: '007К', priceKop: 29_365, departAt: depart, arriveAt: depart + 12 * 3_600, durationMin: 720, why: 'квиток від Київ-Пасажирський, посадка у Львів' },
+        {
+          date: '2026-09-25',
+          trainNumber: '865Д',
+          priceKop: 20_222,
+          departAt: depart,
+          arriveAt: depart + 5 * 3_600 + 32 * 60,
+          durationMin: 332,
+          why: '',
+        },
+        {
+          date: '2026-09-25',
+          trainNumber: '007К',
+          priceKop: 29_365,
+          departAt: depart,
+          arriveAt: depart + 12 * 3_600,
+          durationMin: 720,
+          why: 'квиток від Київ-Пасажирський, посадка у Львів',
+        },
       ]),
     );
     expect(text).toBe(

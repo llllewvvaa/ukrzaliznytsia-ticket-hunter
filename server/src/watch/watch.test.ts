@@ -12,7 +12,15 @@ import {
   nextInterval,
   withJitter,
 } from './interval.js';
-import { dueProbes, getProbe, probeKey, pruneOrphanProbes, recordProbe, scoreProbe, upsertProbe } from './probe-store.js';
+import {
+  dueProbes,
+  getProbe,
+  probeKey,
+  pruneOrphanProbes,
+  recordProbe,
+  scoreProbe,
+  upsertProbe,
+} from './probe-store.js';
 import type { Candidate } from '../brain/candidates.js';
 
 const candidate = (over: Partial<Candidate> = {}): Candidate => ({

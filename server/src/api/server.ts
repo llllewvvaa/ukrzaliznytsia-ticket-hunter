@@ -52,7 +52,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "connect-src 'self'",
-    "frame-ancestors https://web.telegram.org https://*.telegram.org",
+    'frame-ancestors https://web.telegram.org https://*.telegram.org',
     "base-uri 'none'",
     "form-action 'none'",
   ].join('; '),
@@ -92,7 +92,10 @@ export function startServer(deps: ApiDeps, options: ServerOptions): Server {
       const url = new URL(req.url ?? '/', 'http://localhost');
       const path = url.pathname;
       const forwarded = req.headers['cf-connecting-ip'] ?? req.headers['x-forwarded-for'];
-      const ip = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim() ?? req.socket.remoteAddress ?? '?';
+      const ip =
+        (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim() ??
+        req.socket.remoteAddress ??
+        '?';
 
       if (path.startsWith('/api/')) {
         let userId: number | undefined;
@@ -117,7 +120,8 @@ export function startServer(deps: ApiDeps, options: ServerOptions): Server {
           userId = check.userId;
         }
 
-        const body = req.method === 'POST' || req.method === 'PATCH' ? await readBody(req) : undefined;
+        const body =
+          req.method === 'POST' || req.method === 'PATCH' ? await readBody(req) : undefined;
         try {
           const result = await handleApi(deps, {
             method: req.method ?? 'GET',

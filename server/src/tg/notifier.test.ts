@@ -19,10 +19,26 @@ describe('notifier', () => {
   };
 
   const watchFor = (chatId: number | null = 7) =>
-    createWatch(db, { fromId: 1, toId: 2, dateFrom: '2026-09-25', chatId, name: 'Львів → Чернівці' }, 1_000);
+    createWatch(
+      db,
+      { fromId: 1, toId: 2, dateFrom: '2026-09-25', chatId, name: 'Львів → Чернівці' },
+      1_000,
+    );
 
-  const seatsOn = (watchId: string, train: string, date = '2026-09-25', at = 2_000, extra: Record<string, unknown> = {}) =>
-    insertEvent(db, watchId, 'appeared', { trainNumber: train, date, classId: 'К', priceKop: 50_000, ...extra }, at);
+  const seatsOn = (
+    watchId: string,
+    train: string,
+    date = '2026-09-25',
+    at = 2_000,
+    extra: Record<string, unknown> = {},
+  ) =>
+    insertEvent(
+      db,
+      watchId,
+      'appeared',
+      { trainNumber: train, date, classId: 'К', priceKop: 50_000, ...extra },
+      at,
+    );
 
   it('says new tickets on the date for the route, once', async () => {
     const watch = watchFor(555);
@@ -37,7 +53,13 @@ describe('notifier', () => {
 
   it('sends a single line when one train shows up through many paths', async () => {
     const watch = watchFor();
-    for (const why of ['прямий напрямок', 'їхати далі', 'сісти раніше', 'сусідня станція', 'пересадки від УЗ']) {
+    for (const why of [
+      'прямий напрямок',
+      'їхати далі',
+      'сісти раніше',
+      'сусідня станція',
+      'пересадки від УЗ',
+    ]) {
       seatsOn(watch.id, '045Л', '2026-09-25', 2_000, { why });
     }
     await flushEvents(db, send, null, 3_000);
@@ -49,7 +71,15 @@ describe('notifier', () => {
     const watch = watchFor();
     seatsOn(watch.id, '045Л', '2026-09-25', 2_000);
     recordSnapshots(db, 2_000, { fromId: 1, toId: 2, date: '2026-09-25', source: 'direct' }, [
-      { tripId: 1, trainNumber: '045Л', classId: 'К', className: 'К', freeSeats: 2, priceKop: 1, departAt: 0 },
+      {
+        tripId: 1,
+        trainNumber: '045Л',
+        classId: 'К',
+        className: 'К',
+        freeSeats: 2,
+        priceKop: 1,
+        departAt: 0,
+      },
     ]);
     await flushEvents(db, send, null, 3_000);
     seatsOn(watch.id, '045Л', '2026-09-25', 3_000 + ANNOUNCE_GAP_MS + 1_000);
@@ -82,7 +112,13 @@ describe('notifier', () => {
 
   it('keeps price drops and vanished seats out of the chat', async () => {
     const watch = watchFor();
-    insertEvent(db, watch.id, 'price_drop', { trainNumber: '045Л', date: '2026-09-25', priceKop: 1 }, 2_000);
+    insertEvent(
+      db,
+      watch.id,
+      'price_drop',
+      { trainNumber: '045Л', date: '2026-09-25', priceKop: 1 },
+      2_000,
+    );
     insertEvent(db, watch.id, 'gone', { trainNumber: '045Л', date: '2026-09-25' }, 2_000);
     await flushEvents(db, send, null, 3_000);
     expect(sent).toHaveLength(0);

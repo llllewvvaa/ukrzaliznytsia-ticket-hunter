@@ -51,10 +51,16 @@ export async function withDeadline<T>(work: Promise<T>, ms: number, path: string
 export function isTransportFailure(error: unknown): boolean {
   if (error instanceof TransportTimeoutError) return true;
   const message = error instanceof Error ? error.message : String(error);
-  return /TimeoutError|signal timed out|AbortError|Failed to fetch|NetworkError|net::ERR_/i.test(message);
+  return /TimeoutError|signal timed out|AbortError|Failed to fetch|NetworkError|net::ERR_/i.test(
+    message,
+  );
 }
 
-const PAGE_FETCH = async (input: { url: string; headers: Record<string, string>; timeoutMs: number }) => {
+const PAGE_FETCH = async (input: {
+  url: string;
+  headers: Record<string, string>;
+  timeoutMs: number;
+}) => {
   const res = await fetch(input.url, {
     headers: input.headers,
     signal: AbortSignal.timeout(input.timeoutMs),

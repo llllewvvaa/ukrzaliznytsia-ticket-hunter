@@ -71,9 +71,16 @@ export function createBot(deps: BotDeps): Bot {
       return;
     }
     const date = resolveDate(dateArg ?? '+7');
-    const result = await findWays(deps, { fromId: from.id, toId: to.id, dates: [date], maxRequests: 8 });
+    const result = await findWays(deps, {
+      fromId: from.id,
+      toId: to.id,
+      dates: [date],
+      maxRequests: 8,
+    });
     if (result.offers.length === 0) {
-      await ctx.reply(`${from.name} → ${to.name} ${date}: нічого не знайшов (запитів: ${result.requests})`);
+      await ctx.reply(
+        `${from.name} → ${to.name} ${date}: нічого не знайшов (запитів: ${result.requests})`,
+      );
       return;
     }
     const lines = result.offers.slice(0, 8).map((offer) => `· ${describeOffer(offer)}`);
@@ -172,7 +179,11 @@ export function createBot(deps: BotDeps): Bot {
         return;
       }
       await ctx.reply(
-        ['Є історія по:', ...rows.map((r) => `· ${r.trainNumber} ${r.classId} — ${r.rows} записів`), 'Формат: /forecast 017О К'].join('\n'),
+        [
+          'Є історія по:',
+          ...rows.map((r) => `· ${r.trainNumber} ${r.classId} — ${r.rows} записів`),
+          'Формат: /forecast 017О К',
+        ].join('\n'),
       );
       return;
     }

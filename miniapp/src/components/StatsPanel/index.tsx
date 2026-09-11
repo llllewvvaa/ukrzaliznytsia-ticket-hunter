@@ -11,13 +11,22 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function StatsPanel({ stats, forecast }: { stats: Stats | null; forecast: Forecast | null }) {
+export function StatsPanel({
+  stats,
+  forecast,
+}: {
+  stats: Stats | null;
+  forecast: Forecast | null;
+}) {
   if (!stats) return null;
 
   return (
     <div className="space-y-3">
       <Section title="Робота сторожа">
-        <Row label="запитів (мережа / кеш)" value={`${stats.report.network} / ${stats.report.cached}`} />
+        <Row
+          label="запитів (мережа / кеш)"
+          value={`${stats.report.network} / ${stats.report.cached}`}
+        />
         <Row label="частота" value={`${Math.round(stats.report.perHour)}/год`} />
         <Row label="одиниць перебору" value={`${stats.probes} (улюблених ${stats.favorites})`} />
         <Row label="економія проти брутфорсу" value={`${stats.savings.toFixed(1)}x`} />

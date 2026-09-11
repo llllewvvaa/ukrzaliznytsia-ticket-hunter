@@ -4,16 +4,35 @@ import { OfferCard } from '../OfferCard';
 import { EmptyState } from '../EmptyState';
 import { SkeletonCards } from '../Skeleton';
 import { useWatchOptions } from '../../hooks/use-watch-options';
-import { clockTime, dateRange, duration, hryvnia, nextDayMark, relTime, shortDate } from '../../lib/format';
+import {
+  clockTime,
+  dateRange,
+  duration,
+  hryvnia,
+  nextDayMark,
+  relTime,
+  shortDate,
+} from '../../lib/format';
 import { Segments } from '../Segments';
 import { routeEnds, pathText, sectionsFor, type TrainGroup } from '../../lib/path-text';
 import { className, type Watch } from '../../types';
 
 function weekday(iso: string): string {
-  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('uk-UA', { weekday: 'long', timeZone: 'Europe/Kyiv' });
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('uk-UA', {
+    weekday: 'long',
+    timeZone: 'Europe/Kyiv',
+  });
 }
 
-function TrainCard({ group, origin, destination }: { group: TrainGroup; origin: string; destination: string }) {
+function TrainCard({
+  group,
+  origin,
+  destination,
+}: {
+  group: TrainGroup;
+  origin: string;
+  destination: string;
+}) {
   const { best } = group;
   const alternatives = group.options.slice(1, 5);
   const hidden = group.options.length - 1 - alternatives.length;
@@ -38,12 +57,18 @@ function TrainCard({ group, origin, destination }: { group: TrainGroup; origin: 
 
       {best.journeyDepartAt ? (
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-lg font-bold tracking-tight text-gray-900">{clockTime(best.journeyDepartAt)}</span>
+          <span className="text-lg font-bold tracking-tight text-gray-900">
+            {clockTime(best.journeyDepartAt)}
+          </span>
           <span className="text-gray-300">→</span>
-          <span className="text-lg font-bold tracking-tight text-gray-900">{clockTime(best.journeyArriveAt)}</span>
+          <span className="text-lg font-bold tracking-tight text-gray-900">
+            {clockTime(best.journeyArriveAt)}
+          </span>
           {nextDay ? <span className="text-xs font-semibold text-gray-500">{nextDay}</span> : null}
           {best.durationMin > 0 ? (
-            <span className="ml-auto text-xs font-medium text-gray-600">{duration(best.durationMin)} у дорозі</span>
+            <span className="ml-auto text-xs font-medium text-gray-600">
+              {duration(best.durationMin)} у дорозі
+            </span>
           ) : null}
         </div>
       ) : null}
@@ -54,9 +79,12 @@ function TrainCard({ group, origin, destination }: { group: TrainGroup; origin: 
 
       {transfer ? <Segments segments={best.segments!} /> : null}
 
-      {best.kind === 'board_earlier' || best.kind === 'ride_further' || best.kind === 'alight_earlier' ? (
+      {best.kind === 'board_earlier' ||
+      best.kind === 'ride_further' ||
+      best.kind === 'alight_earlier' ? (
         <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-50/70 px-2.5 py-1.5 text-[11px] leading-snug text-amber-800">
-          <DetourIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" /> {pathText(best, origin, destination)}
+          <DetourIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />{' '}
+          {pathText(best, origin, destination)}
         </div>
       ) : null}
 
@@ -69,14 +97,18 @@ function TrainCard({ group, origin, destination }: { group: TrainGroup; origin: 
             >
               <span>
                 {className(option.classId)} ×{option.freeSeats}
-                {option.kind === 'board_earlier' || option.kind === 'ride_further' || option.kind === 'alight_earlier'
+                {option.kind === 'board_earlier' ||
+                option.kind === 'ride_further' ||
+                option.kind === 'alight_earlier'
                   ? ` · ${pathText(option, origin, destination)}`
                   : ''}
               </span>
               <span className="shrink-0 text-gray-700">{hryvnia(option.priceKop)}</span>
             </div>
           ))}
-          {hidden > 0 ? <div className="text-[11px] text-gray-400">ще {hidden} варіант(и)</div> : null}
+          {hidden > 0 ? (
+            <div className="text-[11px] text-gray-400">ще {hidden} варіант(и)</div>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -87,7 +119,9 @@ export function WatchDetail({ watch, onBack }: { watch: Watch; onBack: () => voi
   const { data, live, loading, refreshing, error, refresh } = useWatchOptions(watch);
   const sections = sectionsFor(data?.options ?? [], watch.dateFrom, watch.dateTo);
   const { origin, destination } = routeEnds(watch.name);
-  const newCount = new Set((data?.options ?? []).filter((o) => o.isNew).map((o) => `${o.date}:${o.trainNumber}`)).size;
+  const newCount = new Set(
+    (data?.options ?? []).filter((o) => o.isNew).map((o) => `${o.date}:${o.trainNumber}`),
+  ).size;
   const firstOutside = sections.findIndex((section) => !section.inWindow);
 
   return (
@@ -105,12 +139,20 @@ export function WatchDetail({ watch, onBack }: { watch: Watch; onBack: () => voi
           <div className="min-w-0 flex-1">
             <div className="truncate text-base font-bold text-gray-900">{watch.name}</div>
             <div className="text-xs text-gray-500">
-              {dateRange(watch.dateFrom, watch.dateTo)} · перевірено {relTime(data?.checkedAt ?? null)}
+              {dateRange(watch.dateFrom, watch.dateTo)} · перевірено{' '}
+              {relTime(data?.checkedAt ?? null)}
             </div>
           </div>
-          {newCount > 0 ? <Badge tone="bg-emerald-50 text-emerald-700">нових {newCount}</Badge> : null}
+          {newCount > 0 ? (
+            <Badge tone="bg-emerald-50 text-emerald-700">нових {newCount}</Badge>
+          ) : null}
         </div>
-        <Button variant="primary" className="mt-3 w-full" disabled={refreshing} onClick={() => void refresh()}>
+        <Button
+          variant="primary"
+          className="mt-3 w-full"
+          disabled={refreshing}
+          onClick={() => void refresh()}
+        >
           {refreshing ? 'Перевіряю в УЗ…' : 'Перевірити зараз'}
         </Button>
       </div>
@@ -130,13 +172,15 @@ export function WatchDetail({ watch, onBack }: { watch: Watch; onBack: () => voi
               icon={<TrainIcon className="h-6 w-6" />}
             />
           ) : (
-            live.slice(0, 20).map((offer) => (
-              <OfferCard
-                key={`${offer.tripId}-${offer.classId}-${offer.fromId}-${offer.toId}`}
-                offer={offer}
-                cheapest={offer.priceKop === live[0]?.priceKop}
-              />
-            ))
+            live
+              .slice(0, 20)
+              .map((offer) => (
+                <OfferCard
+                  key={`${offer.tripId}-${offer.classId}-${offer.fromId}-${offer.toId}`}
+                  offer={offer}
+                  cheapest={offer.priceKop === live[0]?.priceKop}
+                />
+              ))
           )}
         </>
       ) : null}
@@ -160,10 +204,16 @@ export function WatchDetail({ watch, onBack }: { watch: Watch; onBack: () => voi
               <h2
                 className={`px-1 pt-1 text-[11px] font-bold uppercase tracking-wider ${section.inWindow ? 'text-gray-500' : 'text-gray-300'}`}
               >
-                {shortDate(section.date)} · {weekday(section.date)} · потягів {section.trains.length}
+                {shortDate(section.date)} · {weekday(section.date)} · потягів{' '}
+                {section.trains.length}
               </h2>
               {section.trains.map((group) => (
-                <TrainCard key={group.trainNumber} group={group} origin={origin} destination={destination} />
+                <TrainCard
+                  key={group.trainNumber}
+                  group={group}
+                  origin={origin}
+                  destination={destination}
+                />
               ))}
             </section>
           ))

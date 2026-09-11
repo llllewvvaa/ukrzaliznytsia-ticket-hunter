@@ -8,7 +8,13 @@ import { refineKind } from '../brain/refine.js';
 import { journeyTimes } from '../brain/journey.js';
 import { travelDate } from '../brain/travel-date.js';
 import { applyTiers } from '../brain/tiers.js';
-import { offersFromSearch, rankOffers, type Offer, type OfferFilter, type SortMode } from '../brain/rank.js';
+import {
+  offersFromSearch,
+  rankOffers,
+  type Offer,
+  type OfferFilter,
+  type SortMode,
+} from '../brain/rank.js';
 
 export interface FindWaysRequest {
   fromId: number;
@@ -91,7 +97,9 @@ export async function findWays(
   }
 
   return {
-    offers: dedupe(rankOffers(applyTiers(offers), request.filter ?? {}, undefined, request.sort ?? 'cheapest')),
+    offers: dedupe(
+      rankOffers(applyTiers(offers), request.filter ?? {}, undefined, request.sort ?? 'cheapest'),
+    ),
     requests,
     candidates: candidates.length,
     gated,

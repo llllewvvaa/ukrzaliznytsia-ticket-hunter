@@ -23,7 +23,8 @@ function seatsLabel(watch: Watch): string | null {
   const parts: string[] = [];
   if (watch.seatPrefs.berth === 'lower') parts.push('нижня полиця');
   if (watch.seatPrefs.berth === 'upper') parts.push('верхня полиця');
-  if (watch.seatPrefs.minSeats && watch.seatPrefs.minSeats > 1) parts.push(`місць ${watch.seatPrefs.minSeats}`);
+  if (watch.seatPrefs.minSeats && watch.seatPrefs.minSeats > 1)
+    parts.push(`місць ${watch.seatPrefs.minSeats}`);
   if (watch.seatPrefs.adjacent) parts.push('поруч');
   return parts.length > 0 ? parts.join(' · ') : null;
 }
@@ -63,9 +64,17 @@ export function WatchCard({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
-        {watch.maxPriceKop ? <span>до {hryvnia(watch.maxPriceKop)}</span> : <span>без стелі ціни</span>}
+        {watch.maxPriceKop ? (
+          <span>до {hryvnia(watch.maxPriceKop)}</span>
+        ) : (
+          <span>без стелі ціни</span>
+        )}
         {seats ? <span>{seats}</span> : null}
-        <span>{watch.alightEarlierMin > 0 ? `вийти раніше: до ${watch.alightEarlierMin} хв` : 'вийти раніше: ні'}</span>
+        <span>
+          {watch.alightEarlierMin > 0
+            ? `вийти раніше: до ${watch.alightEarlierMin} хв`
+            : 'вийти раніше: ні'}
+        </span>
         <span>оновлено {relTime(watch.updatedAt)}</span>
       </div>
 

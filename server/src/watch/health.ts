@@ -9,7 +9,9 @@ export interface HealthStats {
 
 export function readHealth(db: Db, sinceTs: number): HealthStats {
   const rows = db
-    .prepare('select status, count(*) as n from request_log where ts >= ? and cache_hit = 0 group by status')
+    .prepare(
+      'select status, count(*) as n from request_log where ts >= ? and cache_hit = 0 group by status',
+    )
     .all(sinceTs) as unknown as { status: number; n: number }[];
 
   let total = 0;

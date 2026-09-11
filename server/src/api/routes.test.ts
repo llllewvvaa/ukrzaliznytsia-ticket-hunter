@@ -20,7 +20,11 @@ const searchBody = JSON.stringify({
       station_from: 'Бета',
       station_to: 'Дельта',
       distance: 300,
-      train: { id: 5, number: '001К', wagon_classes: [{ id: 'К', name: 'Купе', free_seats: 2, price: 40_000 }] },
+      train: {
+        id: 5,
+        number: '001К',
+        wagon_classes: [{ id: 'К', name: 'Купе', free_seats: 2, price: 40_000 }],
+      },
       monitoring: { allowed: true },
     },
   ],
@@ -61,7 +65,13 @@ function deps(db: Db) {
 }
 
 function req(over: Partial<ApiRequest>): ApiRequest {
-  return { method: 'GET', path: '/api/health', query: new URLSearchParams(), body: undefined, ...over };
+  return {
+    method: 'GET',
+    path: '/api/health',
+    query: new URLSearchParams(),
+    body: undefined,
+    ...over,
+  };
 }
 
 describe('api routes', () => {
@@ -79,21 +89,34 @@ describe('api routes', () => {
   });
 
   it('searches stations only for meaningful queries', async () => {
-    const empty = await handleApi(deps(db), req({ path: '/api/stations', query: new URLSearchParams('q=К') }));
+    const empty = await handleApi(
+      deps(db),
+      req({ path: '/api/stations', query: new URLSearchParams('q=К') }),
+    );
     expect((empty.body as { stations: unknown[] }).stations).toHaveLength(0);
-    const found = await handleApi(deps(db), req({ path: '/api/stations', query: new URLSearchParams('q=Київ') }));
+    const found = await handleApi(
+      deps(db),
+      req({ path: '/api/stations', query: new URLSearchParams('q=Київ') }),
+    );
     expect((found.body as { stations: unknown[] }).stations).toHaveLength(1);
   });
 
   it('rejects an incomplete ways request', async () => {
-    const res = await handleApi(deps(db), req({ method: 'POST', path: '/api/ways', body: { fromId: 20 } }));
+    const res = await handleApi(
+      deps(db),
+      req({ method: 'POST', path: '/api/ways', body: { fromId: 20 } }),
+    );
     expect(res.status).toBe(400);
   });
 
   it('returns ranked ways', async () => {
     const res = await handleApi(
       deps(db),
-      req({ method: 'POST', path: '/api/ways', body: { fromId: 20, toId: 40, dates: ['2026-09-20'] } }),
+      req({
+        method: 'POST',
+        path: '/api/ways',
+        body: { fromId: 20, toId: 40, dates: ['2026-09-20'] },
+      }),
     );
     const body = res.body as { offers: { priceKop: number }[]; requests: number };
     expect(body.offers.length).toBeGreaterThan(0);
@@ -103,7 +126,11 @@ describe('api routes', () => {
   it('creates, lists, favourites and deletes a watch', async () => {
     const created = await handleApi(
       deps(db),
-      req({ method: 'POST', path: '/api/watches', body: { fromId: 20, toId: 40, dateFrom: '2026-09-20' } }),
+      req({
+        method: 'POST',
+        path: '/api/watches',
+        body: { fromId: 20, toId: 40, dateFrom: '2026-09-20' },
+      }),
     );
     const id = (created.body as { watch: { id: string } }).watch.id;
 
@@ -116,7 +143,10 @@ describe('api routes', () => {
     );
     expect((patched.body as { watch: { favorite: boolean } }).watch.favorite).toBe(true);
 
-    const deleted = await handleApi(deps(db), req({ method: 'DELETE', path: `/api/watches/${id}` }));
+    const deleted = await handleApi(
+      deps(db),
+      req({ method: 'DELETE', path: `/api/watches/${id}` }),
+    );
     expect(deleted.status).toBe(200);
     const after = await handleApi(deps(db), req({ path: '/api/watches' }));
     expect((after.body as { watches: unknown[] }).watches).toHaveLength(0);
@@ -125,15 +155,23 @@ describe('api routes', () => {
   it('stores and changes how early the owner may get off', async () => {
     const created = await handleApi(
       deps(db),
-      req({ method: 'POST', path: '/api/watches', body: { fromId: 20, toId: 40, dateFrom: '2026-09-20' } }),
+      req({
+        method: 'POST',
+        path: '/api/watches',
+        body: { fromId: 20, toId: 40, dateFrom: '2026-09-20' },
+      }),
     );
     const id = (created.body as { watch: { id: string; alightEarlierMin: number } }).watch.id;
-    expect((created.body as { watch: { alightEarlierMin: number } }).watch.alightEarlierMin).toBe(30);
+    expect((created.body as { watch: { alightEarlierMin: number } }).watch.alightEarlierMin).toBe(
+      30,
+    );
     const patched = await handleApi(
       deps(db),
       req({ method: 'PATCH', path: `/api/watches/${id}`, body: { alightEarlierMin: 15 } }),
     );
-    expect((patched.body as { watch: { alightEarlierMin: number } }).watch.alightEarlierMin).toBe(15);
+    expect((patched.body as { watch: { alightEarlierMin: number } }).watch.alightEarlierMin).toBe(
+      15,
+    );
   });
 
   it('lists events of a watch', async () => {

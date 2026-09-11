@@ -56,7 +56,12 @@ describe('forecast', () => {
       snap(db, t, 2);
       t += 1_800_000;
     }
-    const result = forecast(db, { trainNumber: '017О', classId: 'К', horizon: 'last_day', minSamples: 5 });
+    const result = forecast(db, {
+      trainNumber: '017О',
+      classId: 'К',
+      horizon: 'last_day',
+      minSamples: 5,
+    });
     expect(result.emptyObservations).toBe(10);
     expect(result.appearances).toBe(10);
     expect(result.probability).toBe(1);
@@ -68,7 +73,12 @@ describe('forecast', () => {
       snap(db, t, 0);
       t += 1_800_000;
     }
-    const result = forecast(db, { trainNumber: '017О', classId: 'К', horizon: 'last_day', minSamples: 5 });
+    const result = forecast(db, {
+      trainNumber: '017О',
+      classId: 'К',
+      horizon: 'last_day',
+      minSamples: 5,
+    });
     expect(result.probability).toBe(0);
   });
 
@@ -76,7 +86,12 @@ describe('forecast', () => {
     snap(db, (DEPART - 200 * 3_600) * 1_000, 0);
     snap(db, (DEPART - 2 * 3_600) * 1_000, 0);
     const far = forecast(db, { trainNumber: '017О', classId: 'К', horizon: 'far', minSamples: 1 });
-    const near = forecast(db, { trainNumber: '017О', classId: 'К', horizon: 'last_day', minSamples: 1 });
+    const near = forecast(db, {
+      trainNumber: '017О',
+      classId: 'К',
+      horizon: 'last_day',
+      minSamples: 1,
+    });
     expect(far.emptyObservations).toBe(1);
     expect(near.emptyObservations).toBe(1);
   });
@@ -84,7 +99,12 @@ describe('forecast', () => {
   it('reports the median observed price', () => {
     snap(db, (DEPART - 10 * 3_600) * 1_000, 2, 40_000);
     snap(db, (DEPART - 9 * 3_600) * 1_000, 2, 60_000);
-    const result = forecast(db, { trainNumber: '017О', classId: 'К', horizon: 'last_day', minSamples: 1 });
+    const result = forecast(db, {
+      trainNumber: '017О',
+      classId: 'К',
+      horizon: 'last_day',
+      minSamples: 1,
+    });
     expect(result.medianPriceKop).toBe(50_000);
   });
 

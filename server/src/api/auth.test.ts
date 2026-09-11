@@ -25,7 +25,11 @@ describe('verifyInitData', () => {
       auth_date: String(authDate),
       user: JSON.stringify({ id: 42, username: 'tester' }),
     });
-    expect(verifyInitData(initData, TOKEN, now)).toMatchObject({ ok: true, userId: 42, username: 'tester' });
+    expect(verifyInitData(initData, TOKEN, now)).toMatchObject({
+      ok: true,
+      userId: 42,
+      username: 'tester',
+    });
   });
 
   it('rejects a tampered payload', () => {
@@ -41,7 +45,10 @@ describe('verifyInitData', () => {
 
   it('rejects stale data', () => {
     const initData = signedInitData({ auth_date: String(authDate) });
-    expect(verifyInitData(initData, TOKEN, now + 90_000_000, 86_400)).toMatchObject({ ok: false, reason: 'expired' });
+    expect(verifyInitData(initData, TOKEN, now + 90_000_000, 86_400)).toMatchObject({
+      ok: false,
+      reason: 'expired',
+    });
   });
 
   it('refuses to run without a bot token', () => {
@@ -75,7 +82,8 @@ describe('failure throttle', () => {
   });
 
   it('forgets an address once the window passes', async () => {
-    const { FAILURE_LIMIT, FAILURE_WINDOW_MS, isBlocked, recordFailure } = await import('./auth.js');
+    const { FAILURE_LIMIT, FAILURE_WINDOW_MS, isBlocked, recordFailure } =
+      await import('./auth.js');
     const windows = new Map();
     for (let i = 0; i < FAILURE_LIMIT; i += 1) recordFailure(windows, '1.2.3.4', 1_000);
     expect(isBlocked(windows, '1.2.3.4', 1_000 + FAILURE_WINDOW_MS + 1)).toBe(false);

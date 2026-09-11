@@ -7,7 +7,9 @@ import type { PageFetchResult, UzTransport } from './browser.js';
 
 describe('isTransportFailure', () => {
   it('recognises the page aborting its own request', () => {
-    expect(isTransportFailure(new Error('page.evaluate: TimeoutError: signal timed out'))).toBe(true);
+    expect(isTransportFailure(new Error('page.evaluate: TimeoutError: signal timed out'))).toBe(
+      true,
+    );
   });
 
   it('recognises plain network failures', () => {
@@ -91,7 +93,9 @@ describe('client on a wedged page', () => {
       cache: createMemoryCache(),
       sleep: async () => {},
     });
-    await expect(client.get('/v3/trips', { maxAttempts: 2 })).rejects.toBeInstanceOf(TransportTimeoutError);
+    await expect(client.get('/v3/trips', { maxAttempts: 2 })).rejects.toBeInstanceOf(
+      TransportTimeoutError,
+    );
     expect(scripted.reloads()).toBe(2);
   });
 });

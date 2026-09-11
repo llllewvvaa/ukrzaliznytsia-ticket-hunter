@@ -23,7 +23,9 @@ interface StopTime {
 
 function stopTimes(db: Db, trainNumber: string): StopTime[] {
   const trip = db
-    .prepare('select trip_id as tripId from trip_route where train_number = ? order by built_at desc limit 1')
+    .prepare(
+      'select trip_id as tripId from trip_route where train_number = ? order by built_at desc limit 1',
+    )
     .get(trainNumber) as unknown as { tripId: number } | undefined;
   if (!trip) return [];
   return db
@@ -36,7 +38,12 @@ function stopTimes(db: Db, trainNumber: string): StopTime[] {
 // The atlas holds one dated run of each train; the gaps between its stops carry
 // over to any other day, so the ticket's departure plus the stored gap gives the
 // moment the train is at the owner's own boarding and alighting stations.
-export function journeyTimes(db: Db, input: JourneyInput, boardId: number, alightId: number): Journey {
+export function journeyTimes(
+  db: Db,
+  input: JourneyInput,
+  boardId: number,
+  alightId: number,
+): Journey {
   const fallback: Journey = {
     departAt: input.departAt,
     arriveAt: input.arriveAt,
@@ -60,9 +67,12 @@ export function journeyTimes(db: Db, input: JourneyInput, boardId: number, aligh
   const alightAt = alight?.arriveAt ?? alight?.departAt ?? null;
   if (reference == null || boardAt == null || alightAt == null || !input.departAt) return fallback;
 
-  const departAt = boardId === input.fromId ? input.departAt : input.departAt + (boardAt - reference);
+  const departAt =
+    boardId === input.fromId ? input.departAt : input.departAt + (boardAt - reference);
   const arriveAt =
-    input.toId != null && alightId === input.toId && input.arriveAt ? input.arriveAt : input.departAt + (alightAt - reference);
+    input.toId != null && alightId === input.toId && input.arriveAt
+      ? input.arriveAt
+      : input.departAt + (alightAt - reference);
   if (arriveAt <= departAt) return fallback;
   return { departAt, arriveAt, durationMin: Math.round((arriveAt - departAt) / 60), exact: true };
 }

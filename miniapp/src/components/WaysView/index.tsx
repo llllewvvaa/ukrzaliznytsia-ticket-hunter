@@ -9,7 +9,11 @@ import { useWays } from '../../hooks/use-ways';
 import { isoDate, shiftIso } from '../../lib/format';
 import { CLASS_OPTIONS, type Offer, type Station } from '../../types';
 
-export function WaysView({ onWatchOffer }: { onWatchOffer: (offer: Offer, from: Station, to: Station) => void }) {
+export function WaysView({
+  onWatchOffer,
+}: {
+  onWatchOffer: (offer: Offer, from: Station, to: Station) => void;
+}) {
   const [from, setFrom] = useState<Station | null>(null);
   const [to, setTo] = useState<Station | null>(null);
   const [dateFrom, setDateFrom] = useState(isoDate(7));
@@ -46,13 +50,22 @@ export function WaysView({ onWatchOffer }: { onWatchOffer: (offer: Offer, from: 
   return (
     <>
       <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <StationCombobox label="Звідки" placeholder="Київ-Пасажирський" value={from} onPick={setFrom} />
+        <StationCombobox
+          label="Звідки"
+          placeholder="Київ-Пасажирський"
+          value={from}
+          onPick={setFrom}
+        />
         <StationCombobox label="Куди" placeholder="Львів" value={to} onPick={setTo} />
 
         <div className="grid grid-cols-4 gap-2">
           <div className="col-span-2">
             <Field label="Дата">
-              <Input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(event) => setDateFrom(event.target.value)}
+              />
             </Field>
           </div>
           <Field label="Днів">
@@ -111,7 +124,13 @@ export function WaysView({ onWatchOffer }: { onWatchOffer: (offer: Offer, from: 
           </Field>
         </div>
 
-        <Button variant="primary" size="lg" className="w-full" disabled={!ready || ways.busy} onClick={handleSearch}>
+        <Button
+          variant="primary"
+          size="lg"
+          className="w-full"
+          disabled={!ready || ways.busy}
+          onClick={handleSearch}
+        >
           {ways.busy ? 'Шукаю…' : 'Знайти спосіб доїхати'}
         </Button>
       </div>
@@ -133,14 +152,16 @@ export function WaysView({ onWatchOffer }: { onWatchOffer: (offer: Offer, from: 
               icon={<SearchIcon className="h-6 w-6" />}
             />
           ) : (
-            ways.state.offers.slice(0, 20).map((offer) => (
-              <OfferCard
-                key={`${offer.tripId}-${offer.classId}-${offer.fromId}-${offer.toId}`}
-                offer={offer}
-                cheapest={offer.priceKop === cheapestPrice}
-                onWatch={ready ? (value) => onWatchOffer(value, from!, to!) : undefined}
-              />
-            ))
+            ways.state.offers
+              .slice(0, 20)
+              .map((offer) => (
+                <OfferCard
+                  key={`${offer.tripId}-${offer.classId}-${offer.fromId}-${offer.toId}`}
+                  offer={offer}
+                  cheapest={offer.priceKop === cheapestPrice}
+                  onWatch={ready ? (value) => onWatchOffer(value, from!, to!) : undefined}
+                />
+              ))
           )}
         </>
       ) : null}

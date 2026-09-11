@@ -34,7 +34,8 @@ export function applyTiers<T extends Tierable>(options: T[]): T[] {
     }
     const tier = tierOf(option.kind);
     const currentTier = tierOf(current.kind);
-    if (tier < currentTier || (tier === currentTier && option.priceKop < current.priceKop)) best.set(key, option);
+    if (tier < currentTier || (tier === currentTier && option.priceKop < current.priceKop))
+      best.set(key, option);
   }
   const kept = new Set(best.values());
   return options.filter((option) => kept.has(option));

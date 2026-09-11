@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { applyTiers, tierOf } from './tiers.js';
 
-const o = (kind: string, classId: string, trainNumber = '045Д', date = '2026-09-25', priceKop = 1) => ({
+const o = (
+  kind: string,
+  classId: string,
+  trainNumber = '045Д',
+  date = '2026-09-25',
+  priceKop = 1,
+) => ({
   kind,
   classId,
   trainNumber,
@@ -18,27 +24,54 @@ describe('tiers', () => {
   });
 
   it('keeps only the ordinary ticket when the class has one', () => {
-    const kept = applyTiers([o('direct', 'С2'), o('board_earlier', 'С2'), o('alight_earlier', 'С2')]);
+    const kept = applyTiers([
+      o('direct', 'С2'),
+      o('board_earlier', 'С2'),
+      o('alight_earlier', 'С2'),
+    ]);
     expect(kept.map((x) => x.kind)).toEqual(['direct']);
   });
 
   it('falls to a longer ticket before getting off early, keeping the cheaper one', () => {
-    const kept = applyTiers([o('alight_earlier', 'К', '045Д', '2026-09-25', 1), o('ride_further', 'К', '045Д', '2026-09-25', 30), o('board_earlier', 'К', '045Д', '2026-09-25', 20)]);
+    const kept = applyTiers([
+      o('alight_earlier', 'К', '045Д', '2026-09-25', 1),
+      o('ride_further', 'К', '045Д', '2026-09-25', 30),
+      o('board_earlier', 'К', '045Д', '2026-09-25', 20),
+    ]);
     expect(kept.map((x) => x.kind)).toEqual(['board_earlier']);
   });
 
   it('shows one run bought from two earlier stations once, at the lower price', () => {
     const kept = applyTiers([
-      { kind: 'board_earlier', classId: 'П', trainNumber: '013О', date: '2026-09-19', priceKop: 24_229 },
-      { kind: 'board_earlier', classId: 'П', trainNumber: '013О', date: '2026-09-19', priceKop: 22_774 },
+      {
+        kind: 'board_earlier',
+        classId: 'П',
+        trainNumber: '013О',
+        date: '2026-09-19',
+        priceKop: 24_229,
+      },
+      {
+        kind: 'board_earlier',
+        classId: 'П',
+        trainNumber: '013О',
+        date: '2026-09-19',
+        priceKop: 22_774,
+      },
     ]);
     expect(kept).toHaveLength(1);
     expect(kept[0]!.priceKop).toBe(22_774);
   });
 
   it('judges each class on its own', () => {
-    const kept = applyTiers([o('direct', 'С2'), o('board_earlier', 'С1', '045Д', '2026-09-25', 5), o('alight_earlier', 'С1')]);
-    expect(kept.map((x) => `${x.classId}:${x.kind}`).sort()).toEqual(['С1:board_earlier', 'С2:direct']);
+    const kept = applyTiers([
+      o('direct', 'С2'),
+      o('board_earlier', 'С1', '045Д', '2026-09-25', 5),
+      o('alight_earlier', 'С1'),
+    ]);
+    expect(kept.map((x) => `${x.classId}:${x.kind}`).sort()).toEqual([
+      'С1:board_earlier',
+      'С2:direct',
+    ]);
   });
 
   it('treats купе and плацкарт separately', () => {
@@ -47,7 +80,11 @@ describe('tiers', () => {
   });
 
   it('judges each train and day on its own', () => {
-    const kept = applyTiers([o('direct', 'К', '045Д'), o('board_earlier', 'К', '081О'), o('alight_earlier', 'К', '045Д', '2026-09-26')]);
+    const kept = applyTiers([
+      o('direct', 'К', '045Д'),
+      o('board_earlier', 'К', '081О'),
+      o('alight_earlier', 'К', '045Д', '2026-09-26'),
+    ]);
     expect(kept).toHaveLength(3);
   });
 });

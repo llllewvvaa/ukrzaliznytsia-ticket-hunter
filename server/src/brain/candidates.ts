@@ -114,13 +114,23 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
 
   const all = segmentOptions(db, fromId, toId, alightEarlierMin);
   const longer = all
-    .filter((option) => (option.kind === 'ride_further' || option.kind === 'board_earlier') && option.extraStops <= maxExtraStops)
+    .filter(
+      (option) =>
+        (option.kind === 'ride_further' || option.kind === 'board_earlier') &&
+        option.extraStops <= maxExtraStops,
+    )
     .slice(0, maxSegmentOptions);
-  const shorter = all.filter((option) => option.kind === 'alight_earlier').slice(0, maxSegmentOptions);
+  const shorter = all
+    .filter((option) => option.kind === 'alight_earlier')
+    .slice(0, maxSegmentOptions);
 
   for (const segment of [...longer, ...shorter]) {
     const kind: CandidateKind =
-      segment.kind === 'ride_further' ? 'ride_further' : segment.kind === 'alight_earlier' ? 'alight_earlier' : 'board_earlier';
+      segment.kind === 'ride_further'
+        ? 'ride_further'
+        : segment.kind === 'alight_earlier'
+          ? 'alight_earlier'
+          : 'board_earlier';
     const why =
       kind === 'ride_further'
         ? `їхати далі до ${segment.toName} потягом ${segment.trainNumber}`
@@ -131,7 +141,15 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
     // station the evening before, so boarding earlier also searches that day.
     const searchDates = kind === 'board_earlier' ? expandBack(dates) : dates;
     for (const date of searchDates) {
-      push({ fromId: segment.fromId, toId: segment.toId, date, kind, withTransfers: false, weight: KIND_WEIGHT[kind], why });
+      push({
+        fromId: segment.fromId,
+        toId: segment.toId,
+        date,
+        kind,
+        withTransfers: false,
+        weight: KIND_WEIGHT[kind],
+        why,
+      });
     }
   }
 
@@ -154,6 +172,8 @@ export function planCandidates(db: Db, request: CandidateRequest): Candidate[] {
 }
 
 export function networkCost(candidates: Candidate[]): number {
-  const pairs = new Set(candidates.map((c) => `${c.fromId}:${c.toId}:${c.date}:${c.withTransfers ? 1 : 0}`));
+  const pairs = new Set(
+    candidates.map((c) => `${c.fromId}:${c.toId}:${c.date}:${c.withTransfers ? 1 : 0}`),
+  );
   return pairs.size;
 }

@@ -11,7 +11,8 @@ export function Segments({ segments }: { segments: Segment[] }) {
             <div className="flex items-baseline justify-between gap-2 text-[11px] leading-snug text-violet-900">
               <span className="font-semibold">{segment.trainNumber}</span>
               <span>
-                {segment.from} {clockTime(segment.departAt)} → {segment.to} {clockTime(segment.arriveAt)}
+                {segment.from} {clockTime(segment.departAt)} → {segment.to}{' '}
+                {clockTime(segment.arriveAt)}
               </span>
             </div>
             {next ? (

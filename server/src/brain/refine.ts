@@ -18,11 +18,15 @@ export interface Refined {
 
 export function trainStops(db: Db, trainNumber: string): number[] {
   const trip = db
-    .prepare('select trip_id as tripId from trip_route where train_number = ? order by built_at desc limit 1')
+    .prepare(
+      'select trip_id as tripId from trip_route where train_number = ? order by built_at desc limit 1',
+    )
     .get(trainNumber) as unknown as { tripId: number } | undefined;
   if (!trip) return [];
   return (
-    db.prepare('select station_id as stationId from trip_route where trip_id = ? order by seq').all(trip.tripId) as unknown as {
+    db
+      .prepare('select station_id as stationId from trip_route where trip_id = ? order by seq')
+      .all(trip.tripId) as unknown as {
       stationId: number;
     }[]
   ).map((row) => row.stationId);
@@ -30,13 +34,21 @@ export function trainStops(db: Db, trainNumber: string): number[] {
 
 function arrivalTimes(db: Db, trainNumber: string): Map<number, number> {
   const trip = db
-    .prepare('select trip_id as tripId from trip_route where train_number = ? order by built_at desc limit 1')
+    .prepare(
+      'select trip_id as tripId from trip_route where train_number = ? order by built_at desc limit 1',
+    )
     .get(trainNumber) as unknown as { tripId: number } | undefined;
   const out = new Map<number, number>();
   if (!trip) return out;
   const rows = db
-    .prepare('select station_id as stationId, arrive_at as arriveAt, depart_at as departAt from trip_route where trip_id = ? order by seq')
-    .all(trip.tripId) as unknown as { stationId: number; arriveAt: number | null; departAt: number | null }[];
+    .prepare(
+      'select station_id as stationId, arrive_at as arriveAt, depart_at as departAt from trip_route where trip_id = ? order by seq',
+    )
+    .all(trip.tripId) as unknown as {
+    stationId: number;
+    arriveAt: number | null;
+    departAt: number | null;
+  }[];
   for (const row of rows) {
     const at = row.arriveAt ?? row.departAt;
     if (at != null) out.set(row.stationId, at);
@@ -45,7 +57,8 @@ function arrivalTimes(db: Db, trainNumber: string): Map<number, number> {
 }
 
 function stationName(db: Db, id: number): string {
-  const row = db.prepare('select name from station where id = ?').get(id) as unknown as { name: string } | undefined;
+  const row = db.prepare('select name from station where id = ?').get(id) as unknown as
+    { name: string } | undefined;
   return row?.name ?? String(id);
 }
 
@@ -111,13 +124,24 @@ export function refineKind(
     const boards = at(origin);
     const alights = at(destination);
     const covers =
-      ticketFrom >= 0 && ticketTo >= 0 && boards >= 0 && alights >= 0 &&
-      ticketFrom <= boards && boards < alights && alights <= ticketTo;
+      ticketFrom >= 0 &&
+      ticketTo >= 0 &&
+      boards >= 0 &&
+      alights >= 0 &&
+      ticketFrom <= boards &&
+      boards < alights &&
+      alights <= ticketTo;
     if (!covers) return null;
 
     const parts: string[] = [];
-    if (offer.fromId !== origin) parts.push(`квиток від ${stationName(db, offer.fromId)}, посадка у ${stationName(db, origin)}`);
-    if (offer.toId !== destination) parts.push(`квиток до ${stationName(db, offer.toId)}, вихід у ${stationName(db, destination)}`);
+    if (offer.fromId !== origin)
+      parts.push(
+        `квиток від ${stationName(db, offer.fromId)}, посадка у ${stationName(db, origin)}`,
+      );
+    if (offer.toId !== destination)
+      parts.push(
+        `квиток до ${stationName(db, offer.toId)}, вихід у ${stationName(db, destination)}`,
+      );
     return {
       kind: offer.fromId !== origin ? 'board_earlier' : 'ride_further',
       why: parts.join('; '),

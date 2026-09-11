@@ -18,7 +18,14 @@ import {
   samplesFromOffers,
 } from '../store/history.js';
 import { listWatches, watchDates, type Watch } from '../store/watches.js';
-import { dueProbes, getProbe, pruneOrphanProbes, recordProbe, upsertProbe, type ProbeKey } from './probe-store.js';
+import {
+  dueProbes,
+  getProbe,
+  pruneOrphanProbes,
+  recordProbe,
+  upsertProbe,
+  type ProbeKey,
+} from './probe-store.js';
 import { createBudget, take, type BudgetState } from './budget.js';
 import { diffSamples, type Change } from './diff.js';
 import { matchWagons, type SeatMatch } from './seat-rules.js';
@@ -122,7 +129,12 @@ export class WatchEngine {
   refreshProbes(plans: Map<string, { candidate: Candidate; watches: Watch[] }>): void {
     const now = this.now();
     for (const { candidate, watches } of plans.values()) {
-      upsertProbe(this.deps.db, candidate, now, watches.some((w) => w.favorite));
+      upsertProbe(
+        this.deps.db,
+        candidate,
+        now,
+        watches.some((w) => w.favorite),
+      );
     }
   }
 
@@ -208,7 +220,13 @@ export class WatchEngine {
       recordSnapshots(
         this.deps.db,
         takenAt,
-        { fromId: key.fromId, toId: key.toId, date: key.date, source: plan.candidate.kind, why: plan.candidate.why },
+        {
+          fromId: key.fromId,
+          toId: key.toId,
+          date: key.date,
+          source: plan.candidate.kind,
+          why: plan.candidate.why,
+        },
         samples,
       );
 
@@ -217,7 +235,9 @@ export class WatchEngine {
         continue;
       }
 
-      const changes = diffSamples(previous, samples, { priceDropMinKop: this.config.priceDropMinKop });
+      const changes = diffSamples(previous, samples, {
+        priceDropMinKop: this.config.priceDropMinKop,
+      });
       if (changes.length === 0) continue;
 
       for (const watch of plan.watches) {
@@ -229,7 +249,13 @@ export class WatchEngine {
           const refined = refinedByKey.get(`${change.tripId}:${change.classId}`);
           const journey = journeyTimes(
             this.deps.db,
-            { trainNumber: change.trainNumber, fromId: key.fromId, toId: key.toId, departAt: change.departAt, arriveAt: change.arriveAt },
+            {
+              trainNumber: change.trainNumber,
+              fromId: key.fromId,
+              toId: key.toId,
+              departAt: change.departAt,
+              arriveAt: change.arriveAt,
+            },
             refined?.boardId ?? key.fromId,
             refined?.alightId ?? key.toId,
           );
@@ -314,7 +340,9 @@ export class WatchEngine {
     if (isTransferClass(change.classId)) return [];
 
     const row = this.deps.db
-      .prepare('select max(taken_at) as takenAt from seat_snapshot where trip_id = ? and class_id = ?')
+      .prepare(
+        'select max(taken_at) as takenAt from seat_snapshot where trip_id = ? and class_id = ?',
+      )
       .get(change.tripId, change.classId) as unknown as { takenAt: number | null } | undefined;
     const lastCheck = row?.takenAt ?? 0;
     if (now - lastCheck < this.config.seatCheckIntervalMs) return [];

@@ -15,7 +15,10 @@ import { adjacentPairs, isLowerBerth, matchWagons } from './seat-rules.js';
 import { parseWagons } from '../uz/parse.js';
 import type { TripDetail } from '../uz/types.js';
 
-const wagonsBody = readFileSync(new URL('../../fixtures/wagons-kupe.json', import.meta.url), 'utf-8');
+const wagonsBody = readFileSync(
+  new URL('../../fixtures/wagons-kupe.json', import.meta.url),
+  'utf-8',
+);
 
 function searchBody(trips: { id: number; number: string; free: number; price: number }[]): string {
   return JSON.stringify({
@@ -34,7 +37,9 @@ function searchBody(trips: { id: number; number: string; free: number; price: nu
       train: {
         id: t.id % 1000,
         number: t.number,
-        wagon_classes: [{ id: 'К', name: 'Купе', free_seats: t.free, price: t.price, amenities: [] }],
+        wagon_classes: [
+          { id: 'К', name: 'Купе', free_seats: t.free, price: t.price, amenities: [] },
+        ],
       },
     })),
     with_transfer: [],
@@ -236,7 +241,10 @@ describe('watch engine', () => {
       async fetchPath(path): Promise<PageFetchResult> {
         calls += 1;
         if (calls === 1) throw new TransportTimeoutError(path);
-        return { status: 200, body: searchBody([{ id: 501, number: '001К', free: 1, price: 50_000 }]) };
+        return {
+          status: 200,
+          body: searchBody([{ id: 501, number: '001К', free: 1, price: 50_000 }]),
+        };
       },
       async reload() {},
       async close() {},
@@ -281,13 +289,19 @@ describe('transfer combinations', () => {
   const base = { tripId: 1, trainNumber: '001К', className: '2 сегменти', departAt: 100 };
 
   it('never reports a vanished combination', () => {
-    const prev = new Map([['1:MIX:1-2', { ...base, classId: 'MIX:1-2', freeSeats: 2, priceKop: 100 }]]);
-    expect(diffSamples(prev, [{ ...base, classId: 'MIX:1-2', freeSeats: 0, priceKop: 100 }])).toEqual([]);
+    const prev = new Map([
+      ['1:MIX:1-2', { ...base, classId: 'MIX:1-2', freeSeats: 2, priceKop: 100 }],
+    ]);
+    expect(
+      diffSamples(prev, [{ ...base, classId: 'MIX:1-2', freeSeats: 0, priceKop: 100 }]),
+    ).toEqual([]);
     expect(diffSamples(prev, [])).toEqual([]);
   });
 
   it('still reports a combination that becomes available', () => {
-    const changes = diffSamples(new Map(), [{ ...base, classId: 'MIX:1-2', freeSeats: 2, priceKop: 100 }]);
+    const changes = diffSamples(new Map(), [
+      { ...base, classId: 'MIX:1-2', freeSeats: 2, priceKop: 100 },
+    ]);
     expect(changes[0]!.kind).toBe('appeared');
   });
 });
@@ -318,13 +332,17 @@ describe('diffSamples', () => {
 
   it('ignores a price drop smaller than the threshold', () => {
     const prev = new Map([['1:К', { ...base, freeSeats: 2, priceKop: 100_000 }]]);
-    const changes = diffSamples(prev, [{ ...base, freeSeats: 2, priceKop: 99_500 }], { priceDropMinKop: 1_000 });
+    const changes = diffSamples(prev, [{ ...base, freeSeats: 2, priceKop: 99_500 }], {
+      priceDropMinKop: 1_000,
+    });
     expect(changes).toEqual([]);
   });
 
   it('reports a bigger seat release', () => {
     const prev = new Map([['1:К', { ...base, freeSeats: 1, priceKop: 100 }]]);
-    expect(diffSamples(prev, [{ ...base, freeSeats: 9, priceKop: 100 }])[0]!.kind).toBe('more_seats');
+    expect(diffSamples(prev, [{ ...base, freeSeats: 9, priceKop: 100 }])[0]!.kind).toBe(
+      'more_seats',
+    );
   });
 });
 

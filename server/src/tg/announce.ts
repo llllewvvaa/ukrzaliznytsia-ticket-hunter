@@ -36,7 +36,9 @@ export function newTrainsFrom(events: StoredEvent[]): NewTrain[] {
     const priceKop = Number(payload.priceKop ?? 0);
     const departAt = Number(payload.journeyDepartAt ?? payload.departAt ?? 0);
     const arriveAt = Number(payload.journeyArriveAt ?? payload.arriveAt ?? 0);
-    const durationMin = Number(payload.durationMin ?? (arriveAt > departAt ? Math.round((arriveAt - departAt) / 60) : 0));
+    const durationMin = Number(
+      payload.durationMin ?? (arriveAt > departAt ? Math.round((arriveAt - departAt) / 60) : 0),
+    );
     const why = String(payload.why ?? '');
     const key = `${date}:${trainNumber}`;
     const current = byKey.get(key);
@@ -86,7 +88,12 @@ export function announcementText(watch: Pick<Watch, 'name'>, groups: DateGroup[]
   return lines.join('\n');
 }
 
-export function alreadyAnnounced(db: Db, watchId: string, date: string, trainNumber: string): boolean {
+export function alreadyAnnounced(
+  db: Db,
+  watchId: string,
+  date: string,
+  trainNumber: string,
+): boolean {
   const row = db
     .prepare(
       'select 1 as hit from announced where watch_id = ? and date = ? and train_number = ? and cleared_at is null',
@@ -108,7 +115,9 @@ export function markAnnounced(db: Db, watchId: string, trains: NewTrain[], now: 
 // while, so tickets that vanish and come back are news again.
 export function clearVanished(db: Db, now: number, quietMs = CLEAR_AFTER_MS): number {
   const open = db
-    .prepare('select watch_id as watchId, date, train_number as trainNumber from announced where cleared_at is null')
+    .prepare(
+      'select watch_id as watchId, date, train_number as trainNumber from announced where cleared_at is null',
+    )
     .all() as unknown as { watchId: string; date: string; trainNumber: string }[];
   const seen = db.prepare(
     'select 1 as hit from snapshot where train_number = ? and date = ? and free_seats > 0 and taken_at > ? limit 1',

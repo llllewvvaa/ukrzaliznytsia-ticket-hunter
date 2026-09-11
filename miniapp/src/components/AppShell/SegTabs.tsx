@@ -40,7 +40,9 @@ export function SegTabs({ tab, onChange }: { tab: Tab; onChange: (next: Tab) => 
           onClick={handleClick(item.id)}
           onKeyDown={onKeyDown}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-semibold transition-colors duration-200 ${
-            tab === item.id ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'
+            tab === item.id
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-500 hover:text-gray-800'
           }`}
         >
           {item.icon}

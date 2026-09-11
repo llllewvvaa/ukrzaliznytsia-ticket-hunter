@@ -57,7 +57,10 @@ describe('planCandidates', () => {
 
   it('searches the day before for boarding earlier, not for the other kinds', () => {
     const plan = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'] });
-    const earlierDates = plan.filter((c) => c.kind === 'board_earlier').map((c) => c.date).sort();
+    const earlierDates = plan
+      .filter((c) => c.kind === 'board_earlier')
+      .map((c) => c.date)
+      .sort();
     const furtherDates = plan.filter((c) => c.kind === 'ride_further').map((c) => c.date);
     expect(earlierDates).toEqual(['2026-09-09', '2026-09-10']);
     expect(furtherDates).toEqual(['2026-09-10']);
@@ -89,7 +92,12 @@ describe('planCandidates', () => {
   });
 
   it('offers getting off a stop early only when the train is minutes from the destination', () => {
-    const near = planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], alightEarlierMin: 20 });
+    const near = planCandidates(db, {
+      fromId: 20,
+      toId: 40,
+      dates: ['2026-09-10'],
+      alightEarlierMin: 20,
+    });
     const early = near.filter((c) => c.kind === 'alight_earlier');
     expect(early).toHaveLength(1);
     expect(early[0]!.toId).toBe(30);
@@ -97,8 +105,19 @@ describe('planCandidates', () => {
   });
 
   it('skips getting off early when the gap is over the limit or the option is off', () => {
-    expect(planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], alightEarlierMin: 10 }).some((c) => c.kind === 'alight_earlier')).toBe(false);
-    expect(planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], alightEarlierMin: 0 }).some((c) => c.kind === 'alight_earlier')).toBe(false);
+    expect(
+      planCandidates(db, {
+        fromId: 20,
+        toId: 40,
+        dates: ['2026-09-10'],
+        alightEarlierMin: 10,
+      }).some((c) => c.kind === 'alight_earlier'),
+    ).toBe(false);
+    expect(
+      planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], alightEarlierMin: 0 }).some(
+        (c) => c.kind === 'alight_earlier',
+      ),
+    ).toBe(false);
   });
 
   it('never repeats the same pair-date-mode', () => {
@@ -107,9 +126,13 @@ describe('planCandidates', () => {
   });
 
   it('costs nothing in network calls', () => {
-    const before = db.prepare('select count(*) as n from request_log').get() as unknown as { n: number };
+    const before = db.prepare('select count(*) as n from request_log').get() as unknown as {
+      n: number;
+    };
     planCandidates(db, { fromId: 20, toId: 40, dates: ['2026-09-10'], dateSlack: 2 });
-    const after = db.prepare('select count(*) as n from request_log').get() as unknown as { n: number };
+    const after = db.prepare('select count(*) as n from request_log').get() as unknown as {
+      n: number;
+    };
     expect(after.n).toBe(before.n);
   });
 
@@ -120,13 +143,17 @@ describe('planCandidates', () => {
       dates: ['2026-09-10'],
       maxSegmentOptions: 1,
     });
-    expect(plan.filter((c) => c.kind === 'ride_further' || c.kind === 'board_earlier')).toHaveLength(1);
+    expect(
+      plan.filter((c) => c.kind === 'ride_further' || c.kind === 'board_earlier'),
+    ).toHaveLength(1);
   });
 });
 
 describe('ranking real search data', () => {
   const search = parseSearch(
-    JSON.parse(readFileSync(new URL('../../fixtures/search-kyiv-lviv.json', import.meta.url), 'utf-8')),
+    JSON.parse(
+      readFileSync(new URL('../../fixtures/search-kyiv-lviv.json', import.meta.url), 'utf-8'),
+    ),
   );
   const candidate = {
     fromId: 2200001,
@@ -149,7 +176,11 @@ describe('ranking real search data', () => {
             arrive_at: 5_000,
             station_from: 'Львів',
             station_to: 'Тернопіль',
-            train: { id: 1, number: '111К', wagon_classes: [{ id: 'К', name: 'Купе', free_seats: 3, price: 20_000 }] },
+            train: {
+              id: 1,
+              number: '111К',
+              wagon_classes: [{ id: 'К', name: 'Купе', free_seats: 3, price: 20_000 }],
+            },
           },
           {
             id: 2,
@@ -157,16 +188,27 @@ describe('ranking real search data', () => {
             arrive_at: 12_000,
             station_from: 'Тернопіль',
             station_to: 'Чернівці',
-            train: { id: 2, number: '222П', wagon_classes: [{ id: 'П', name: 'Плацкарт', free_seats: 5, price: 15_000 }] },
+            train: {
+              id: 2,
+              number: '222П',
+              wagon_classes: [{ id: 'П', name: 'Плацкарт', free_seats: 5, price: 15_000 }],
+            },
           },
         ],
       ],
     });
-    const offers = offersFromSearch(variant, { ...candidate, kind: 'transfers', withTransfers: true });
+    const offers = offersFromSearch(variant, {
+      ...candidate,
+      kind: 'transfers',
+      withTransfers: true,
+    });
     const transfer = offers.find((o) => o.segments)!;
     expect(transfer.trainNumber).toBe('111К + 222П');
     expect(transfer.priceKop).toBe(35_000);
-    expect(transfer.segments!.map((l) => `${l.from}-${l.to}`)).toEqual(['Львів-Тернопіль', 'Тернопіль-Чернівці']);
+    expect(transfer.segments!.map((l) => `${l.from}-${l.to}`)).toEqual([
+      'Львів-Тернопіль',
+      'Тернопіль-Чернівці',
+    ]);
     expect(transfer.arriveAt).toBe(12_000);
   });
 

@@ -22,7 +22,11 @@ export interface Daemon {
 export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise<Daemon> {
   const config = { ...readConfig(), ...overrides };
   const lock = acquireLock(lockPath());
-  const context = await createContext({ headless: config.headless, quiet: true, perHour: config.perHour });
+  const context = await createContext({
+    headless: config.headless,
+    quiet: true,
+    perHour: config.perHour,
+  });
 
   const engine = new WatchEngine({
     db: context.db,
@@ -59,7 +63,9 @@ export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise
       devNoAuth: config.devNoAuth,
     },
   );
-  console.log(`http listening on ${config.host}:${config.port}${config.appSecret ? ' (app under secret path)' : ''}`);
+  console.log(
+    `http listening on ${config.host}:${config.port}${config.appSecret ? ' (app under secret path)' : ''}`,
+  );
 
   let stopped = false;
   let lastProgressAt = Date.now();
@@ -84,7 +90,9 @@ export async function runDaemon(overrides: Partial<RuntimeConfig> = {}): Promise
         const cap = Math.max(1, Math.round(config.maxProbesPerCycle * factor));
         if (cap !== engine.probeCap) {
           engine.setProbeCap(cap);
-          console.log(`throttle: factor ${factor}, probes per cycle ${cap}, errors ${JSON.stringify(health)}`);
+          console.log(
+            `throttle: factor ${factor}, probes per cycle ${cap}, errors ${JSON.stringify(health)}`,
+          );
         }
         const atlas = await maintainAtlas({ db: context.db, client: context.client });
         if (atlas.pairs > 0) console.log(`atlas: ${JSON.stringify(atlas.results)}`);

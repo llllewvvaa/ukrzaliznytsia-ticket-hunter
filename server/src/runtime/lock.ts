@@ -2,7 +2,10 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 export class LockHeldError extends Error {
-  constructor(public readonly pid: number, public readonly file: string) {
+  constructor(
+    public readonly pid: number,
+    public readonly file: string,
+  ) {
     super(`another instance is running (pid ${pid}, lock ${file})`);
     this.name = 'LockHeldError';
   }
@@ -13,7 +16,10 @@ export interface Lock {
   release: () => void;
 }
 
-export function isProcessAlive(pid: number, kill: (pid: number, signal: number) => void = process.kill): boolean {
+export function isProcessAlive(
+  pid: number,
+  kill: (pid: number, signal: number) => void = process.kill,
+): boolean {
   if (!Number.isFinite(pid) || pid <= 0) return false;
   try {
     kill(pid, 0);

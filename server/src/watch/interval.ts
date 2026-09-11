@@ -11,7 +11,11 @@ export interface IntervalOptions {
   growth?: number;
 }
 
-export function nextInterval(currentMs: number, changed: boolean, options: IntervalOptions = {}): number {
+export function nextInterval(
+  currentMs: number,
+  changed: boolean,
+  options: IntervalOptions = {},
+): number {
   const min = options.min ?? MIN_INTERVAL_MS;
   const max = options.max ?? MAX_INTERVAL_MS;
   const growth = options.growth ?? GROWTH;
