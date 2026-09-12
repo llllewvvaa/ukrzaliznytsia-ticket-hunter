@@ -1,0 +1,21 @@
+[Unit]
+Description=UZ ticket availability watcher
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=%i
+Environment=UZ_DATA_DIR=/var/lib/uz-watch
+Environment=UZ_PORT=8848
+Environment=UZ_HEADLESS=0
+Environment=DISPLAY=:99
+EnvironmentFile=-/etc/uz-watch.env
+WorkingDirectory=/opt/uz-hunter/server
+ExecStartPre=/usr/bin/env bash -c 'pgrep -x Xvfb >/dev/null || (Xvfb :99 -screen 0 1280x900x24 &)'
+ExecStart=/usr/bin/env pnpm serve
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

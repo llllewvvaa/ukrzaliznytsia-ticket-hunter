@@ -1,0 +1,7 @@
+[Unit]
+Description=Check the uz-watch Mini App address from the public internet
+After=network-online.target tailscaled.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/uz-watch/server/deploy/funnel-watchdog.sh
